@@ -7,13 +7,16 @@
 
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet-measure@3.1.0/dist/leaflet-measure.css">
+
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.9.0/proj4.js"></script>
-    
     <script src="https://unpkg.com/leaflet-omnivore@0.3.4/leaflet-omnivore.min.js"></script>
-    
     <script src="https://unpkg.com/jszip@3.10.1/dist/jszip.min.js"></script>
     <script src="https://unpkg.com/leaflet-kmz@latest/dist/leaflet-kmz.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/leaflet-measure@3.1.0/dist/leaflet-measure.js"></script>
 
     <style>
         body, html { margin: 0; padding: 0; width: 100vw; height: 100vh; overflow: hidden; font-family: 'Kanit', sans-serif; background-color: #000; }
@@ -58,6 +61,17 @@
 
         /* HUD */
         #hud-box { position: absolute; bottom: 25px; right: 10px; background: rgba(0, 0, 0, 0.6); color: #00FFCC; padding: 8px 15px; border-radius: 8px; font-family: monospace, 'Kanit', sans-serif; font-size: 14px; z-index: 9999; border: 1px solid rgba(0, 255, 204, 0.3); pointer-events: none; text-shadow: 1px 1px 3px #000; }
+
+        /* 🌟 ใหม่: สไตล์ของป้ายชื่อบนแผนที่ */
+        .my-kmz-label {
+            background: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
+            color: #FFFF00 !important; /* สีเหลือง */
+            font-weight: bold;
+            font-size: 14px;
+            text-shadow: 2px 2px 4px #000; /* ขอบดำให้มองเห็นชัด */
+        }
     </style>
 </head>
 <body>
@@ -142,9 +156,6 @@
     <div id="hud-box">กำลังรอพิกัดเมาส์...</div>
 
     <script>
-        // ==========================================
-        // 🌟 ตั้งค่าลิงก์หลังบ้านตรงนี้ที่เดียวครับ! 
-        // ==========================================
         const API_BASE_URL = "https://my-gis-backend.onrender.com";
 
         // ==========================================
@@ -166,8 +177,9 @@
         // ==========================================
         const map = L.map('map', { zoomControl: false }).setView([15.8700, 100.9925], 6); 
 
-        const satelliteMap = L.tileLayer('http://mt0.google.com/vt/lyrs=y&hl=en&x={x}&y={y}&z={z}', { maxZoom: 20 });
-        const streetMap = L.tileLayer('http://mt0.google.com/vt/lyrs=m&hl=en&x={x}&y={y}&z={z}', { maxZoom: 20 });
+        // 🌟 แก้ไขเป็น HTTPS ทั้งหมด
+        const satelliteMap = L.tileLayer('https://mt0.google.com/vt/lyrs=y&hl=en&x={x}&y={y}&z={z}', { maxZoom: 20 });
+        const streetMap = L.tileLayer('https://mt0.google.com/vt/lyrs=m&hl=en&x={x}&y={y}&z={z}', { maxZoom: 20 });
         const osmMap = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 });
 
         satelliteMap.addTo(map);
@@ -178,6 +190,18 @@
             "🛣️ แผนที่ถนน (OpenStreetMap)": osmMap
         };
         L.control.layers(baseLayers, null, { position: 'topright' }).addTo(map);
+
+        // 🌟 ใหม่: เพิ่มเครื่องมือวัดระยะทางและพื้นที่
+        const measureControl = new L.Control.Measure({
+            primaryLengthUnit: 'kilometers',
+            secondaryLengthUnit: 'meters',
+            primaryAreaUnit: 'sqmeters',
+            activeColor: '#db4a44',
+            completedColor: '#8b2d2a',
+            position: 'topright',
+            localization: 'th'
+        });
+        measureControl.addTo(map);
 
         const zoneLines = [
             { lon: 84, name: "44/45" }, { lon: 90, name: "45/46" }, { lon: 96, name: "46/47" }, 
@@ -218,7 +242,7 @@
         map.on('mouseout', function() { hudBox.innerHTML = `เลื่อนเมาส์บนแผนที่เพื่อดูพิกัด`; });
 
         // ==========================================
-        // 4. ระบบจัดการเลเยอร์
+        // 4. ระบบจัดการเลเยอร์ (อัปเดต Popup ข้อมูล)
         // ==========================================
         const activeLayers = {}; 
 
@@ -242,7 +266,44 @@
                 else if(url.toLowerCase().includes('.kmz')) {
                     const layer = L.kmzLayer(url).addTo(map);
                     activeLayers[url] = layer;
-                    layer.on('load', function(e) { 
+                    
+                    // 🌟 ใหม่: แสดง Text และ Popup กล่องขาวเมื่อคลิก
+                    layer.on('load', function(e) {
+                        e.layer.eachLayer(function(subLayer) {
+                            const name = subLayer.feature.properties.name || "ไม่ระบุชื่อ";
+                            const desc = subLayer.feature.properties.description || "";
+
+                            // 1. ผูกป้ายชื่อ (Tooltip) ให้โชว์ค้างไว้ตลอด
+                            subLayer.bindTooltip(name, {
+                                permanent: true,
+                                direction: 'top',
+                                className: 'my-kmz-label'
+                            });
+
+                            // 2. เมื่อคลิกให้แสดง Popup พิกัด UTM
+                            subLayer.on('click', function(ev) {
+                                const clickLat = ev.latlng.lat;
+                                const clickLon = ev.latlng.lng;
+                                const zone = Math.floor((clickLon + 180) / 6) + 1;
+                                const utmProj = `+proj=utm +zone=${zone} +datum=WGS84 +units=m +no_defs`;
+                                const utmCoords = proj4('+proj=longlat +datum=WGS84 +no_defs', utmProj, [clickLon, clickLat]);
+
+                                const popupContent = `
+                                    <div style="font-family:'Kanit'; font-size:14px; min-width:200px;">
+                                        <div style="background:#1e293b; color:#fff; padding:5px 10px; border-radius:4px 4px 0 0; margin:-14px -20px 10px -20px;">
+                                            <strong>${name}</strong>
+                                        </div>
+                                        ${desc ? `<div style="margin-bottom:10px; color:#475569;">${desc}</div>` : ''}
+                                        <div style="border-top:1px solid #e2e8f0; padding-top:8px; font-size:12px;">
+                                            <span style="color:#16a34a; font-weight:bold;">พิกัด UTM Zone ${zone}</span><br>
+                                            <b>X:</b> ${utmCoords[0].toFixed(2)}<br>
+                                            <b>Y:</b> ${utmCoords[1].toFixed(2)}
+                                        </div>
+                                    </div>
+                                `;
+                                subLayer.bindPopup(popupContent).openPopup();
+                            });
+                        });
                         map.fitBounds(e.layer.getBounds()); 
                     });
                 } 
@@ -316,7 +377,6 @@
             tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding:20px;">⏳ กำลังดึงข้อมูลจาก ${agencyName}...</td></tr>`;
             
             try {
-                // 🌟 ทะลวง Cache ด้วย _t
                 const res = await fetch(`${API_BASE_URL}/api/projects/by-agency?agency=${agencyName}&_t=${new Date().getTime()}`);
                 allData = await res.json();
                 
@@ -357,7 +417,6 @@
             const projName = document.getElementById("filter-project").value.trim();
             const key = document.getElementById("search-project").value.trim().toLowerCase();
 
-            // 1. คัดกรองโครงการ (รองรับการค้นหารหัสงาน)
             const filteredProjects = allData.filter(d => {
                 const mAg = !agency || (d['สร.รว.'] || '').toString().trim() === agency;
                 const mPr = !prov || (d['จังหวัด'] || '').toString().trim() === prov;
@@ -371,7 +430,6 @@
                 return mAg && mPr && mPj && mKy;
             });
 
-            // 2. ดึงไฟล์แบบกรองลิงก์ซ้ำทิ้ง (Map)
             let uniqueVectors = new Map(); 
             let uniqueDrones = new Map();
 
@@ -387,7 +445,7 @@
                                 url: linkUrl,
                                 projectName: project['ชื่อโครงการ'] || 'ไม่มีชื่อ',
                                 projectId: project['รหัสโครงการ'] || '-',
-                                jobId: file['รหัสงาน'] || '-', // 🌟 เพิ่มรหัสงานในไฟล์
+                                jobId: file['รหัสงาน'] || '-', 
                                 province: project['จังหวัด'] || '-',
                                 type: type
                             };
@@ -402,14 +460,11 @@
                 });
             }
 
-            // 3. อัปเดตตัวเลข
             document.getElementById("tab-btn-layers").innerHTML = `🗂️ เวกเตอร์ (${uniqueVectors.size})`;
             document.getElementById("tab-btn-drones").innerHTML = `🚁 โดรน (${uniqueDrones.size})`;
 
-            // 4. แสดงผลตาราง
             renderStatsTable(filteredProjects);
 
-            // 5. แสดงผลรายการไฟล์
             if (agency !== "") {
                 renderFileList("list-vectors", Array.from(uniqueVectors.values()), "เวกเตอร์");
                 renderFileList("list-drones", Array.from(uniqueDrones.values()), "ภาพโดรน");
@@ -457,7 +512,6 @@
 
                 let isChecked = activeLayers[file.url] ? 'checked' : '';
 
-                // 🌟 เพิ่มแสดงรหัสงานตรงนี้
                 item.innerHTML = `
                     <input type="checkbox" onchange="${toggleFunc}" ${isChecked}>
                     <div>
@@ -471,7 +525,7 @@
         }
 
         // ==========================================
-        // 6. ระบบคำนวณระยะทาง และ อัปโหลดข้อมูล (คืนชีพครบถ้วน)
+        // 6. ระบบคำนวณระยะทาง และ อัปโหลดข้อมูล
         // ==========================================
         function parseKM(kmStr) {
             if (!kmStr) return 0;
@@ -516,7 +570,7 @@
                 agency: document.getElementById("import-agency").value,
                 province: document.getElementById("import-province").value,
                 project_id: document.getElementById("import-id").value.toUpperCase(),
-                job_id: document.getElementById("import-job-id").value.toUpperCase(), // 🌟 เพิ่มรหัสงาน
+                job_id: document.getElementById("import-job-id").value.toUpperCase(), 
                 project_name: document.getElementById("import-name").value,
                 km_start: document.getElementById("import-km-start").value,
                 km_end: document.getElementById("import-km-end").value,
@@ -549,7 +603,7 @@
                     document.getElementById("import-file").value = "";
                     document.getElementById("import-link").value = "";
 
-                    loadDataByAgency(payload.agency); // โหลดข้อมูลใหม่เพื่อรีเฟรชหน้าจอ
+                    loadDataByAgency(payload.agency); 
                 } else alert("❌ ข้อผิดพลาด: " + result.message);
             } catch (error) { alert("❌ เชื่อมต่อเซิร์ฟเวอร์ไม่ได้"); } 
             finally { btn.innerHTML = originalText; btn.disabled = false; }
