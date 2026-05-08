@@ -5,16 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GIS Pro Manager - Master & Inventory Sync</title>
 
-    <!-- ฟอนต์และ Leaflet -->
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.9.0/proj4.js"></script>
     
-    <!-- ปลั๊กอินอ่านไฟล์ KML -->
     <script src="https://unpkg.com/leaflet-omnivore@0.3.4/leaflet-omnivore.min.js"></script>
     
-    <!-- ปลั๊กอิน แตกไฟล์ และอ่านไฟล์ KMZ -->
     <script src="https://unpkg.com/jszip@3.10.1/dist/jszip.min.js"></script>
     <script src="https://unpkg.com/leaflet-kmz@latest/dist/leaflet-kmz.js"></script>
 
@@ -77,7 +74,7 @@
         <select class="filter-select" id="filter-project" onchange="filterAll();">
             <option value="">-- เลือกโครงการ --</option>
         </select>
-        <input type="text" class="filter-select" id="search-project" placeholder="🔍 ค้นหาคำศัพท์..." onkeyup="filterAll();">
+        <input type="text" class="filter-select" id="search-project" placeholder="🔍 ค้นหา (รหัสโครงการ/งาน/ชื่อ)..." onkeyup="filterAll();">
     </div>
 
     <button id="toggle-sidebar-btn" onclick="toggleSidebar()">☰ ซ่อน/แสดง แผงข้อมูล</button>
@@ -92,7 +89,7 @@
 
         <div id="tab-stats" class="tab-content active" style="padding:0;">
             <table class="excel-table" id="stats-table">
-                <thead><tr><th>รหัส</th><th>ชื่อโครงการ</th><th>ชื่องาน</th><th>กม.</th></tr></thead>
+                <thead><tr><th>รหัสโปรเจกต์</th><th>รหัสงาน</th><th>ชื่อโครงการ</th><th>กม.</th></tr></thead>
                 <tbody id="tbody-stats"><tr><td colspan="4" style="text-align:center; padding:20px;">☝️ โปรดเลือก สร.รว. จากด้านบนก่อนครับ</td></tr></tbody>
             </table>
         </div>
@@ -106,13 +103,22 @@
         </div>
 
         <div id="tab-import" class="tab-content">
-            <!-- 🌟 ปลดล็อก: เลือก สร.รว. ได้เลยไม่ต้องรอโหลด -->
             <div class="form-group"><label>หน่วยงาน (สร.รว.)</label><select class="form-input" id="import-agency"><option value="">-- เลือก สร.รว. --</option></select></div>
-            
-            <!-- 🌟 ปลดล็อก: พิมพ์จังหวัดได้อิสระ ไม่ต้องรอข้อมูลจากฐานข้อมูล -->
             <div class="form-group"><label>จังหวัด</label><input type="text" class="form-input" id="import-province" placeholder="เช่น ลพบุรี"></div>
             
-            <div class="form-group"><label>รหัสโครงการ</label><input type="text" class="form-input" id="import-id" placeholder="เช่น P01"></div>
+            <div class="form-group">
+                <div style="display: flex; gap: 10px;">
+                    <div style="flex: 1;">
+                        <label>รหัสโครงการ</label>
+                        <input type="text" class="form-input" id="import-id" placeholder="5 หลัก" maxlength="5">
+                    </div>
+                    <div style="flex: 1;">
+                        <label>รหัสงาน</label>
+                        <input type="text" class="form-input" id="import-job-id" placeholder="5 หลัก" maxlength="5">
+                    </div>
+                </div>
+            </div>
+
             <div class="form-group"><label>ชื่อโครงการ</label><input type="text" class="form-input" id="import-name" placeholder="ระบุชื่อโครงการ..."></div>
             <div class="form-group">
                 <label>ช่วง กม. (เริ่มต้น - สิ้นสุด)</label>
@@ -137,6 +143,11 @@
 
     <script>
         // ==========================================
+        // 🌟 ตั้งค่าลิงก์หลังบ้านตรงนี้ที่เดียวครับ! 
+        // ==========================================
+        const API_BASE_URL = "https://my-gis-backend.onrender.com";
+
+        // ==========================================
         // 1. การจัดการ UI
         // ==========================================
         function toggleSidebar() { document.getElementById('left-sidebar').classList.toggle('hidden'); }
@@ -155,8 +166,8 @@
         // ==========================================
         const map = L.map('map', { zoomControl: false }).setView([15.8700, 100.9925], 6); 
 
-        const satelliteMap = L.tileLayer('https://mt0.google.com/vt/lyrs=y&hl=en&x={x}&y={y}&z={z}', { maxZoom: 20 });
-        const streetMap = L.tileLayer('https://mt0.google.com/vt/lyrs=m&hl=en&x={x}&y={y}&z={z}', { maxZoom: 20 });
+        const satelliteMap = L.tileLayer('http://mt0.google.com/vt/lyrs=y&hl=en&x={x}&y={y}&z={z}', { maxZoom: 20 });
+        const streetMap = L.tileLayer('http://mt0.google.com/vt/lyrs=m&hl=en&x={x}&y={y}&z={z}', { maxZoom: 20 });
         const osmMap = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 });
 
         satelliteMap.addTo(map);
@@ -275,7 +286,7 @@
         }
 
         // ==========================================
-        // 5. ระบบดึงข้อมูล คัดกรองแบบ Lazy Load และนับไฟล์
+        // 5. ระบบดึงข้อมูล คัดกรอง และนับไฟล์ 
         // ==========================================
         let allData = [];
 
@@ -305,10 +316,11 @@
             tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding:20px;">⏳ กำลังดึงข้อมูลจาก ${agencyName}...</td></tr>`;
             
             try {
-                const res = await fetch(`https://my-gis-backend.onrender.com/api/projects/by-agency?agency=${agencyName}`);
+                // 🌟 ทะลวง Cache ด้วย _t
+                const res = await fetch(`${API_BASE_URL}/api/projects/by-agency?agency=${agencyName}&_t=${new Date().getTime()}`);
                 allData = await res.json();
                 
-                const provinces = [...new Set(allData.map(d => d['จังหวัด']).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'th', { numeric: true }));
+                const provinces = [...new Set(allData.map(d => (d['จังหวัด'] || '').toString().trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'th', { numeric: true }));
                 
                 provSelect.innerHTML = '<option value="">-- เลือกจังหวัด --</option>';
                 provinces.forEach(p => provSelect.appendChild(new Option(p, p)));
@@ -317,74 +329,93 @@
                 filterAll();
             } catch (err) {
                 console.error("โหลดข้อมูลล้มเหลว", err);
-                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:red;">โหลดข้อมูลล้มเหลว ตรวจสอบหลังบ้าน (Python)</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:red;">โหลดข้อมูลล้มเหลว ตรวจสอบหลังบ้าน (Render)</td></tr>';
             }
         }
 
         function populateProjectDropdown() {
-            const agency = document.getElementById("filter-agency").value;
-            const prov = document.getElementById("filter-province").value;
+            const agency = document.getElementById("filter-agency").value.trim();
+            const prov = document.getElementById("filter-province").value.trim();
             const target = document.getElementById("filter-project");
             
             target.innerHTML = '<option value="">-- เลือกโครงการ --</option>';
             
             if (!agency || !prov) return;
 
-            const filteredForProj = allData.filter(d => d['สร.รว.'] === agency && d['จังหวัด'] === prov);
-            const projects = [...new Set(filteredForProj.map(d => d['ชื่อโครงการ']).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'th', { numeric: true }));
+            const filteredForProj = allData.filter(d => 
+                (d['สร.รว.'] || '').toString().trim() === agency && 
+                (d['จังหวัด'] || '').toString().trim() === prov
+            );
+            const projects = [...new Set(filteredForProj.map(d => (d['ชื่อโครงการ'] || '').toString().trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'th', { numeric: true }));
             
             projects.forEach(p => target.appendChild(new Option(p, p)));
         }
 
         function filterAll() {
-            const agency = document.getElementById("filter-agency").value;
-            const prov = document.getElementById("filter-province").value;
-            const projName = document.getElementById("filter-project").value;
+            const agency = document.getElementById("filter-agency").value.trim();
+            const prov = document.getElementById("filter-province").value.trim();
+            const projName = document.getElementById("filter-project").value.trim();
             const key = document.getElementById("search-project").value.trim().toLowerCase();
 
-            const filtered = allData.filter(d => {
-                const mAg = !agency || d['สร.รว.'] === agency;
-                const mPr = !prov || d['จังหวัด'] === prov;
-                const mPj = !projName || d['ชื่อโครงการ'] === projName;
+            // 1. คัดกรองโครงการ (รองรับการค้นหารหัสงาน)
+            const filteredProjects = allData.filter(d => {
+                const mAg = !agency || (d['สร.รว.'] || '').toString().trim() === agency;
+                const mPr = !prov || (d['จังหวัด'] || '').toString().trim() === prov;
+                const mPj = !projName || (d['ชื่อโครงการ'] || '').toString().trim() === projName;
                 const mKy = !key || (
-                    (d['รหัสโครงการ'] || '').toLowerCase().includes(key) ||
-                    (d['ชื่อโครงการ'] || '').toLowerCase().includes(key) ||
-                    (d['ชื่องาน'] || '').toLowerCase().includes(key)
+                    (d['รหัสโครงการ'] || '').toString().toLowerCase().includes(key) ||
+                    (d['รหัสงาน'] || '').toString().toLowerCase().includes(key) ||
+                    (d['ชื่อโครงการ'] || '').toString().toLowerCase().includes(key) ||
+                    (d['ชื่องาน'] || '').toString().toLowerCase().includes(key)
                 );
                 return mAg && mPr && mPj && mKy;
             });
 
-            const isAgencySelected = (agency !== "");
-            
-            let vectorCount = 0;
-            let droneCount = 0;
+            // 2. ดึงไฟล์แบบกรองลิงก์ซ้ำทิ้ง (Map)
+            let uniqueVectors = new Map(); 
+            let uniqueDrones = new Map();
 
-            if (isAgencySelected && filtered.length > 0) {
-                filtered.forEach(p => {
-                    if (p.files) {
-                        p.files.forEach(f => {
-                            let type = (f['ประเภทไฟล์'] || '').toUpperCase();
-                            if (type === 'KML' || type === 'KMZ') vectorCount++;
-                            if (type === 'DRONE') droneCount++;
-                        });
-                    }
+            if (agency !== "" && filteredProjects.length > 0) {
+                filteredProjects.forEach(project => {
+                    const files = project.files || [];
+                    files.forEach(file => {
+                        let type = (file['ประเภทไฟล์'] || '').toString().toUpperCase();
+                        let linkUrl = file['ลิงก์จาก R2'];
+
+                        if (linkUrl) {
+                            let fileData = {
+                                url: linkUrl,
+                                projectName: project['ชื่อโครงการ'] || 'ไม่มีชื่อ',
+                                projectId: project['รหัสโครงการ'] || '-',
+                                jobId: file['รหัสงาน'] || '-', // 🌟 เพิ่มรหัสงานในไฟล์
+                                province: project['จังหวัด'] || '-',
+                                type: type
+                            };
+
+                            if (type === 'KML' || type === 'KMZ') {
+                                uniqueVectors.set(linkUrl, fileData);
+                            } else if (type === 'DRONE') {
+                                uniqueDrones.set(linkUrl, fileData);
+                            }
+                        }
+                    });
                 });
             }
 
-            document.getElementById("tab-btn-layers").innerHTML = `🗂️ เวกเตอร์ (${vectorCount})`;
-            document.getElementById("tab-btn-drones").innerHTML = `🚁 โดรน (${droneCount})`;
+            // 3. อัปเดตตัวเลข
+            document.getElementById("tab-btn-layers").innerHTML = `🗂️ เวกเตอร์ (${uniqueVectors.size})`;
+            document.getElementById("tab-btn-drones").innerHTML = `🚁 โดรน (${uniqueDrones.size})`;
 
-            renderStatsTable(filtered);
+            // 4. แสดงผลตาราง
+            renderStatsTable(filteredProjects);
 
-            if (isAgencySelected && filtered.length > 0) {
-                renderVectorList(filtered);
-                renderDroneList(filtered);
-            } else if (!isAgencySelected) {
+            // 5. แสดงผลรายการไฟล์
+            if (agency !== "") {
+                renderFileList("list-vectors", Array.from(uniqueVectors.values()), "เวกเตอร์");
+                renderFileList("list-drones", Array.from(uniqueDrones.values()), "ภาพโดรน");
+            } else {
                 document.getElementById("list-vectors").innerHTML = '<p style="text-align:center; color:#94a3b8;">⚠️ โปรดเลือก สร.รว. เพื่อแสดงข้อมูล</p>';
                 document.getElementById("list-drones").innerHTML = '<p style="text-align:center; color:#94a3b8;">⚠️ โปรดเลือก สร.รว. เพื่อแสดงข้อมูล</p>';
-            } else {
-                document.getElementById("list-vectors").innerHTML = '<p style="text-align:center; color:#94a3b8;">ไม่พบไฟล์ในเงื่อนไขนี้</p>';
-                document.getElementById("list-drones").innerHTML = '<p style="text-align:center; color:#94a3b8;">ไม่พบไฟล์ในเงื่อนไขนี้</p>';
             }
         }
 
@@ -398,94 +429,49 @@
                 else if (d['กม.ปลาย']) kmDisplay = d['กม.ปลาย'];
 
                 const tr = document.createElement('tr');
-                tr.innerHTML = `<td>${d['รหัสโครงการ']||'-'}</td><td>${d['ชื่อโครงการ']||'-'}</td><td>${d['ชื่องาน']||'-'}</td><td>${kmDisplay}</td>`;
+                tr.innerHTML = `<td>${d['รหัสโครงการ']||'-'}</td><td>${d['รหัสงาน']||'-'}</td><td>${d['ชื่อโครงการ']||'-'}</td><td>${kmDisplay}</td>`;
                 tbody.appendChild(tr);
             });
         }
 
-        function renderVectorList(data) {
-            const container = document.getElementById("list-vectors");
+        function renderFileList(containerId, files, category) {
+            const container = document.getElementById(containerId);
             container.innerHTML = "";
-            let hasFiles = false;
-            let drawnLinks = new Set();
 
-            data.forEach(project => {
-                const files = project.files || [];
-                const vectorFiles = files.filter(f => {
-                    let type = (f['ประเภทไฟล์'] || '').toUpperCase();
-                    return type === 'KML' || type === 'KMZ';
-                });
-                
-                vectorFiles.forEach(file => {
-                    let linkUrl = file['ลิงก์จาก R2'];
-                    if (!linkUrl || drawnLinks.has(linkUrl)) return; 
-                    drawnLinks.add(linkUrl);
-
-                    hasFiles = true;
-                    const item = document.createElement('div');
-                    item.className = 'layer-item';
-                    
-                    let badgeLabel = (file['ประเภทไฟล์'] || 'KML').toUpperCase();
-                    let badgeColor = badgeLabel === 'KMZ' ? '#8b5cf6' : '#2563eb';
-                    let isChecked = activeLayers[linkUrl] ? 'checked' : '';
-
-                    item.innerHTML = `
-                        <input type="checkbox" onchange="toggleLayer('${linkUrl}', this)" ${isChecked}>
-                        <div>
-                            <strong>${project['ชื่อโครงการ'] || 'ไม่มีชื่อ'}</strong><br>
-                            <small style="color:#64748b;">${project['รหัสโครงการ'] || '-'} | ${project['จังหวัด'] || '-'}</small>
-                        </div>
-                        <span class="badge" style="background:${badgeColor};">${badgeLabel}</span>
-                    `;
-                    container.appendChild(item);
-                });
-            });
-
-            if (!hasFiles) {
-                container.innerHTML = '<p style="text-align:center; color:#94a3b8;">ไม่พบไฟล์เวกเตอร์ในหมวดนี้</p>';
+            if (files.length === 0) {
+                container.innerHTML = `<p style="text-align:center; color:#94a3b8;">ไม่พบไฟล์${category}ในเงื่อนไขนี้</p>`;
+                return;
             }
-        }
 
-        function renderDroneList(data) {
-            const container = document.getElementById("list-drones");
-            container.innerHTML = "";
-            let hasFiles = false;
-            let drawnLinks = new Set();
-
-            data.forEach(project => {
-                const files = project.files || [];
-                const droneFiles = files.filter(f => (f['ประเภทไฟล์'] || '').toUpperCase() === 'DRONE');
+            files.forEach(file => {
+                const item = document.createElement('div');
+                item.className = 'layer-item';
                 
-                droneFiles.forEach(file => {
-                    let linkUrl = file['ลิงก์จาก R2'];
-                    if (!linkUrl || drawnLinks.has(linkUrl)) return;
-                    drawnLinks.add(linkUrl);
+                let badgeLabel = file.type;
+                let badgeColor = '#64748b';
+                let toggleFunc = '';
+                
+                if (file.type === 'KMZ') { badgeColor = '#8b5cf6'; toggleFunc = `toggleLayer('${file.url}', this)`; }
+                else if (file.type === 'KML') { badgeColor = '#2563eb'; toggleFunc = `toggleLayer('${file.url}', this)`; }
+                else if (file.type === 'DRONE') { badgeColor = '#ef4444'; toggleFunc = `toggleDroneLayer('${file.url}', this)`; }
 
-                    hasFiles = true;
-                    const item = document.createElement('div');
-                    item.className = 'layer-item';
-                    
-                    let isChecked = activeLayers[linkUrl] ? 'checked' : '';
+                let isChecked = activeLayers[file.url] ? 'checked' : '';
 
-                    item.innerHTML = `
-                        <input type="checkbox" onchange="toggleDroneLayer('${linkUrl}', this)" ${isChecked}>
-                        <div>
-                            <strong>${project['ชื่อโครงการ']}</strong><br>
-                            <small style="color:#64748b;">${project['รหัสโครงการ']} | ${project['จังหวัด']}</small>
-                        </div>
-                        <span class="badge" style="background:#ef4444;">DRONE</span>
-                    `;
-                    container.appendChild(item);
-                });
+                // 🌟 เพิ่มแสดงรหัสงานตรงนี้
+                item.innerHTML = `
+                    <input type="checkbox" onchange="${toggleFunc}" ${isChecked}>
+                    <div>
+                        <strong>${file.projectName}</strong><br>
+                        <small style="color:#64748b;">${file.projectId} | งาน: ${file.jobId} | ${file.province}</small>
+                    </div>
+                    <span class="badge" style="background:${badgeColor};">${badgeLabel}</span>
+                `;
+                container.appendChild(item);
             });
-
-            if (!hasFiles) {
-                container.innerHTML = '<p style="text-align:center; color:#94a3b8;">ไม่พบภาพโดรนในหมวดนี้</p>';
-            }
         }
 
         // ==========================================
-        // 6. ระบบคำนวณระยะทาง และ อัปโหลดข้อมูล
+        // 6. ระบบคำนวณระยะทาง และ อัปโหลดข้อมูล (คืนชีพครบถ้วน)
         // ==========================================
         function parseKM(kmStr) {
             if (!kmStr) return 0;
@@ -515,7 +501,7 @@
             formData.append('file', fileInput.files[0]);
 
             try {
-                const response = await fetch('https://my-gis-backend.onrender.com/api/upload', { method: 'POST', body: formData });
+                const response = await fetch(`${API_BASE_URL}/api/upload`, { method: 'POST', body: formData });
                 const result = await response.json();
                 if (result.status === "success") {
                     document.getElementById('import-link').value = result.url;
@@ -529,7 +515,8 @@
             const payload = {
                 agency: document.getElementById("import-agency").value,
                 province: document.getElementById("import-province").value,
-                project_id: document.getElementById("import-id").value,
+                project_id: document.getElementById("import-id").value.toUpperCase(),
+                job_id: document.getElementById("import-job-id").value.toUpperCase(), // 🌟 เพิ่มรหัสงาน
                 project_name: document.getElementById("import-name").value,
                 km_start: document.getElementById("import-km-start").value,
                 km_end: document.getElementById("import-km-end").value,
@@ -537,8 +524,8 @@
                 survey_link: document.getElementById("import-link").value
             };
 
-            if (!payload.province || !payload.project_id || !payload.survey_link) {
-                alert("⚠️ กรุณากรอก จังหวัด, รหัสโครงการ และแนบไฟล์ให้ครบถ้วนครับ"); return;
+            if (!payload.province || !payload.project_id || !payload.job_id || !payload.survey_link) {
+                alert("⚠️ กรุณากรอก จังหวัด, รหัสโครงการ, รหัสงาน และแนบไฟล์ให้ครบถ้วนครับ"); return;
             }
 
             const btn = document.querySelector(".btn-save:last-child");
@@ -546,52 +533,28 @@
             btn.innerHTML = "⏳ กำลังบันทึก..."; btn.disabled = true;
 
             try {
-                const response = await fetch('https://my-gis-backend.onrender.com/api/add-project', {
+                const response = await fetch(`${API_BASE_URL}/api/add-project`, {
                     method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
                 });
                 const result = await response.json();
 
                 if (result.status === "success") {
-                    // หากยังไม่ได้ดึงข้อมูลมาจาก Backend เลย ให้ข้ามสเตปการผสานข้อมูลหน้าบ้านไป
-                    if (allData && allData.length > 0) {
-                        let proj = allData.find(p => p['รหัสโครงการ'] === payload.project_id);
-                        if (!proj) {
-                            proj = {
-                                'สร.รว.': payload.agency, 'จังหวัด': payload.province, 'รหัสโครงการ': payload.project_id,
-                                'ชื่อโครงการ': payload.project_name, 'ชื่องาน': '-', 'กม.ต้น': payload.km_start, 'กม.ปลาย': payload.km_end,
-                                'files': []
-                            };
-                            allData.push(proj);
-                        }
-                        
-                        let fileType = "Other";
-                        if (payload.survey_link.toLowerCase().includes('.kml')) fileType = "KML";
-                        else if (payload.survey_link.toLowerCase().includes('.kmz')) fileType = "KMZ";
-                        else if (payload.survey_link.toLowerCase().includes('.tif') || payload.survey_link.includes('{z}')) fileType = "Drone";
-
-                        if(!proj.files) proj.files = [];
-                        proj.files.push({
-                            'สร.รว.': payload.agency, 'จังหวัด': payload.province, 'รหัสโครงการ': payload.project_id,
-                            'ประเภทไฟล์': fileType, 'ลิงก์จาก R2': payload.survey_link
-                        });
-
-                        filterAll(); 
-                    }
-
                     alert("✅ บันทึกสำเร็จ! ข้อมูลเข้าไปอยู่ใน Google Sheets เรียบร้อยครับ");
                     
                     document.getElementById("import-id").value = "";
+                    document.getElementById("import-job-id").value = "";
                     document.getElementById("import-name").value = "";
                     document.getElementById("import-km-start").value = "";
                     document.getElementById("import-km-end").value = "";
                     document.getElementById("import-file").value = "";
                     document.getElementById("import-link").value = "";
+
+                    loadDataByAgency(payload.agency); // โหลดข้อมูลใหม่เพื่อรีเฟรชหน้าจอ
                 } else alert("❌ ข้อผิดพลาด: " + result.message);
             } catch (error) { alert("❌ เชื่อมต่อเซิร์ฟเวอร์ไม่ได้"); } 
             finally { btn.innerHTML = originalText; btn.disabled = false; }
         }
 
-        // เริ่มต้นสร้าง Dropdown แบบไม่หน่วง
         initAgencyDropdown();
     </script>
 </body>
