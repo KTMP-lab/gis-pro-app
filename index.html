@@ -2,8 +2,8 @@
 <html lang="th">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GIS Pro Manager - Pop-up UI & Smart ID 100%</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>GIS Pro Manager - Mobile Responsive & Smart ID</title>
 
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -31,7 +31,7 @@
         #btn-open-upload:hover { background: #1d4ed8; transform: translateY(-2px); }
 
         /* 🌟 แผงหน้าต่างซ้าย (บานพับ) */
-        #btn-show-sidebar { position: absolute; top: 80px; left: 15px; z-index: 9998; padding: 10px 15px; background: #1e293b; color: white; border: none; border-radius: 8px; font-family: 'Kanit'; cursor: pointer; font-weight: 600; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
+        #btn-show-sidebar { position: absolute; top: 80px; left: 15px; z-index: 9998; padding: 10px 15px; background: #1e293b; color: white; border: none; border-radius: 8px; font-family: 'Kanit'; cursor: pointer; font-weight: 600; box-shadow: 0 4px 6px rgba(0,0,0,0.3); transition: 0.3s;}
         #left-sidebar { position: absolute; top: 80px; left: 15px; width: 450px; bottom: 30px; display: flex; flex-direction: column; overflow: hidden; transition: transform 0.4s ease-in-out; z-index: 9999; }
         #left-sidebar.hidden { transform: translateX(-480px); }
         .sidebar-header { padding: 12px 15px; background: #1e293b; color: white; display: flex; justify-content: space-between; align-items: center; border-radius: 12px 12px 0 0; }
@@ -57,7 +57,10 @@
         .close-modal-btn { position: absolute; top: 15px; right: 15px; font-size: 20px; border: none; background: none; color: #64748b; font-weight: bold; cursor: pointer; transition: 0.2s; }
         .close-modal-btn:hover { color: #ef4444; }
         
-        /* สไตล์ฟอร์มใน Modal */
+        /* สไตล์ฟอร์มแบบ Flex สำหรับหน้าจอปกติ */
+        .flex-row { display: flex; gap: 10px; margin-bottom: 12px; }
+        .flex-col { flex: 1; }
+        
         .form-group { margin-bottom: 12px; }
         .form-group label { display: block; font-size: 13px; color: #1e293b; font-weight: 600; margin-bottom: 4px; }
         .form-input { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; font-family: 'Kanit'; font-size: 13px; }
@@ -77,8 +80,37 @@
         .spinning-border { position: absolute; width: 170px; height: 170px; border: 6px solid rgba(255,255,255,0.1); border-top: 6px solid #16a34a; border-radius: 50%; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         
-        /* ขยับ Leaflet Controls หลบปุ่มนำเข้า */
         .leaflet-top.leaflet-right { top: 70px !important; }
+
+        /* ========================================= */
+        /* 📱 รองรับหน้าจอมือถือ (Mobile Responsive) */
+        /* ========================================= */
+        @media (max-width: 768px) {
+            /* แถบกรองด้านบน: หักบรรทัดลงมาให้เป็น 2 แถว */
+            #top-bar { width: 92%; flex-wrap: wrap; top: 10px; padding: 10px; gap: 8px; }
+            .filter-select { flex: 1 1 45%; font-size: 12px; padding: 8px; }
+            #search-box { flex: 1 1 100%; font-size: 13px; }
+
+            /* ย้ายปุ่มไปด้านล่าง ให้นิ้วโป้งกดง่ายๆ บนมือถือ */
+            #btn-open-upload { top: auto; bottom: 25px; right: 10px; padding: 12px 15px; font-size: 13px; box-shadow: 0 -2px 10px rgba(0,0,0,0.3); border-radius: 25px; }
+            #btn-show-sidebar { top: auto; bottom: 25px; left: 10px; padding: 12px 15px; font-size: 13px; border-radius: 25px; }
+
+            /* แผงข้อมูล (Sidebar) ให้กางแบบครึ่งจอล่าง */
+            #left-sidebar { width: calc(100% - 20px); left: 10px; top: auto; bottom: 80px; height: 50vh; }
+            #left-sidebar.hidden { transform: translateX(-120%); }
+
+            /* ป๊อปอัป Modal และฟอร์ม: เรียงช่องลงมาเป็นแถวเดี่ยว */
+            .modal-content { width: 90%; padding: 15px; max-height: 85vh; }
+            .flex-row { flex-direction: column; gap: 0 !important; margin-bottom: 0; }
+            .flex-col { width: 100%; margin-bottom: 12px; }
+
+            /* ตารางให้เลื่อนซ้ายขวาได้ และขยับ HUD หลบปุ่ม */
+            .excel-table { display: block; overflow-x: auto; white-space: nowrap; }
+            #hud-box { bottom: 85px; right: 10px; font-size: 11px; padding: 6px 10px; }
+            
+            /* ขยับเครื่องมือ Leaflet ลงมาหลบแถบตัวกรองที่กินพื้นที่มากขึ้น */
+            .leaflet-top.leaflet-right { top: 150px !important; }
+        }
     </style>
 </head>
 <body>
@@ -158,15 +190,19 @@
             <input type="hidden" id="i-year" value="">
 
             <div class="form-group"><label>จังหวัด</label><select class="form-input" id="i-prov"><option value="">-- รอการเลือกหน่วยงาน --</option></select></div>
-            <div style="display:flex; gap:10px; margin-bottom:12px;">
-                <div style="flex:1;"><label>รหัสโครงการ</label><input type="text" class="form-input" id="i-id" placeholder="214" list="h-ids"></div>
-                <div style="flex:1;"><label>รหัสงานย่อย</label><input type="text" class="form-input" id="i-job" placeholder="001" list="h-jobs"></div>
+            
+            <div class="flex-row">
+                <div class="flex-col"><label>รหัสโครงการ</label><input type="text" class="form-input" id="i-id" placeholder="214" list="h-ids"></div>
+                <div class="flex-col"><label>รหัสงานย่อย</label><input type="text" class="form-input" id="i-job" placeholder="001" list="h-jobs"></div>
             </div>
+            
             <div class="form-group"><label>ชื่อโครงการ / งาน</label><input type="text" class="form-input" id="i-name" list="h-names"></div>
-            <div style="display:flex; gap:10px; margin-bottom:12px;">
-                <div style="flex:1;"><label>กม.ต้น</label><input type="number" class="form-input" id="i-km-start" value="0" step="0.001"></div>
-                <div style="flex:1;"><label>กม.ปลาย</label><input type="number" class="form-input" id="i-km-end" value="0" step="0.001"></div>
+            
+            <div class="flex-row">
+                <div class="flex-col"><label>กม.ต้น</label><input type="number" class="form-input" id="i-km-start" value="0" step="0.001"></div>
+                <div class="flex-col"><label>กม.ปลาย</label><input type="number" class="form-input" id="i-km-end" value="0" step="0.001"></div>
             </div>
+            
             <div class="form-group"><label>แนบไฟล์ข้อมูล (เวกเตอร์ / โดรน)</label><input type="file" id="i-file" class="form-input" style="padding:5px;"><button class="btn-save" id="btn-upload" style="background:#3b82f6;" onclick="uploadFile()">☁️ อัปโหลดขึ้น R2 Cloud</button></div>
             <input type="text" id="i-link" class="form-input" readonly placeholder="ลิงก์ไฟล์จากระบบคลาวด์จะปรากฏที่นี่" style="background:#f1f5f9; margin-bottom:15px;">
             <button class="btn-save" id="btn-save-data" onclick="saveData()">💾 บันทึกเข้าระบบ Smart ID</button>
@@ -198,15 +234,13 @@
         }
         function hideL() { document.getElementById('loading-overlay').style.display='none'; }
 
-        // 🌟 ฟังก์ชันพับเก็บหน้าต่าง (Sidebar)
         function toggleSidebar() {
             document.getElementById('left-sidebar').classList.toggle('hidden');
         }
 
-        // 🌟 ฟังก์ชันเปิด-ปิด ป๊อปอัปนำเข้า
         function openUploadModal() {
             document.getElementById('upload-modal').style.display = 'flex';
-            updateImportBadge(); // อัปเดตป้ายสถานะทันทีที่เปิด
+            updateImportBadge(); 
         }
         function closeUploadModal() {
             document.getElementById('upload-modal').style.display = 'none';
@@ -234,7 +268,7 @@
             if(!agency) {
                 document.getElementById("f-prov").innerHTML = '<option value="" disabled selected hidden>-- 3. จังหวัด --</option>';
                 document.getElementById("i-prov").innerHTML = '<option value="">-- รอการเลือกหน่วยงาน --</option>';
-                allData = []; // ล้างข้อมูล
+                allData = []; 
                 filterAll();
                 return;
             }
@@ -408,8 +442,8 @@
                 document.getElementById("i-km-start").value = "0";
                 document.getElementById("i-km-end").value = "0";
                 
-                closeUploadModal(); // ปิดหน้าต่างนำเข้าอัตโนมัติเมื่อบันทึกเสร็จ
-                loadDataByAgency(payload.agency); // โหลดฐานข้อมูลใหม่
+                closeUploadModal(); 
+                loadDataByAgency(payload.agency); 
             } catch(e) { alert("❌ บันทึกไม่สำเร็จ"); } 
             finally { hideL(); }
         }
