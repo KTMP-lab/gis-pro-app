@@ -3,613 +3,425 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GIS Pro Manager - Master & Inventory Sync</title>
+    <title>GIS Pro Manager - Pop-up UI & Smart ID 100%</title>
 
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet-measure@3.1.0/dist/leaflet-measure.css">
+    <link rel="stylesheet" href="https://ppete2.github.io/Leaflet.PolylineMeasure/Leaflet.PolylineMeasure.css" />
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.9.0/proj4.js"></script>
     <script src="https://unpkg.com/leaflet-omnivore@0.3.4/leaflet-omnivore.min.js"></script>
     <script src="https://unpkg.com/jszip@3.10.1/dist/jszip.min.js"></script>
     <script src="https://unpkg.com/leaflet-kmz@latest/dist/leaflet-kmz.js"></script>
-
-    <script src="https://cdn.jsdelivr.net/npm/leaflet-measure@3.1.0/dist/leaflet-measure.js"></script>
+    <script src="https://ppete2.github.io/Leaflet.PolylineMeasure/Leaflet.PolylineMeasure.js"></script>
 
     <style>
         body, html { margin: 0; padding: 0; width: 100vw; height: 100vh; overflow: hidden; font-family: 'Kanit', sans-serif; background-color: #000; }
         #map { width: 100%; height: 100%; z-index: 1; }
-        .glass-panel { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); z-index: 9999; }
-
-        /* Top Bar */
-        #top-bar { position: absolute; top: 15px; left: 50%; transform: translateX(-50%); width: 85%; display: flex; gap: 10px; padding: 12px 20px; align-items: center; justify-content: center; }
-        .filter-select { flex: 1; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-family: 'Kanit', sans-serif; font-size: 14px; background-color: #f8fafc; cursor: pointer; }
+        .glass-panel { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px); border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); z-index: 9999; }
         
-        #search-project { flex: 0.8; max-width: 220px; cursor: text; background-color: #ffffff; }
-        #filter-project { flex: 1.5; }
+        /* แถบตัวกรองด้านบน */
+        #top-bar { position: absolute; top: 15px; left: 50%; transform: translateX(-50%); width: 75%; display: flex; gap: 6px; padding: 12px; align-items: center; justify-content: center; z-index: 9999; }
+        .filter-select { flex: 1; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-family: 'Kanit'; font-size: 13px; outline: none; }
+        #search-box { flex: 1.5; background: #fff; border: 2px solid #2563eb; font-weight: 600; }
 
-        /* Sidebar */
-        #toggle-sidebar-btn { position: absolute; top: 90px; left: 15px; z-index: 10000; background-color: #1e293b; color: white; border: none; border-radius: 8px; padding: 10px 15px; font-family: 'Kanit', sans-serif; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.3); transition: 0.3s;}
-        #toggle-sidebar-btn:hover { background-color: #334155; }
-        #left-sidebar { position: absolute; top: 140px; left: 15px; width: 450px; bottom: 80px; display: flex; flex-direction: column; overflow: hidden; transition: transform 0.4s; }
-        #left-sidebar.hidden { transform: translateX(-480px); opacity: 0; pointer-events: none; }
+        /* 🌟 ปุ่มนำเข้า (มุมขวาบน) */
+        #btn-open-upload { position: absolute; top: 15px; right: 15px; z-index: 10000; background: #2563eb; color: #fff; border: none; padding: 12px 20px; border-radius: 8px; font-weight: 600; font-family: 'Kanit'; font-size: 14px; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.3); transition: 0.3s; }
+        #btn-open-upload:hover { background: #1d4ed8; transform: translateY(-2px); }
+
+        /* 🌟 แผงหน้าต่างซ้าย (บานพับ) */
+        #btn-show-sidebar { position: absolute; top: 80px; left: 15px; z-index: 9998; padding: 10px 15px; background: #1e293b; color: white; border: none; border-radius: 8px; font-family: 'Kanit'; cursor: pointer; font-weight: 600; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
+        #left-sidebar { position: absolute; top: 80px; left: 15px; width: 450px; bottom: 30px; display: flex; flex-direction: column; overflow: hidden; transition: transform 0.4s ease-in-out; z-index: 9999; }
+        #left-sidebar.hidden { transform: translateX(-480px); }
+        .sidebar-header { padding: 12px 15px; background: #1e293b; color: white; display: flex; justify-content: space-between; align-items: center; border-radius: 12px 12px 0 0; }
         
-        .tab-header { display: flex; border-bottom: 1px solid #e2e8f0; background-color: #f1f5f9; border-radius: 12px 12px 0 0;}
-        .tab-btn { flex: 1; padding: 12px 2px; text-align: center; font-family: 'Kanit', sans-serif; font-weight: 600; font-size: 13px; cursor: pointer; color: #64748b; border: none; background: none; border-bottom: 3px solid transparent; transition: 0.3s;}
-        .tab-btn.active { color: #2563eb; border-bottom: 3px solid #2563eb; }
-        .tab-content { display: none; padding: 15px; overflow-y: auto; flex: 1; }
+        .tab-header { display: flex; background-color: #f1f5f9; border-bottom: 1px solid #cbd5e1; }
+        .tab-btn { flex: 1; padding: 12px; font-family: 'Kanit'; font-weight: 600; cursor: pointer; border: none; border-bottom: 3px solid transparent; color: #64748b; background: none;}
+        .tab-btn.active { color: #2563eb; border-bottom: 3px solid #2563eb; background: #fff; }
+        
+        .tab-content { display: none; padding: 15px; overflow-y: auto; flex: 1; background: #fff; border-radius: 0 0 12px 12px; }
         .tab-content.active { display: block; }
-
-        /* Form */
-        .form-group { margin-bottom: 12px; }
-        .form-group label { display: block; font-size: 13px; color: #475569; font-weight: 600; margin-bottom: 4px; }
-        .form-input { width: 100%; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; font-family: 'Kanit'; font-size: 13px; }
-        .btn-save { width: 100%; padding: 10px; border: none; background: #10b981; color: white; border-radius: 8px; font-family: 'Kanit'; font-weight: 600; font-size: 14px; cursor: pointer; margin-top: 5px;}
-        .btn-save:hover { opacity: 0.9; }
-
-        /* Lists & Tables */
-        .excel-table { width: 100%; border-collapse: collapse; font-size: 12px; }
-        .excel-table th { background-color: #16a34a; color: white; padding: 8px; text-align: left; position: sticky; top: 0;}
-        .excel-table td { padding: 8px; border-bottom: 1px solid #e2e8f0; }
+        #tab-stats.active { display: flex !important; flex-direction: column; padding: 0; } 
         
-        .layer-item { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; font-size: 13px; padding: 10px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0; transition: 0.2s;}
-        .layer-item:hover { background: #f1f5f9; border-color: #3b82f6; }
-        .layer-item input[type="checkbox"] { width: 18px; height: 18px; cursor: pointer; }
-        .badge { font-size: 10px; padding: 2px 6px; border-radius: 10px; color: white; background: #64748b; margin-left: auto; }
+        /* ตารางและเลเยอร์ */
+        .excel-table { width: 100%; border-collapse: collapse; font-size: 11.5px; }
+        .excel-table th { background-color: #f8fafc; color: #1e293b; padding: 8px; text-align: center; white-space: nowrap; position: sticky; top: 0; border-bottom: 2px solid #e2e8f0; }
+        .excel-table td { padding: 8px; border-bottom: 1px solid #e2e8f0; text-align: center; }
+        .excel-table td:nth-child(2) { text-align: left; font-weight: 500; } 
+        .layer-item { display: flex; align-items: center; gap: 10px; padding: 12px; background: #f8fafc; border-radius: 8px; margin-bottom: 6px; border: 1px solid #e2e8f0; }
 
-        /* HUD */
-        #hud-box { position: absolute; bottom: 25px; right: 10px; background: rgba(0, 0, 0, 0.6); color: #00FFCC; padding: 8px 15px; border-radius: 8px; font-family: monospace, 'Kanit', sans-serif; font-size: 14px; z-index: 9999; border: 1px solid rgba(0, 255, 204, 0.3); pointer-events: none; text-shadow: 1px 1px 3px #000; }
+        /* 🌟 หน้าต่าง Modal (ป๊อปอัปนำเข้าข้อมูล) */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.6); backdrop-filter: blur(5px); z-index: 100001; display: none; align-items: center; justify-content: center; }
+        .modal-content { background: white; padding: 25px; border-radius: 12px; width: 500px; max-width: 90%; box-shadow: 0 10px 30px rgba(0,0,0,0.5); position: relative; font-family: 'Kanit'; max-height: 90vh; overflow-y: auto; }
+        .close-modal-btn { position: absolute; top: 15px; right: 15px; font-size: 20px; border: none; background: none; color: #64748b; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        .close-modal-btn:hover { color: #ef4444; }
+        
+        /* สไตล์ฟอร์มใน Modal */
+        .form-group { margin-bottom: 12px; }
+        .form-group label { display: block; font-size: 13px; color: #1e293b; font-weight: 600; margin-bottom: 4px; }
+        .form-input { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; font-family: 'Kanit'; font-size: 13px; }
+        .form-input:disabled { background: #f1f5f9; cursor: not-allowed; }
+        .btn-save { width: 100%; padding: 12px; border: none; background: #16a34a; color: white; border-radius: 8px; font-weight: 600; cursor: pointer; margin-top: 5px; font-family: 'Kanit'; font-size: 14px;}
+        .btn-save:disabled { background: #94a3b8; cursor: not-allowed; }
+        .status-badge { padding: 12px; margin-bottom: 15px; border-radius: 6px; font-size: 14px; font-weight: 600; text-align: center; }
+        .status-ready { background: #f0fdf4; border: 1px solid #22c55e; color: #166534; }
+        .status-locked { background: #fef2f2; border: 1px solid #ef4444; color: #991b1b; }
 
-        /* 🌟 ใหม่: สไตล์ของป้ายชื่อบนแผนที่ */
-        .my-kmz-label {
-            background: transparent !important;
-            border: none !important;
-            box-shadow: none !important;
-            color: #FFFF00 !important; /* สีเหลือง */
-            font-weight: bold;
-            font-size: 14px;
-            text-shadow: 2px 2px 4px #000; /* ขอบดำให้มองเห็นชัด */
-        }
+        #hud-box { position: absolute; bottom: 25px; right: 10px; background: rgba(0,0,0,0.7); color: #00FFCC; padding: 10px 18px; border-radius: 8px; font-family: monospace; font-size: 13px; z-index: 9999; border: 1px solid rgba(0, 255, 204, 0.4); }
+        .my-kmz-label { background: transparent !important; border: none !important; box-shadow: none !important; color: #ffeb3b !important; font-weight: bold; text-shadow: 2px 2px 4px #000; font-size: 14px; }
+        
+        #loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); backdrop-filter: blur(10px); z-index: 100005; display: none; justify-content: center; align-items: center; flex-direction: column; color: white; }
+        .loader-container { position: relative; width: 180px; height: 180px; display: flex; justify-content: center; align-items: center; }
+        .logo-center { width: 135px; height: 135px; background: url('images.jpg') no-repeat center/contain; border-radius: 50%; z-index: 10; border: 4px solid #fff; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+        .spinning-border { position: absolute; width: 170px; height: 170px; border: 6px solid rgba(255,255,255,0.1); border-top: 6px solid #16a34a; border-radius: 50%; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        /* ขยับ Leaflet Controls หลบปุ่มนำเข้า */
+        .leaflet-top.leaflet-right { top: 70px !important; }
     </style>
 </head>
 <body>
 
+    <div id="loading-overlay">
+        <div class="loader-container"><div class="logo-center"></div><div class="spinning-border"></div></div>
+        <div id="loading-text" style="margin-top:15px; font-size:15px; font-weight:600;">กำลังประมวลผล...</div>
+    </div>
+
+    <button id="btn-open-upload" onclick="openUploadModal()">☁️ นำเข้าข้อมูล</button>
+
     <div id="map"></div>
 
     <div id="top-bar" class="glass-panel">
-        <select class="filter-select" id="filter-agency" onchange="loadDataByAgency(this.value)">
-            <option value="">-- เลือก สร.รว. --</option>
+        <select class="filter-select" id="f-agency" onchange="loadDataByAgency(this.value); updateImportBadge();">
+            <option value="" disabled selected hidden>-- 1. สร.รว. --</option>
         </select>
-        <select class="filter-select" id="filter-province" onchange="populateProjectDropdown(); filterAll();">
-            <option value="">-- เลือกจังหวัด --</option>
+        <select class="filter-select" id="f-year" onchange="filterAll(); updateImportBadge();">
+            <option value="" disabled selected hidden>-- 2. ปีงบประมาณ --</option>
+            <option value="2569">2569</option>
+            <option value="2568">2568</option>
+            <option value="2567">2567</option>
         </select>
-        <select class="filter-select" id="filter-project" onchange="filterAll();">
-            <option value="">-- เลือกโครงการ --</option>
+        <select class="filter-select" id="f-prov" onchange="populateProj(); filterAll();">
+            <option value="" disabled selected hidden>-- 3. จังหวัด --</option>
         </select>
-        <input type="text" class="filter-select" id="search-project" placeholder="🔍 ค้นหา (รหัสโครงการ/งาน/ชื่อ)..." onkeyup="filterAll();">
+        <select class="filter-select" id="f-proj" onchange="filterAll()">
+            <option value="" disabled selected hidden>-- 4. โครงการ --</option>
+        </select>
+        <input type="text" class="filter-select" id="search-box" placeholder="🔍 ค้นหารหัส Smart ID หรือชื่อโครงการ..." onkeyup="filterAll()">
     </div>
 
-    <button id="toggle-sidebar-btn" onclick="toggleSidebar()">☰ ซ่อน/แสดง แผงข้อมูล</button>
+    <button id="btn-show-sidebar" onclick="toggleSidebar()">☰ แผงข้อมูล</button>
 
     <div id="left-sidebar" class="glass-panel">
+        <div class="sidebar-header">
+            <span style="font-weight:600;">📋 รายการข้อมูลแผนงาน</span>
+            <button onclick="toggleSidebar()" style="background:none; border:none; color:white; cursor:pointer; font-size:14px;">❌ ปิดแผงข้อมูล</button>
+        </div>
         <div class="tab-header">
-            <button class="tab-btn active" id="tab-btn-stats" onclick="openTab(event, 'tab-stats')">📊 ฐานข้อมูล</button>
-            <button class="tab-btn" id="tab-btn-layers" onclick="openTab(event, 'tab-layers')">🗂️ เวกเตอร์ (0)</button>
-            <button class="tab-btn" id="tab-btn-drones" onclick="openTab(event, 'tab-drones')">🚁 โดรน (0)</button>
-            <button class="tab-btn" id="tab-btn-import" onclick="openTab(event, 'tab-import')">📥 นำเข้า</button>
+            <button class="tab-btn active" onclick="openTab(event, 'tab-stats')">📊 ตารางงาน</button>
+            <button class="tab-btn" id="v-count" onclick="openTab(event, 'tab-layers')">🗂️ เวกเตอร์ (0)</button>
+            <button class="tab-btn" id="d-count" onclick="openTab(event, 'tab-drones')">🚁 โดรน (0)</button>
+        </div>
+        
+        <div id="tab-stats" class="tab-content active">
+            <div style="flex:1; overflow-y:auto;">
+                <table class="excel-table">
+                    <thead>
+                        <tr>
+                            <th>Smart ID</th>
+                            <th>โครงการ / งาน</th>
+                            <th>กม.ต้น</th>
+                            <th>กม.ปลาย</th>
+                            <th>ระยะ (กม.)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tbody-stats"></tbody>
+                </table>
+            </div>
+            <div id="table-summary" style="padding:12px; background:#1e293b; color:white; font-size:13px; font-weight:600; display:flex; justify-content:space-between;">
+                <span>📈 รวม: - งาน</span>
+                <span>🛣️ ระยะ: - กม.</span>
+            </div>
         </div>
 
-        <div id="tab-stats" class="tab-content active" style="padding:0;">
-            <table class="excel-table" id="stats-table">
-                <thead><tr><th>รหัสโปรเจกต์</th><th>รหัสงาน</th><th>ชื่อโครงการ</th><th>กม.</th></tr></thead>
-                <tbody id="tbody-stats"><tr><td colspan="4" style="text-align:center; padding:20px;">☝️ โปรดเลือก สร.รว. จากด้านบนก่อนครับ</td></tr></tbody>
-            </table>
-        </div>
+        <div id="tab-layers" class="tab-content"><div id="list-vectors"></div></div>
+        <div id="tab-drones" class="tab-content"><div id="list-drones"></div></div>
+    </div>
 
-        <div id="tab-layers" class="tab-content">
-            <div id="list-vectors"><p style="text-align:center; color:#94a3b8;">⚠️ โปรดเลือก สร.รว. เพื่อแสดงข้อมูล</p></div>
-        </div>
-
-        <div id="tab-drones" class="tab-content">
-            <div id="list-drones"><p style="text-align:center; color:#94a3b8;">⚠️ โปรดเลือก สร.รว. เพื่อแสดงข้อมูล</p></div>
-        </div>
-
-        <div id="tab-import" class="tab-content">
-            <div class="form-group"><label>หน่วยงาน (สร.รว.)</label><select class="form-input" id="import-agency"><option value="">-- เลือก สร.รว. --</option></select></div>
-            <div class="form-group"><label>จังหวัด</label><input type="text" class="form-input" id="import-province" placeholder="เช่น ลพบุรี"></div>
+    <div id="upload-modal" class="modal-overlay">
+        <div class="modal-content">
+            <button class="close-modal-btn" onclick="closeUploadModal()">✖</button>
+            <h3 style="margin-top:0; margin-bottom:15px; color:#1e293b; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px;">📥 นำเข้าข้อมูล (Smart ID)</h3>
             
-            <div class="form-group">
-                <div style="display: flex; gap: 10px;">
-                    <div style="flex: 1;">
-                        <label>รหัสโครงการ</label>
-                        <input type="text" class="form-input" id="import-id" placeholder="5 หลัก" maxlength="5">
-                    </div>
-                    <div style="flex: 1;">
-                        <label>รหัสงาน</label>
-                        <input type="text" class="form-input" id="import-job-id" placeholder="5 หลัก" maxlength="5">
-                    </div>
-                </div>
-            </div>
+            <div id="import-badge" class="status-badge status-locked">⚠️ โปรดเลือก สร.รว. และ ปีงบประมาณ จากแถบด้านบนก่อน</div>
+            <input type="hidden" id="i-year" value="">
 
-            <div class="form-group"><label>ชื่อโครงการ</label><input type="text" class="form-input" id="import-name" placeholder="ระบุชื่อโครงการ..."></div>
-            <div class="form-group">
-                <label>ช่วง กม. (เริ่มต้น - สิ้นสุด)</label>
-                <div style="display: flex; gap: 5px; align-items: center;">
-                    <input type="text" class="form-input" id="import-km-start" placeholder="เช่น 0+000" oninput="calculateDistance()">
-                    <span>ถึง</span>
-                    <input type="text" class="form-input" id="import-km-end" placeholder="เช่น 40+000" oninput="calculateDistance()">
-                </div>
-                <div id="km-result" style="font-size: 13px; color: #10b981; margin-top: 5px; font-weight: 600;">ระยะทาง: - กม.</div>
+            <div class="form-group"><label>จังหวัด</label><select class="form-input" id="i-prov"><option value="">-- รอการเลือกหน่วยงาน --</option></select></div>
+            <div style="display:flex; gap:10px; margin-bottom:12px;">
+                <div style="flex:1;"><label>รหัสโครงการ</label><input type="text" class="form-input" id="i-id" placeholder="214" list="h-ids"></div>
+                <div style="flex:1;"><label>รหัสงานย่อย</label><input type="text" class="form-input" id="i-job" placeholder="001" list="h-jobs"></div>
             </div>
-            <div class="form-group">
-                <label>แนบไฟล์ (เวกเตอร์ หรือ โดรน)</label>
-                <input type="file" class="form-input" id="import-file" style="margin-bottom: 5px; padding: 5px;">
-                <button type="button" class="btn-save" style="background: #3b82f6; margin-bottom: 5px;" id="btn-upload" onclick="uploadToR2()">☁️ อัปโหลดไฟล์ไป R2</button>
-                <input type="text" class="form-input" id="import-link" placeholder="ลิงก์ไฟล์จะปรากฏที่นี่อัตโนมัติ" readonly style="background: #f1f5f9; color: #64748b;">
+            <div class="form-group"><label>ชื่อโครงการ / งาน</label><input type="text" class="form-input" id="i-name" list="h-names"></div>
+            <div style="display:flex; gap:10px; margin-bottom:12px;">
+                <div style="flex:1;"><label>กม.ต้น</label><input type="number" class="form-input" id="i-km-start" value="0" step="0.001"></div>
+                <div style="flex:1;"><label>กม.ปลาย</label><input type="number" class="form-input" id="i-km-end" value="0" step="0.001"></div>
             </div>
-            <button class="btn-save" onclick="saveData()">💾 บันทึกเข้าระบบ</button>
+            <div class="form-group"><label>แนบไฟล์ข้อมูล (เวกเตอร์ / โดรน)</label><input type="file" id="i-file" class="form-input" style="padding:5px;"><button class="btn-save" id="btn-upload" style="background:#3b82f6;" onclick="uploadFile()">☁️ อัปโหลดขึ้น R2 Cloud</button></div>
+            <input type="text" id="i-link" class="form-input" readonly placeholder="ลิงก์ไฟล์จากระบบคลาวด์จะปรากฏที่นี่" style="background:#f1f5f9; margin-bottom:15px;">
+            <button class="btn-save" id="btn-save-data" onclick="saveData()">💾 บันทึกเข้าระบบ Smart ID</button>
+            
+            <datalist id="h-ids"></datalist><datalist id="h-jobs"></datalist><datalist id="h-names"></datalist>
         </div>
     </div>
 
-    <div id="hud-box">กำลังรอพิกัดเมาส์...</div>
+    <div id="hud-box">UTM Zone --</div>
 
     <script>
-        const API_BASE_URL = "https://my-gis-backend.onrender.com";
+        const API = "https://my-gis-backend.onrender.com";
+        const map = L.map('map', { zoomControl: false }).setView([15.5, 100], 6);
+        L.tileLayer('https://mt0.google.com/vt/lyrs=y&x={x}&y={y}&z={z}').addTo(map);
+        L.control.polylineMeasure({ position: 'topright', unit: 'metres' }).addTo(map);
 
-        // ==========================================
-        // 1. การจัดการ UI
-        // ==========================================
-        function toggleSidebar() { document.getElementById('left-sidebar').classList.toggle('hidden'); }
-        function openTab(evt, tabName) {
-            let tabcontent = document.getElementsByClassName("tab-content");
-            for (let i = 0; i < tabcontent.length; i++) { tabcontent[i].style.display = "none"; tabcontent[i].classList.remove("active"); }
-            let tablinks = document.getElementsByClassName("tab-btn");
-            for (let i = 0; i < tablinks.length; i++) { tablinks[i].classList.remove("active"); }
-            document.getElementById(tabName).style.display = "block";
-            document.getElementById(tabName).classList.add("active");
-            evt.currentTarget.classList.add("active");
-        }
-
-        // ==========================================
-        // 2. แผนที่ Leaflet & การตั้งค่าแผนที่ฐาน (Base Maps)
-        // ==========================================
-        const map = L.map('map', { zoomControl: false }).setView([15.8700, 100.9925], 6); 
-
-        // 🌟 แก้ไขเป็น HTTPS ทั้งหมด
-        const satelliteMap = L.tileLayer('https://mt0.google.com/vt/lyrs=y&hl=en&x={x}&y={y}&z={z}', { maxZoom: 20 });
-        const streetMap = L.tileLayer('https://mt0.google.com/vt/lyrs=m&hl=en&x={x}&y={y}&z={z}', { maxZoom: 20 });
-        const osmMap = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 });
-
-        satelliteMap.addTo(map);
-
-        const baseLayers = {
-            "🗺️ ดาวเทียม (Google Satellite)": satelliteMap,
-            "🛣️ แผนที่ถนน (Google Streets)": streetMap,
-            "🛣️ แผนที่ถนน (OpenStreetMap)": osmMap
-        };
-        L.control.layers(baseLayers, null, { position: 'topright' }).addTo(map);
-
-        // 🌟 ใหม่: เพิ่มเครื่องมือวัดระยะทางและพื้นที่
-        const measureControl = new L.Control.Measure({
-            primaryLengthUnit: 'kilometers',
-            secondaryLengthUnit: 'meters',
-            primaryAreaUnit: 'sqmeters',
-            activeColor: '#db4a44',
-            completedColor: '#8b2d2a',
-            position: 'topright',
-            localization: 'th'
-        });
-        measureControl.addTo(map);
-
-        const zoneLines = [
-            { lon: 84, name: "44/45" }, { lon: 90, name: "45/46" }, { lon: 96, name: "46/47" }, 
-            { lon: 102, name: "47/48" }, { lon: 108, name: "48/49" }
-        ];
-        zoneLines.forEach(line => { 
-            L.polyline([[-10, line.lon], [30, line.lon]], { color: 'red', weight: 2, dashArray: '8, 8', opacity: 0.5 }).addTo(map); 
-        });
-
-        const zoneLabels = [
-            { lon: 87, name: "Zone 45" }, { lon: 93, name: "Zone 46" }, 
-            { lon: 99, name: "Zone 47" }, { lon: 105, name: "Zone 48" }
-        ];
-        zoneLabels.forEach(label => {
-            const icon = L.divIcon({ 
-                className: 'custom-label', 
-                html: `<div style="color: yellow; font-size: 20px; font-weight: bold; text-shadow: 2px 2px 4px #000; white-space: nowrap; opacity: 0.5;">${label.name}</div>`, 
-                iconSize: [100, 40] 
-            });
-            L.marker([15, label.lon], {icon: icon}).addTo(map);
-        });
-
-        // ==========================================
-        // 3. HUD: แสดงพิกัด Lat/Lon และ UTM แบบเต็ม 
-        // ==========================================
-        const hudBox = document.getElementById('hud-box');
         map.on('mousemove', function(e) {
-            const lat = e.latlng.lat, lon = e.latlng.lng;
-            const zoneNum = Math.floor((lon + 180) / 6) + 1;
-            const utmString = `+proj=utm +zone=${zoneNum} ${lat >= 0 ? '+north' : '+south'} +datum=WGS84 +units=m +no_defs`;
-            try {
-                const coords = proj4('+proj=longlat +datum=WGS84 +no_defs', utmString, [lon, lat]);
-                hudBox.innerHTML = `📍 Lat: ${lat.toFixed(5)}, Lon: ${lon.toFixed(5)}<br>🎯 Zone ${zoneNum}: X=${coords[0].toFixed(2)}, Y=${coords[1].toFixed(2)}`;
-            } catch (err) { 
-                hudBox.innerHTML = `📍 Lat: ${lat.toFixed(5)}, Lon: ${lon.toFixed(5)}<br>❌ นอกเขตคำนวณ UTM`; 
-            }
+            const z = Math.floor((e.latlng.lng + 180) / 6) + 1;
+            const utm = proj4('+proj=longlat', `+proj=utm +zone=${z} +units=m`, [e.latlng.lng, e.latlng.lat]);
+            document.getElementById('hud-box').innerHTML = `📍 Lat: ${e.latlng.lat.toFixed(5)}, Lon: ${e.latlng.lng.toFixed(5)}<br>🎯 UTM Zone ${z}: X=${utm[0].toFixed(2)}, Y=${utm[1].toFixed(2)}`;
         });
-        map.on('mouseout', function() { hudBox.innerHTML = `เลื่อนเมาส์บนแผนที่เพื่อดูพิกัด`; });
 
-        // ==========================================
-        // 4. ระบบจัดการเลเยอร์ (อัปเดต Popup ข้อมูล)
-        // ==========================================
-        const activeLayers = {}; 
-
-        function toggleLayer(url, checkbox) {
-            if (!url) { alert("ไม่มีลิงก์ไฟล์ข้อมูลครับ"); checkbox.checked = false; return; }
-
-            document.querySelectorAll(`input[type="checkbox"]`).forEach(cb => {
-                if (cb.getAttribute('onchange') && cb.getAttribute('onchange').includes(url)) {
-                    cb.checked = checkbox.checked;
-                }
-            });
-
-            if (checkbox.checked) {
-                if (activeLayers[url]) return; 
-
-                if(url.toLowerCase().includes('.kml')) {
-                    const layer = omnivore.kml(url).addTo(map);
-                    activeLayers[url] = layer;
-                    layer.on('ready', function() { map.fitBounds(layer.getBounds()); });
-                } 
-                else if(url.toLowerCase().includes('.kmz')) {
-                    const layer = L.kmzLayer(url).addTo(map);
-                    activeLayers[url] = layer;
-                    
-                    // 🌟 ใหม่: แสดง Text และ Popup กล่องขาวเมื่อคลิก
-                    layer.on('load', function(e) {
-                        e.layer.eachLayer(function(subLayer) {
-                            const name = subLayer.feature.properties.name || "ไม่ระบุชื่อ";
-                            const desc = subLayer.feature.properties.description || "";
-
-                            // 1. ผูกป้ายชื่อ (Tooltip) ให้โชว์ค้างไว้ตลอด
-                            subLayer.bindTooltip(name, {
-                                permanent: true,
-                                direction: 'top',
-                                className: 'my-kmz-label'
-                            });
-
-                            // 2. เมื่อคลิกให้แสดง Popup พิกัด UTM
-                            subLayer.on('click', function(ev) {
-                                const clickLat = ev.latlng.lat;
-                                const clickLon = ev.latlng.lng;
-                                const zone = Math.floor((clickLon + 180) / 6) + 1;
-                                const utmProj = `+proj=utm +zone=${zone} +datum=WGS84 +units=m +no_defs`;
-                                const utmCoords = proj4('+proj=longlat +datum=WGS84 +no_defs', utmProj, [clickLon, clickLat]);
-
-                                const popupContent = `
-                                    <div style="font-family:'Kanit'; font-size:14px; min-width:200px;">
-                                        <div style="background:#1e293b; color:#fff; padding:5px 10px; border-radius:4px 4px 0 0; margin:-14px -20px 10px -20px;">
-                                            <strong>${name}</strong>
-                                        </div>
-                                        ${desc ? `<div style="margin-bottom:10px; color:#475569;">${desc}</div>` : ''}
-                                        <div style="border-top:1px solid #e2e8f0; padding-top:8px; font-size:12px;">
-                                            <span style="color:#16a34a; font-weight:bold;">พิกัด UTM Zone ${zone}</span><br>
-                                            <b>X:</b> ${utmCoords[0].toFixed(2)}<br>
-                                            <b>Y:</b> ${utmCoords[1].toFixed(2)}
-                                        </div>
-                                    </div>
-                                `;
-                                subLayer.bindPopup(popupContent).openPopup();
-                            });
-                        });
-                        map.fitBounds(e.layer.getBounds()); 
-                    });
-                } 
-                else {
-                    alert("ระบบวาดเวกเตอร์รองรับเฉพาะไฟล์ .KML และ .KMZ เท่านั้นครับ");
-                    checkbox.checked = false;
-                }
-            } else {
-                if (activeLayers[url]) {
-                    map.removeLayer(activeLayers[url]); 
-                    delete activeLayers[url];
-                }
-            }
-        }
-
-        function toggleDroneLayer(url, checkbox) {
-            if (!url) { alert("ไม่มีลิงก์ไฟล์โดรนครับ"); checkbox.checked = false; return; }
-
-            document.querySelectorAll(`input[type="checkbox"]`).forEach(cb => {
-                if (cb.getAttribute('onchange') && cb.getAttribute('onchange').includes(url)) {
-                    cb.checked = checkbox.checked;
-                }
-            });
-
-            if (checkbox.checked) {
-                if (activeLayers[url]) return;
-
-                if (url.includes('{z}') || url.toLowerCase().includes('.png')) {
-                    const layer = L.tileLayer(url, { maxNativeZoom: 20, maxZoom: 22 }).addTo(map);
-                    activeLayers[url] = layer;
-                } else {
-                    alert("⚠️ การจะวาดภาพโดรนลงแผนที่ ลิงก์ต้องเป็นรูปแบบ XYZ Tiles เช่น .../{z}/{x}/{y}.png ครับ");
-                    checkbox.checked = false;
-                }
-            } else {
-                if (activeLayers[url]) {
-                    map.removeLayer(activeLayers[url]);
-                    delete activeLayers[url];
-                }
-            }
-        }
-
-        // ==========================================
-        // 5. ระบบดึงข้อมูล คัดกรอง และนับไฟล์ 
-        // ==========================================
         let allData = [];
+        const activeLayers = {};
 
-        function initAgencyDropdown() {
-            const filterAgency = document.getElementById("filter-agency");
-            const importAgency = document.getElementById("import-agency");
-            for (let i = 1; i <= 17; i++) {
-                filterAgency.appendChild(new Option(`สร.รว.${i}`, `สร.รว.${i}`));
-                importAgency.appendChild(new Option(`สร.รว.${i}`, `สร.รว.${i}`));
+        function showL(text) { 
+            document.getElementById('loading-overlay').style.display='flex'; 
+            if(text) document.getElementById('loading-text').innerText = text;
+        }
+        function hideL() { document.getElementById('loading-overlay').style.display='none'; }
+
+        // 🌟 ฟังก์ชันพับเก็บหน้าต่าง (Sidebar)
+        function toggleSidebar() {
+            document.getElementById('left-sidebar').classList.toggle('hidden');
+        }
+
+        // 🌟 ฟังก์ชันเปิด-ปิด ป๊อปอัปนำเข้า
+        function openUploadModal() {
+            document.getElementById('upload-modal').style.display = 'flex';
+            updateImportBadge(); // อัปเดตป้ายสถานะทันทีที่เปิด
+        }
+        function closeUploadModal() {
+            document.getElementById('upload-modal').style.display = 'none';
+        }
+
+        function updateImportBadge() {
+            const agency = document.getElementById("f-agency").value;
+            const year = document.getElementById("f-year").value;
+            const badge = document.getElementById("import-badge");
+            const inputs = ["i-prov", "i-id", "i-job", "i-name", "i-km-start", "i-km-end", "i-file", "btn-upload", "btn-save-data"];
+
+            if (!agency || !year) {
+                badge.className = "status-badge status-locked";
+                badge.innerHTML = "⚠️ โปรดเลือก สร.รว. และ ปีงบประมาณ จากแถบด้านบนก่อน";
+                inputs.forEach(id => document.getElementById(id).disabled = true);
+            } else {
+                badge.className = "status-badge status-ready";
+                badge.innerHTML = `🎯 <strong>เป้าหมายนำเข้า:</strong> ${agency} | แผนปี ${year}`;
+                document.getElementById("i-year").value = year; 
+                inputs.forEach(id => document.getElementById(id).disabled = false);
             }
         }
 
-        async function loadDataByAgency(agencyName) {
-            const tbody = document.getElementById("tbody-stats");
-            const provSelect = document.getElementById("filter-province");
-            const projSelect = document.getElementById("filter-project");
-            
-            if (!agencyName) {
-                allData = [];
-                provSelect.innerHTML = '<option value="">-- เลือกจังหวัด --</option>';
-                projSelect.innerHTML = '<option value="">-- เลือกโครงการ --</option>';
-                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:20px;">☝️ โปรดเลือก สร.รว. จากด้านบนก่อนครับ</td></tr>';
+        async function loadDataByAgency(agency) {
+            if(!agency) {
+                document.getElementById("f-prov").innerHTML = '<option value="" disabled selected hidden>-- 3. จังหวัด --</option>';
+                document.getElementById("i-prov").innerHTML = '<option value="">-- รอการเลือกหน่วยงาน --</option>';
+                allData = []; // ล้างข้อมูล
                 filterAll();
                 return;
             }
-
-            tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding:20px;">⏳ กำลังดึงข้อมูลจาก ${agencyName}...</td></tr>`;
-            
+            showL(`🔍 กำลังเชื่อมโยงคลังข้อมูล ${agency}...`);
             try {
-                const res = await fetch(`${API_BASE_URL}/api/projects/by-agency?agency=${agencyName}&_t=${new Date().getTime()}`);
+                const res = await fetch(`${API}/api/projects/by-agency?agency=${agency}&_t=${Date.now()}`);
                 allData = await res.json();
                 
-                const provinces = [...new Set(allData.map(d => (d['จังหวัด'] || '').toString().trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'th', { numeric: true }));
+                const provinces = [...new Set(allData.map(d => d['จังหวัด']))].filter(Boolean).sort();
+                const pSel = document.getElementById("f-prov");
+                const iPSel = document.getElementById("i-prov");
                 
-                provSelect.innerHTML = '<option value="">-- เลือกจังหวัด --</option>';
-                provinces.forEach(p => provSelect.appendChild(new Option(p, p)));
+                pSel.innerHTML = '<option value="" disabled selected hidden>-- 3. จังหวัด --</option>';
+                iPSel.innerHTML = '<option value="">-- เลือกจังหวัด --</option>';
                 
-                projSelect.innerHTML = '<option value="">-- เลือกโครงการ --</option>';
+                provinces.forEach(p => { 
+                    pSel.appendChild(new Option(p, p)); 
+                    iPSel.appendChild(new Option(p, p)); 
+                });
                 filterAll();
-            } catch (err) {
-                console.error("โหลดข้อมูลล้มเหลว", err);
-                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:red;">โหลดข้อมูลล้มเหลว ตรวจสอบหลังบ้าน (Render)</td></tr>';
-            }
+            } finally { hideL(); }
         }
 
-        function populateProjectDropdown() {
-            const agency = document.getElementById("filter-agency").value.trim();
-            const prov = document.getElementById("filter-province").value.trim();
-            const target = document.getElementById("filter-project");
-            
-            target.innerHTML = '<option value="">-- เลือกโครงการ --</option>';
-            
-            if (!agency || !prov) return;
+        function populateProj() {
+            const prov = document.getElementById("f-prov").value;
+            const pSel = document.getElementById("f-proj");
+            pSel.innerHTML = '<option value="" disabled selected hidden>-- 4. โครงการ --</option>';
+            if(!prov) return;
+            const projs = [...new Set(allData.filter(d => d['จังหวัด'] === prov).map(d => d['ชื่อโครงการ']))].filter(Boolean).sort();
+            projs.forEach(p => pSel.appendChild(new Option(p, p)));
 
-            const filteredForProj = allData.filter(d => 
-                (d['สร.รว.'] || '').toString().trim() === agency && 
-                (d['จังหวัด'] || '').toString().trim() === prov
-            );
-            const projects = [...new Set(filteredForProj.map(d => (d['ชื่อโครงการ'] || '').toString().trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'th', { numeric: true }));
-            
-            projects.forEach(p => target.appendChild(new Option(p, p)));
+            const filtered = allData.filter(d => d['จังหวัด'] === prov);
+            updateSuggestions(filtered);
+        }
+
+        function updateSuggestions(data) {
+            const ids = [...new Set(data.map(d => d['รหัสโครงการ']))].filter(Boolean);
+            const names = [...new Set(data.map(d => d['ชื่อโครงการ']))].filter(Boolean);
+            document.getElementById('h-ids').innerHTML = ids.map(v => `<option value="${v}">`).join('');
+            document.getElementById('h-names').innerHTML = names.map(v => `<option value="${v}">`).join('');
         }
 
         function filterAll() {
-            const agency = document.getElementById("filter-agency").value.trim();
-            const prov = document.getElementById("filter-province").value.trim();
-            const projName = document.getElementById("filter-project").value.trim();
-            const key = document.getElementById("search-project").value.trim().toLowerCase();
+            const yearVal = document.getElementById("f-year").value;
+            const year = yearVal ? yearVal.slice(-2) : '';
+            const prov = document.getElementById("f-prov").value;
+            const proj = document.getElementById("f-proj").value;
+            const key = document.getElementById("search-box").value.toLowerCase();
+            const agencyRaw = document.getElementById("f-agency").value;
+            const agencyNum = agencyRaw ? agencyRaw.replace('สร.รว.', '') : '';
 
-            const filteredProjects = allData.filter(d => {
-                const mAg = !agency || (d['สร.รว.'] || '').toString().trim() === agency;
-                const mPr = !prov || (d['จังหวัด'] || '').toString().trim() === prov;
-                const mPj = !projName || (d['ชื่อโครงการ'] || '').toString().trim() === projName;
-                const mKy = !key || (
-                    (d['รหัสโครงการ'] || '').toString().toLowerCase().includes(key) ||
-                    (d['รหัสงาน'] || '').toString().toLowerCase().includes(key) ||
-                    (d['ชื่อโครงการ'] || '').toString().toLowerCase().includes(key) ||
-                    (d['ชื่องาน'] || '').toString().toLowerCase().includes(key)
-                );
-                return mAg && mPr && mPj && mKy;
+            let sumDist = 0;
+            let countProj = 0;
+
+            const filtered = allData.filter(d => {
+                const mPr = !prov || d['จังหวัด'] === prov;
+                const mPj = !proj || d['ชื่อโครงการ'] === proj;
+                const smartID = `${agencyNum}-${year}-${d['รหัสโครงการ']}`;
+                const mKy = !key || smartID.includes(key) || (d['ชื่อโครงการ']||'').toLowerCase().includes(key);
+                return mPr && mPj && mKy;
             });
 
-            let uniqueVectors = new Map(); 
-            let uniqueDrones = new Map();
-
-            if (agency !== "" && filteredProjects.length > 0) {
-                filteredProjects.forEach(project => {
-                    const files = project.files || [];
-                    files.forEach(file => {
-                        let type = (file['ประเภทไฟล์'] || '').toString().toUpperCase();
-                        let linkUrl = file['ลิงก์จาก R2'];
-
-                        if (linkUrl) {
-                            let fileData = {
-                                url: linkUrl,
-                                projectName: project['ชื่อโครงการ'] || 'ไม่มีชื่อ',
-                                projectId: project['รหัสโครงการ'] || '-',
-                                jobId: file['รหัสงาน'] || '-', 
-                                province: project['จังหวัด'] || '-',
-                                type: type
-                            };
-
-                            if (type === 'KML' || type === 'KMZ') {
-                                uniqueVectors.set(linkUrl, fileData);
-                            } else if (type === 'DRONE') {
-                                uniqueDrones.set(linkUrl, fileData);
-                            }
-                        }
-                    });
-                });
-            }
-
-            document.getElementById("tab-btn-layers").innerHTML = `🗂️ เวกเตอร์ (${uniqueVectors.size})`;
-            document.getElementById("tab-btn-drones").innerHTML = `🚁 โดรน (${uniqueDrones.size})`;
-
-            renderStatsTable(filteredProjects);
-
-            if (agency !== "") {
-                renderFileList("list-vectors", Array.from(uniqueVectors.values()), "เวกเตอร์");
-                renderFileList("list-drones", Array.from(uniqueDrones.values()), "ภาพโดรน");
-            } else {
-                document.getElementById("list-vectors").innerHTML = '<p style="text-align:center; color:#94a3b8;">⚠️ โปรดเลือก สร.รว. เพื่อแสดงข้อมูล</p>';
-                document.getElementById("list-drones").innerHTML = '<p style="text-align:center; color:#94a3b8;">⚠️ โปรดเลือก สร.รว. เพื่อแสดงข้อมูล</p>';
-            }
-        }
-
-        function renderStatsTable(data) {
-            const tbody = document.getElementById("tbody-stats");
-            tbody.innerHTML = data.length ? "" : '<tr><td colspan="4" style="text-align:center;">ไม่พบโครงการที่ค้นหา</td></tr>';
-            data.forEach(d => {
-                let kmDisplay = '-';
-                if (d['กม.ต้น'] && d['กม.ปลาย']) kmDisplay = `${d['กม.ต้น']} ถึง ${d['กม.ปลาย']}`;
-                else if (d['กม.ต้น']) kmDisplay = d['กม.ต้น'];
-                else if (d['กม.ปลาย']) kmDisplay = d['กม.ปลาย'];
-
-                const tr = document.createElement('tr');
-                tr.innerHTML = `<td>${d['รหัสโครงการ']||'-'}</td><td>${d['รหัสงาน']||'-'}</td><td>${d['ชื่อโครงการ']||'-'}</td><td>${kmDisplay}</td>`;
-                tbody.appendChild(tr);
-            });
-        }
-
-        function renderFileList(containerId, files, category) {
-            const container = document.getElementById(containerId);
-            container.innerHTML = "";
-
-            if (files.length === 0) {
-                container.innerHTML = `<p style="text-align:center; color:#94a3b8;">ไม่พบไฟล์${category}ในเงื่อนไขนี้</p>`;
-                return;
-            }
-
-            files.forEach(file => {
-                const item = document.createElement('div');
-                item.className = 'layer-item';
+            const html = filtered.map(d => {
+                const start = parseFloat(d['กม.ต้น'] || 0);
+                const end = parseFloat(d['กม.ปลาย'] || 0);
+                const dist = Math.abs(end - start);
                 
-                let badgeLabel = file.type;
-                let badgeColor = '#64748b';
-                let toggleFunc = '';
-                
-                if (file.type === 'KMZ') { badgeColor = '#8b5cf6'; toggleFunc = `toggleLayer('${file.url}', this)`; }
-                else if (file.type === 'KML') { badgeColor = '#2563eb'; toggleFunc = `toggleLayer('${file.url}', this)`; }
-                else if (file.type === 'DRONE') { badgeColor = '#ef4444'; toggleFunc = `toggleDroneLayer('${file.url}', this)`; }
+                sumDist += dist;
+                countProj++;
 
-                let isChecked = activeLayers[file.url] ? 'checked' : '';
-
-                item.innerHTML = `
-                    <input type="checkbox" onchange="${toggleFunc}" ${isChecked}>
-                    <div>
-                        <strong>${file.projectName}</strong><br>
-                        <small style="color:#64748b;">${file.projectId} | งาน: ${file.jobId} | ${file.province}</small>
-                    </div>
-                    <span class="badge" style="background:${badgeColor};">${badgeLabel}</span>
+                return `
+                    <tr>
+                        <td style="color:#2563eb; font-weight:600;">${agencyNum}-${year}-${d['รหัสโครงการ']}</td>
+                        <td>${d['ชื่อโครงการ']}<br><small style="color:#64748b;">จ.${d['จังหวัด']}</small></td>
+                        <td>${start.toFixed(3)}</td>
+                        <td>${end.toFixed(3)}</td>
+                        <td style="background:#f8fafc; font-weight:600; color:#16a34a;">${dist.toFixed(3)}</td>
+                    </tr>
                 `;
-                container.appendChild(item);
-            });
+            }).join('');
+
+            document.getElementById("tbody-stats").innerHTML = html ? html : '<tr><td colspan="5" style="text-align:center; padding:15px;">ไม่พบข้อมูล หรือยังไม่ได้เลือก สร.รว.</td></tr>';
+            
+            document.getElementById("table-summary").innerHTML = `
+                <span>📈 รวม: ${countProj} งาน</span>
+                <span>🛣️ ระยะ: ${sumDist.toFixed(3)} กม.</span>
+            `;
+
+            updateFileCounts(allData);
         }
 
-        // ==========================================
-        // 6. ระบบคำนวณระยะทาง และ อัปโหลดข้อมูล
-        // ==========================================
-        function parseKM(kmStr) {
-            if (!kmStr) return 0;
-            const parts = kmStr.replace(/\s/g, '').split('+');
-            return ((parseInt(parts[0]) || 0) * 1000) + (parseInt(parts[1]) || 0);
+        function updateFileCounts(data) {
+            let vMap = new Map(), dMap = new Map();
+            data.forEach(p => (p.files || []).forEach(f => {
+                if(f['ประเภทไฟล์']==='KMZ' || f['ประเภทไฟล์']==='KML') vMap.set(f['ลิงก์จาก R2'], {url: f['ลิงก์จาก R2'], name: p['ชื่อโครงการ'], prov: p['จังหวัด']});
+                else if(f['ประเภทไฟล์']==='Drone') dMap.set(f['ลิงก์จาก R2'], {url: f['ลิงก์จาก R2'], name: p['ชื่อโครงการ'], prov: p['จังหวัด']});
+            }));
+            document.getElementById("v-count").innerText = `🗂️ เวกเตอร์ (${vMap.size})`;
+            document.getElementById("d-count").innerText = `🚁 โดรน (${dMap.size})`;
+            renderFiles("list-vectors", Array.from(vMap.values()), 'v');
+            renderFiles("list-drones", Array.from(dMap.values()), 'd');
         }
 
-        function calculateDistance() {
-            const startStr = document.getElementById("import-km-start").value;
-            const endStr = document.getElementById("import-km-end").value;
-            if (startStr.includes('+') && endStr.includes('+')) {
-                const dist = Math.abs(parseKM(endStr) - parseKM(startStr));
-                document.getElementById("km-result").innerHTML = `ระยะทาง: ${(dist / 1000).toFixed(3)} กม.`;
-            } else {
-                document.getElementById("km-result").innerHTML = `ระยะทาง: - กม.`;
-            }
+        function renderFiles(id, files, mode) {
+            document.getElementById(id).innerHTML = files.length ? files.map(f => `
+                <div class="layer-item">
+                    <input type="checkbox" onchange="${mode==='v'?'toggleV':'toggleD'}('${f.url}', this, '${f.prov}')">
+                    <div><strong>${f.name}</strong><br><small>${f.prov}</small></div>
+                </div>
+            `).join('') : '<p style="text-align:center; color:#94a3b8; font-size:13px; margin-top:15px;">ไม่มีไฟล์ข้อมูลใน สร.รว. นี้</p>';
         }
 
-        async function uploadToR2() {
-            const fileInput = document.getElementById('import-file');
-            if (fileInput.files.length === 0) { alert("⚠️ กรุณาเลือกไฟล์ก่อนอัปโหลดครับ"); return; }
-            const btn = document.getElementById("btn-upload");
-            const originalText = btn.innerHTML;
-            btn.innerHTML = "⏳ กำลังอัปโหลด..."; btn.disabled = true;
+        function toggleV(url, cb) {
+            if(cb.checked) {
+                const l = L.kmzLayer(url).addTo(map); activeLayers[url] = l;
+                l.on('load', e => {
+                    e.layer.eachLayer(sub => {
+                        const name = sub.feature.properties.name || "ไม่มีชื่อ";
+                        sub.bindTooltip(name, { permanent: true, className: 'my-kmz-label' });
+                    });
+                    map.fitBounds(e.layer.getBounds());
+                });
+            } else { if(activeLayers[url]) { map.removeLayer(activeLayers[url]); delete activeLayers[url]; } }
+        }
 
-            const formData = new FormData();
-            formData.append('file', fileInput.files[0]);
+        async function toggleD(url, cb, prov) {
+            if(cb.checked) {
+                activeLayers[url] = L.tileLayer(url, { maxNativeZoom: 20, maxZoom: 22 }).addTo(map);
+                if(prov) {
+                    const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=จังหวัด${prov.replace('จ.','')}`);
+                    const data = await res.json();
+                    if(data.length) map.flyTo([data[0].lat, data[0].lon], 11);
+                }
+            } else { if(activeLayers[url]) { map.removeLayer(activeLayers[url]); delete activeLayers[url]; } }
+        }
 
+        async function uploadFile() {
+            const f = document.getElementById('i-file').files[0];
+            if(!f) return alert("⚠️ กรุณาเลือกไฟล์ก่อนอัปโหลดครับ");
+            showL("⏳ กำลังส่งไฟล์ดิบเข้าสู่ Cloud R2...");
+            const fd = new FormData(); fd.append('file', f);
             try {
-                const response = await fetch(`${API_BASE_URL}/api/upload`, { method: 'POST', body: formData });
-                const result = await response.json();
-                if (result.status === "success") {
-                    document.getElementById('import-link').value = result.url;
-                    alert("✅ อัปโหลดไฟล์ขึ้น R2 สำเร็จ!");
-                } else alert("❌ ข้อผิดพลาด: " + result.message);
-            } catch (error) { alert("❌ เชื่อมต่อเซิร์ฟเวอร์ไม่ได้"); } 
-            finally { btn.innerHTML = originalText; btn.disabled = false; }
+                const res = await fetch(`${API}/api/upload`, { method:'POST', body:fd });
+                const r = await res.json();
+                if(r.status==="success") { document.getElementById('i-link').value = r.url; alert("✅ อัปโหลดขึ้นคลาวด์สำเร็จ!"); }
+            } catch(e) { alert("❌ การอัปโหลดล้มเหลว"); } 
+            finally { hideL(); }
         }
 
         async function saveData() {
             const payload = {
-                agency: document.getElementById("import-agency").value,
-                province: document.getElementById("import-province").value,
-                project_id: document.getElementById("import-id").value.toUpperCase(),
-                job_id: document.getElementById("import-job-id").value.toUpperCase(), 
-                project_name: document.getElementById("import-name").value,
-                km_start: document.getElementById("import-km-start").value,
-                km_end: document.getElementById("import-km-end").value,
-                distance: document.getElementById("km-result").innerText.replace("ระยะทาง: ", ""),
-                survey_link: document.getElementById("import-link").value
+                agency: document.getElementById("f-agency").value,
+                year: document.getElementById("i-year").value,
+                province: document.getElementById("i-prov").value,
+                project_id: document.getElementById("i-id").value.trim(),
+                job_id: document.getElementById("i-job").value.trim(),
+                km_start: document.getElementById("i-km-start").value,
+                km_end: document.getElementById("i-km-end").value,
+                survey_link: document.getElementById("i-link").value
             };
-
-            if (!payload.province || !payload.project_id || !payload.job_id || !payload.survey_link) {
-                alert("⚠️ กรุณากรอก จังหวัด, รหัสโครงการ, รหัสงาน และแนบไฟล์ให้ครบถ้วนครับ"); return;
-            }
-
-            const btn = document.querySelector(".btn-save:last-child");
-            const originalText = btn.innerHTML;
-            btn.innerHTML = "⏳ กำลังบันทึก..."; btn.disabled = true;
-
+            if(!payload.survey_link || !payload.project_id || !payload.province) return alert("⚠️ กรอกรหัสและอัปโหลดไฟล์ข้อมูลให้ครบถ้วนก่อนครับ");
+            showL("💾 กำลังบันทึกข้อมูลเข้าระบบ Smart ID...");
             try {
-                const response = await fetch(`${API_BASE_URL}/api/add-project`, {
-                    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
-                });
-                const result = await response.json();
-
-                if (result.status === "success") {
-                    alert("✅ บันทึกสำเร็จ! ข้อมูลเข้าไปอยู่ใน Google Sheets เรียบร้อยครับ");
-                    
-                    document.getElementById("import-id").value = "";
-                    document.getElementById("import-job-id").value = "";
-                    document.getElementById("import-name").value = "";
-                    document.getElementById("import-km-start").value = "";
-                    document.getElementById("import-km-end").value = "";
-                    document.getElementById("import-file").value = "";
-                    document.getElementById("import-link").value = "";
-
-                    loadDataByAgency(payload.agency); 
-                } else alert("❌ ข้อผิดพลาด: " + result.message);
-            } catch (error) { alert("❌ เชื่อมต่อเซิร์ฟเวอร์ไม่ได้"); } 
-            finally { btn.innerHTML = originalText; btn.disabled = false; }
+                await fetch(`${API}/api/add-project`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) });
+                alert("✅ ระบบบันทึกพิกัดและข้อมูลสำเร็จ!");
+                
+                document.getElementById("i-id").value = "";
+                document.getElementById("i-job").value = "";
+                document.getElementById("i-name").value = "";
+                document.getElementById("i-link").value = "";
+                document.getElementById("i-km-start").value = "0";
+                document.getElementById("i-km-end").value = "0";
+                
+                closeUploadModal(); // ปิดหน้าต่างนำเข้าอัตโนมัติเมื่อบันทึกเสร็จ
+                loadDataByAgency(payload.agency); // โหลดฐานข้อมูลใหม่
+            } catch(e) { alert("❌ บันทึกไม่สำเร็จ"); } 
+            finally { hideL(); }
         }
 
-        initAgencyDropdown();
+        function openTab(e, id) {
+            document.querySelectorAll('.tab-content, .tab-btn').forEach(el => el.classList.remove('active'));
+            document.getElementById(id).classList.add('active'); e.currentTarget.classList.add('active');
+        }
+
+        const aSel = document.getElementById("f-agency");
+        for(let i=1; i<=17; i++) aSel.appendChild(new Option(`สร.รว.${i}`, `สร.รว.${i}`));
+        updateImportBadge();
     </script>
 </body>
 </html>
