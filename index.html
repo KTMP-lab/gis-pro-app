@@ -354,32 +354,43 @@
             updateFileCounts(filtered);
         }
 
-        // 🌟 ปรับปรุงการจัดการนับและแสดงผลเวกเตอร์/ภาพโดรนใหม่ตามที่กำหนด
+        // 🌟 ปรับปรุงการจัดการนับและแสดงผลเวกเตอร์/ภาพโดรนใหม่ (ยึด FileInventory เป็นหลัก 100%)
         function updateFileCounts(data) {
             let vMap = new Map(), dMap = new Map();
             
             data.forEach(p => {
                 (p.files || []).forEach(f => {
                     let url = f['ลิงก์จาก R2'];
+                    if (!url) return; // 🛡️ ดักไว้ก่อน ถ้าไม่มีลิงก์ให้ข้ามไปเลย จะได้ไม่ error
+                    
                     let type = f['ประเภทไฟล์'];
                     
-                    // 🎯 ข้ามไปดึง "ชื่องาน" ตรงๆ จากคอลัมน์ของแถวไฟล์ใน FileInventory เลยครับพี่
-                    let jobName = f['ชื่องาน'] || 'ไม่มีรายละเอียดชื่องาน';
-                    let projId = f['รหัสโครงการ'] || p['รหัสโครงการ'] || '-';
-                    let jobId = f['รหัสงาน'] || p['รหัสงาน'] || '-';
+                    // 🎯 1. งัดข้อมูลจาก FileInventory มาเป็นพระเอกหลัก
+                    let f_projId = f['รหัสโครงการ'] ? String(f['รหัสโครงการ']).trim() : '';
+                    let f_jobId = f['รหัสงาน'] ? String(f['รหัสงาน']).trim() : '';
+                    let f_jobName = f['ชื่องาน'] ? String(f['ชื่องาน']).trim() : '';
+                    
+                    // 🛡️ 2. ระบบตัวตายตัวแทน: ถ้า FileInventory โล่ง ค่อยไปยืมจากหน้า สร.รว. มาโชว์ชั่วคราว
+                    let projId = f_projId || p['รหัสโครงการ'] || '-';
+                    let jobId = f_jobId || p['รหัสงาน'] || '-';
+                    let jobName = f_jobName || p['ชื่องาน'] || p['ชื่อโครงการ'] || 'ไม่มีชื่องาน';
+                    
+                    // 🎨 3. ประกอบร่างการแสดงผลให้สวยงามตามภาพ
                     let displayName = `[รหัส ${projId}-${jobId}] ${jobName}`;
+                    let prov = f['จังหวัด'] || p['จังหวัด'] || '';
                     
                     if(type === 'KMZ' || type === 'KML') {
-                        if(!vMap.has(url)) vMap.set(url, {url: url, names: new Set([displayName]), prov: f['จังหวัด'] || p['จังหวัด']});
+                        if(!vMap.has(url)) vMap.set(url, {url: url, names: new Set([displayName]), prov: prov});
                         else vMap.get(url).names.add(displayName);
                     }
                     else if(type === 'Drone') {
-                        if(!dMap.has(url)) dMap.set(url, {url: url, names: new Set([displayName]), prov: f['จังหวัด'] || p['จังหวัด']});
+                        if(!dMap.has(url)) dMap.set(url, {url: url, names: new Set([displayName]), prov: prov});
                         else dMap.get(url).names.add(displayName);
                     }
                 });
             });
 
+            // 🧹 ฟังก์ชันจัดเรียงรายชื่อให้ขึ้นบรรทัดใหม่สวยๆ
             let formatFiles = (mapObj) => Array.from(mapObj.values()).map(item => ({
                 url: item.url,
                 name: Array.from(item.names).map(n => `▪️ ${n}`).join('<br>'),
