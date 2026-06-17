@@ -66,9 +66,6 @@
         .form-input:disabled { background: #f1f5f9; cursor: not-allowed; }
         .btn-save { width: 100%; padding: 12px; border: none; background: #16a34a; color: white; border-radius: 8px; font-weight: 600; cursor: pointer; margin-top: 5px; font-family: 'Kanit'; font-size: 14px;}
         .btn-save:disabled { background: #94a3b8; cursor: not-allowed; }
-        .status-badge { padding: 12px; margin-bottom: 15px; border-radius: 6px; font-size: 14px; font-weight: 600; text-align: center; }
-        .status-ready { background: #f0fdf4; border: 1px solid #22c55e; color: #166534; }
-        .status-locked { background: #fef2f2; border: 1px solid #ef4444; color: #991b1b; }
 
         #hud-box { position: absolute; bottom: 25px; right: 10px; background: rgba(0,0,0,0.7); color: #00FFCC; padding: 10px 18px; border-radius: 8px; font-family: monospace; font-size: 13px; z-index: 9999; border: 1px solid rgba(0, 255, 204, 0.4); }
         .my-kmz-label { background: transparent !important; border: none !important; box-shadow: none !important; color: #ffeb3b !important; font-weight: bold; text-shadow: 2px 2px 4px #000; font-size: 14px; }
@@ -106,15 +103,15 @@
         <div id="loading-text" style="margin-top:15px; font-size:15px; font-weight:600;">กำลังประมวลผล...</div>
     </div>
 
-    <button id="btn-open-upload" onclick="openUploadModal()">☁️ นำเข้าข้อมูล</button>
+    <button id="btn-open-upload" onclick="openUploadModal()">☁️ นำเข้าข้อมูลแผนที่</button>
 
     <div id="map"></div>
 
     <div id="top-bar" class="glass-panel">
-        <select class="filter-select" id="f-agency" onchange="loadDataByAgency(this.value); updateImportBadge();">
+        <select class="filter-select" id="f-agency" onchange="loadDataByAgency(this.value);">
             <option value="" disabled selected hidden>-- 1. สร.รว. --</option>
         </select>
-        <select class="filter-select" id="f-year" onchange="filterAll(); updateImportBadge();">
+        <select class="filter-select" id="f-year" onchange="filterAll();">
             <option value="" disabled selected hidden>-- 2. ปีงบประมาณ --</option>
             <option value="2569">2569</option>
             <option value="2568">2568</option>
@@ -170,12 +167,29 @@
     <div id="upload-modal" class="modal-overlay">
         <div class="modal-content">
             <button class="close-modal-btn" onclick="closeUploadModal()">✖</button>
-            <h3 style="margin-top:0; margin-bottom:15px; color:#1e293b; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px;">📥 นำเข้าข้อมูล (Smart ID)</h3>
+            <h3 style="margin-top:0; margin-bottom:15px; color:#1e293b; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px;">📥 นำเข้าข้อมูลแผนที่เข้าระบบ</h3>
             
-            <div id="import-badge" class="status-badge status-locked">⚠️ โปรดเลือก สร.รว. และ ปีงบประมาณ จากแถบด้านบนก่อน</div>
-            <input type="hidden" id="i-year" value="">
+            <div class="flex-row">
+                <div class="flex-col">
+                    <label>หน่วยงาน (สร.รว.)</label>
+                    <select class="form-input" id="i-agency" onchange="loadModalSuggestions(this.value)">
+                        <option value="">-- เลือก สร.รว. --</option>
+                    </select>
+                </div>
+                <div class="flex-col">
+                    <label>ปีงบประมาณ</label>
+                    <select class="form-input" id="i-year">
+                        <option value="2569" selected>2569</option>
+                        <option value="2568">2568</option>
+                        <option value="2567">2567</option>
+                    </select>
+                </div>
+            </div>
 
-            <div class="form-group"><label>จังหวัด</label><select class="form-input" id="i-prov"><option value="">-- รอการเลือกหน่วยงาน --</option></select></div>
+            <div class="form-group">
+                <label>จังหวัด</label>
+                <input type="text" class="form-input" id="i-prov" list="h-provs" placeholder="เช่น เชียงใหม่ (พิมพ์หรือเลือกจากรายการ)">
+            </div>
             
             <div class="flex-row">
                 <div class="flex-col"><label>รหัสโครงการหลัก</label><input type="text" class="form-input" id="i-id" placeholder="214" list="h-ids"></div>
@@ -189,11 +203,13 @@
                 <div class="flex-col"><label>กม.ปลาย</label><input type="number" class="form-input" id="i-km-end" value="0" step="0.001"></div>
             </div>
             
-            <div class="form-group"><label>แนบไฟล์ข้อมูล (เวกเตอร์ / โดรน)</label><input type="file" id="i-file" class="form-input" style="padding:5px;"><button class="btn-save" id="btn-upload" style="background:#3b82f6;" onclick="uploadFile()">☁️ อัปโหลดขึ้น R2 Cloud</button></div>
+            <div class="form-group"><label>แนบไฟล์แผนที่ (KMZ / ภาพโดรน)</label><input type="file" id="i-file" class="form-input" style="padding:5px;"><button class="btn-save" id="btn-upload" style="background:#3b82f6;" onclick="uploadFile()">☁️ อัปโหลดขึ้น R2 Cloud</button></div>
             <input type="text" id="i-link" class="form-input" readonly placeholder="ลิงก์ไฟล์จากระบบคลาวด์จะปรากฏที่นี่" style="background:#f1f5f9; margin-bottom:15px;">
             <button class="btn-save" id="btn-save-data" onclick="saveData()">💾 บันทึกเข้าระบบ Smart ID</button>
             
-            <datalist id="h-ids"></datalist><datalist id="h-jobs"></datalist>
+            <datalist id="h-provs"></datalist>
+            <datalist id="h-ids"></datalist>
+            <datalist id="h-jobs"></datalist>
             <datalist id="h-job-names"></datalist>
         </div>
     </div>
@@ -225,36 +241,38 @@
             document.getElementById('left-sidebar').classList.toggle('hidden');
         }
 
+        // 🌟 เปิดหน้าต่าง Modal ใช้งานได้เลยไม่ต้องรอ
         function openUploadModal() {
             document.getElementById('upload-modal').style.display = 'flex';
-            updateImportBadge(); 
         }
         function closeUploadModal() {
             document.getElementById('upload-modal').style.display = 'none';
         }
 
-        function updateImportBadge() {
-            const agency = document.getElementById("f-agency").value;
-            const year = document.getElementById("f-year").value;
-            const badge = document.getElementById("import-badge");
-            const inputs = ["i-prov", "i-id", "i-job", "i-job-name", "i-km-start", "i-km-end", "i-file", "btn-upload", "btn-save-data"];
-
-            if (!agency || !year) {
-                badge.className = "status-badge status-locked";
-                badge.innerHTML = "⚠️ โปรดเลือก สร.รว. และ ปีงบประมาณ จากแถบด้านบนก่อน";
-                inputs.forEach(id => document.getElementById(id).disabled = true);
-            } else {
-                badge.className = "status-badge status-ready";
-                badge.innerHTML = `🎯 <strong>เป้าหมายนำเข้า:</strong> ${agency} | แผนปี ${year}`;
-                document.getElementById("i-year").value = year; 
-                inputs.forEach(id => document.getElementById(id).disabled = false);
+        // 🌟 ดึงตัวเลือกให้หน้าต่าง Modal (แยกโหลดเฉพาะตอนเลือก สร.รว. ใน Modal)
+        async function loadModalSuggestions(agency) {
+            if(!agency) return;
+            try {
+                const res = await fetch(`${API}/api/projects/by-agency?agency=${agency}&_t=${Date.now()}`);
+                const data = await res.json();
+                
+                const provinces = [...new Set(data.map(d => d['จังหวัด']))].filter(Boolean).sort();
+                const ids = [...new Set(data.map(d => d['รหัสโครงการ']))].filter(Boolean);
+                const jobs = [...new Set(data.map(d => d['รหัสงาน']))].filter(Boolean);
+                const job_names = [...new Set(data.map(d => d['ชื่องาน']))].filter(Boolean);
+                
+                document.getElementById('h-provs').innerHTML = provinces.map(v => `<option value="${v}">`).join('');
+                document.getElementById('h-ids').innerHTML = ids.map(v => `<option value="${v}">`).join('');
+                document.getElementById('h-jobs').innerHTML = jobs.map(v => `<option value="${v}">`).join('');
+                document.getElementById('h-job-names').innerHTML = job_names.map(v => `<option value="${v}">`).join('');
+            } catch(e) {
+                console.error("ไม่สามารถดึงข้อมูล Suggestion สำหรับ Modal ได้");
             }
         }
 
         async function loadDataByAgency(agency) {
             if(!agency) {
                 document.getElementById("f-prov").innerHTML = '<option value="" disabled selected hidden>-- 3. จังหวัด --</option>';
-                document.getElementById("i-prov").innerHTML = '<option value="">-- รอการเลือกหน่วยงาน --</option>';
                 allData = []; 
                 filterAll();
                 return;
@@ -266,15 +284,9 @@
                 
                 const provinces = [...new Set(allData.map(d => d['จังหวัด']))].filter(Boolean).sort();
                 const pSel = document.getElementById("f-prov");
-                const iPSel = document.getElementById("i-prov");
-                
                 pSel.innerHTML = '<option value="" disabled selected hidden>-- 3. จังหวัด --</option>';
-                iPSel.innerHTML = '<option value="">-- เลือกจังหวัด --</option>';
+                provinces.forEach(p => pSel.appendChild(new Option(p, p)));
                 
-                provinces.forEach(p => { 
-                    pSel.appendChild(new Option(p, p)); 
-                    iPSel.appendChild(new Option(p, p)); 
-                });
                 filterAll();
             } finally { hideL(); }
         }
@@ -288,17 +300,16 @@
             projs.forEach(p => pSel.appendChild(new Option(p, p)));
 
             const filtered = allData.filter(d => d['จังหวัด'] === prov);
-            updateSuggestions(filtered);
+            updateMapSuggestions(filtered);
         }
 
-        function updateSuggestions(data) {
+        function updateMapSuggestions(data) {
             const ids = [...new Set(data.map(d => d['รหัสโครงการ']))].filter(Boolean);
             const jobs = [...new Set(data.map(d => d['รหัสงาน']))].filter(Boolean);
             const job_names = [...new Set(data.map(d => d['ชื่องาน']))].filter(Boolean);
             
+            // ใช้ร่วมกันกับช่องค้นหาด้านบนได้
             document.getElementById('h-ids').innerHTML = ids.map(v => `<option value="${v}">`).join('');
-            document.getElementById('h-jobs').innerHTML = jobs.map(v => `<option value="${v}">`).join('');
-            document.getElementById('h-job-names').innerHTML = job_names.map(v => `<option value="${v}">`).join('');
         }
 
         function filterAll() {
@@ -354,28 +365,23 @@
             updateFileCounts(filtered);
         }
 
-        // 🌟 ปรับปรุงการจัดการนับและแสดงผลเวกเตอร์/ภาพโดรนใหม่ (ยึด FileInventory เป็นหลัก 100%)
         function updateFileCounts(data) {
             let vMap = new Map(), dMap = new Map();
             
             data.forEach(p => {
                 (p.files || []).forEach(f => {
                     let url = f['ลิงก์จาก R2'];
-                    if (!url) return; // 🛡️ ดักไว้ก่อน ถ้าไม่มีลิงก์ให้ข้ามไปเลย จะได้ไม่ error
+                    if (!url) return; 
                     
                     let type = f['ประเภทไฟล์'];
-                    
-                    // 🎯 1. งัดข้อมูลจาก FileInventory มาเป็นพระเอกหลัก
                     let f_projId = f['รหัสโครงการ'] ? String(f['รหัสโครงการ']).trim() : '';
                     let f_jobId = f['รหัสงาน'] ? String(f['รหัสงาน']).trim() : '';
                     let f_jobName = f['ชื่องาน'] ? String(f['ชื่องาน']).trim() : '';
                     
-                    // 🛡️ 2. ระบบตัวตายตัวแทน: ถ้า FileInventory โล่ง ค่อยไปยืมจากหน้า สร.รว. มาโชว์ชั่วคราว
                     let projId = f_projId || p['รหัสโครงการ'] || '-';
                     let jobId = f_jobId || p['รหัสงาน'] || '-';
                     let jobName = f_jobName || p['ชื่องาน'] || p['ชื่อโครงการ'] || 'ไม่มีชื่องาน';
                     
-                    // 🎨 3. ประกอบร่างการแสดงผลให้สวยงามตามภาพ
                     let displayName = `[รหัส ${projId}-${jobId}] ${jobName}`;
                     let prov = f['จังหวัด'] || p['จังหวัด'] || '';
                     
@@ -390,7 +396,6 @@
                 });
             });
 
-            // 🧹 ฟังก์ชันจัดเรียงรายชื่อให้ขึ้นบรรทัดใหม่สวยๆ
             let formatFiles = (mapObj) => Array.from(mapObj.values()).map(item => ({
                 url: item.url,
                 name: Array.from(item.names).map(n => `▪️ ${n}`).join('<br>'),
@@ -452,11 +457,12 @@
             finally { hideL(); }
         }
 
+        // 🌟 ดึงข้อมูลจากช่องในหน้าต่าง Modal ทั้งหมด
         async function saveData() {
             const payload = {
-                agency: document.getElementById("f-agency").value,
+                agency: document.getElementById("i-agency").value,
                 year: document.getElementById("i-year").value,
-                province: document.getElementById("i-prov").value,
+                province: document.getElementById("i-prov").value.trim(),
                 project_id: document.getElementById("i-id").value.trim(),
                 job_id: document.getElementById("i-job").value.trim(),
                 job_name: document.getElementById("i-job-name").value.trim(),
@@ -465,7 +471,9 @@
                 survey_link: document.getElementById("i-link").value
             };
             
-            if(!payload.survey_link || !payload.project_id || !payload.province) return alert("⚠️ กรอกรหัสและอัปโหลดไฟล์ข้อมูลให้ครบถ้วนก่อนครับ");
+            if(!payload.agency || !payload.survey_link || !payload.project_id || !payload.province) {
+                return alert("⚠️ กรุณาเลือกหน่วยงาน, กรอกรหัส และอัปโหลดไฟล์ข้อมูลให้ครบถ้วนก่อนครับ");
+            }
             
             showL("💾 กำลังบันทึกข้อมูลเข้าระบบ Smart ID...");
             
@@ -477,6 +485,8 @@
                     alert("❌ เซิร์ฟเวอร์แจ้งว่า: " + result.message);
                 } else {
                     alert("✅ ระบบบันทึกพิกัดและข้อมูลสำเร็จ!");
+                    
+                    // เคลียร์ค่าแค่บางช่อง เผื่ออัปโหลดงานต่อไปในจังหวัดเดิม
                     document.getElementById("i-id").value = "";
                     document.getElementById("i-job").value = "";
                     document.getElementById("i-job-name").value = "";
@@ -485,7 +495,12 @@
                     document.getElementById("i-km-end").value = "0";
                     
                     closeUploadModal(); 
-                    loadDataByAgency(payload.agency); 
+                    
+                    // ถ้าระบบด้านหน้า (แผนที่) กำลังเปิดดูหน่วยงานเดียวกัน ให้รีเฟรชข้อมูลให้เลย
+                    const currentTopAgency = document.getElementById("f-agency").value;
+                    if (currentTopAgency === payload.agency) {
+                        loadDataByAgency(payload.agency); 
+                    }
                 }
             } catch(e) { 
                 alert("❌ บันทึกไม่สำเร็จ: " + e.message); 
@@ -499,9 +514,13 @@
             document.getElementById(id).classList.add('active'); e.currentTarget.classList.add('active');
         }
 
+        // 🌟 เติมตัวเลือก สร.รว. ให้ทั้ง 2 จุด (แถบด้านบน และ ในหน้าต่าง Modal)
         const aSel = document.getElementById("f-agency");
-        for(let i=1; i<=17; i++) aSel.appendChild(new Option(`สร.รว.${i}`, `สร.รว.${i}`));
-        updateImportBadge();
+        const iAgencySel = document.getElementById("i-agency");
+        for(let i=1; i<=17; i++) {
+            aSel.appendChild(new Option(`สร.รว.${i}`, `สร.รว.${i}`));
+            iAgencySel.appendChild(new Option(`สร.รว.${i}`, `สร.รว.${i}`));
+        }
     </script>
 </body>
 </html>
