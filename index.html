@@ -351,27 +351,51 @@
                 <span>🛣️ ระยะ: ${sumDist.toFixed(3)} กม.</span>
             `;
 
-            // 🎯 แก้ไขตรงนี้ 1 คำถ้วน: เปลี่ยนจาก allData เป็น filtered
             updateFileCounts(filtered);
         }
 
         function updateFileCounts(data) {
             let vMap = new Map(), dMap = new Map();
-            data.forEach(p => (p.files || []).forEach(f => {
-                if(f['ประเภทไฟล์']==='KMZ' || f['ประเภทไฟล์']==='KML') vMap.set(f['ลิงก์จาก R2'], {url: f['ลิงก์จาก R2'], name: p['ชื่อโครงการ'], prov: p['จังหวัด']});
-                else if(f['ประเภทไฟล์']==='Drone') dMap.set(f['ลิงก์จาก R2'], {url: f['ลิงก์จาก R2'], name: p['ชื่อโครงการ'], prov: p['จังหวัด']});
+            
+            data.forEach(p => {
+                let projName = p['ชื่อโครงการ'] || 'ไม่มีชื่องาน';
+                let displayName = p['รหัสโครงการ'] ? `[รหัส ${p['รหัสโครงการ']}] ${projName}` : projName;
+                
+                (p.files || []).forEach(f => {
+                    let url = f['ลิงก์จาก R2'];
+                    let type = f['ประเภทไฟล์'];
+                    
+                    if(type === 'KMZ' || type === 'KML') {
+                        if(!vMap.has(url)) vMap.set(url, {url: url, names: new Set([displayName]), prov: p['จังหวัด']});
+                        else vMap.get(url).names.add(displayName);
+                    }
+                    else if(type === 'Drone') {
+                        if(!dMap.has(url)) dMap.set(url, {url: url, names: new Set([displayName]), prov: p['จังหวัด']});
+                        else dMap.get(url).names.add(displayName);
+                    }
+                });
+            });
+
+            let formatFiles = (mapObj) => Array.from(mapObj.values()).map(item => ({
+                url: item.url,
+                name: Array.from(item.names).map(n => `▪️ ${n}`).join('<br>'),
+                prov: item.prov
             }));
-            document.getElementById("v-count").innerText = `🗂️ เวกเตอร์ (${vMap.size})`;
-            document.getElementById("d-count").innerText = `🚁 โดรน (${dMap.size})`;
-            renderFiles("list-vectors", Array.from(vMap.values()), 'v');
-            renderFiles("list-drones", Array.from(dMap.values()), 'd');
+
+            let vArr = formatFiles(vMap);
+            let dArr = formatFiles(dMap);
+
+            document.getElementById("v-count").innerText = `🗂️ เวกเตอร์ (${vArr.length})`;
+            document.getElementById("d-count").innerText = `🚁 โดรน (${dArr.length})`;
+            renderFiles("list-vectors", vArr, 'v');
+            renderFiles("list-drones", dArr, 'd');
         }
 
         function renderFiles(id, files, mode) {
             document.getElementById(id).innerHTML = files.length ? files.map(f => `
                 <div class="layer-item">
                     <input type="checkbox" onchange="${mode==='v'?'toggleV':'toggleD'}('${f.url}', this, '${f.prov}')">
-                    <div><strong>${f.name}</strong><br><small>${f.prov}</small></div>
+                    <div style="flex:1;"><strong>${f.name}</strong><br><small>${f.prov}</small></div>
                 </div>
             `).join('') : '<p style="text-align:center; color:#94a3b8; font-size:13px; margin-top:15px;">ไม่มีไฟล์ข้อมูลในเงื่อนไขที่เลือก</p>';
         }
@@ -424,23 +448,34 @@
                 km_end: document.getElementById("i-km-end").value,
                 survey_link: document.getElementById("i-link").value
             };
+            
             if(!payload.survey_link || !payload.project_id || !payload.province) return alert("⚠️ กรอกรหัสและอัปโหลดไฟล์ข้อมูลให้ครบถ้วนก่อนครับ");
+            
             showL("💾 กำลังบันทึกข้อมูลเข้าระบบ Smart ID...");
+            
             try {
-                await fetch(`${API}/api/add-project`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) });
-                alert("✅ ระบบบันทึกพิกัดและข้อมูลสำเร็จ!");
+                const res = await fetch(`${API}/api/add-project`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) });
+                const result = await res.json();
                 
-                document.getElementById("i-id").value = "";
-                document.getElementById("i-job").value = "";
-                document.getElementById("i-name").value = "";
-                document.getElementById("i-link").value = "";
-                document.getElementById("i-km-start").value = "0";
-                document.getElementById("i-km-end").value = "0";
-                
-                closeUploadModal(); 
-                loadDataByAgency(payload.agency); 
-            } catch(e) { alert("❌ บันทึกไม่สำเร็จ"); } 
-            finally { hideL(); }
+                if (result.status === "error") {
+                    alert("❌ เซิร์ฟเวอร์แจ้งว่า: " + result.message);
+                } else {
+                    alert("✅ ระบบบันทึกพิกัดและข้อมูลสำเร็จ!");
+                    document.getElementById("i-id").value = "";
+                    document.getElementById("i-job").value = "";
+                    document.getElementById("i-name").value = "";
+                    document.getElementById("i-link").value = "";
+                    document.getElementById("i-km-start").value = "0";
+                    document.getElementById("i-km-end").value = "0";
+                    
+                    closeUploadModal(); 
+                    loadDataByAgency(payload.agency); 
+                }
+            } catch(e) { 
+                alert("❌ บันทึกไม่สำเร็จ: " + e.message); 
+            } finally { 
+                hideL(); 
+            }
         }
 
         function openTab(e, id) {
