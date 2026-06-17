@@ -354,24 +354,27 @@
             updateFileCounts(filtered);
         }
 
+        // 🌟 ปรับปรุงการจัดการนับและแสดงผลเวกเตอร์/ภาพโดรนใหม่ตามที่กำหนด
         function updateFileCounts(data) {
             let vMap = new Map(), dMap = new Map();
             
             data.forEach(p => {
-                let projName = p['ชื่อโครงการ'] || 'ไม่มีชื่อโครงการ';
-                
                 (p.files || []).forEach(f => {
                     let url = f['ลิงก์จาก R2'];
                     let type = f['ประเภทไฟล์'];
-                    let jobName = f['ชื่องาน'] || p['ชื่องาน'] || 'ไม่มีชื่องาน';
-                    let displayName = `[รหัส ${p['รหัสโครงการ'] || '-'}] ${projName} (งาน: ${jobName})`;
+                    
+                    // 🎯 ข้ามไปดึง "ชื่องาน" ตรงๆ จากคอลัมน์ของแถวไฟล์ใน FileInventory เลยครับพี่
+                    let jobName = f['ชื่องาน'] || 'ไม่มีรายละเอียดชื่องาน';
+                    let projId = f['รหัสโครงการ'] || p['รหัสโครงการ'] || '-';
+                    let jobId = f['รหัสงาน'] || p['รหัสงาน'] || '-';
+                    let displayName = `[รหัส ${projId}-${jobId}] ${jobName}`;
                     
                     if(type === 'KMZ' || type === 'KML') {
-                        if(!vMap.has(url)) vMap.set(url, {url: url, names: new Set([displayName]), prov: p['จังหวัด']});
+                        if(!vMap.has(url)) vMap.set(url, {url: url, names: new Set([displayName]), prov: f['จังหวัด'] || p['จังหวัด']});
                         else vMap.get(url).names.add(displayName);
                     }
                     else if(type === 'Drone') {
-                        if(!dMap.has(url)) dMap.set(url, {url: url, names: new Set([displayName]), prov: p['จังหวัด']});
+                        if(!dMap.has(url)) dMap.set(url, {url: url, names: new Set([displayName]), prov: f['จังหวัด'] || p['จังหวัด']});
                         else dMap.get(url).names.add(displayName);
                     }
                 });
