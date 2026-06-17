@@ -188,15 +188,15 @@
 
             <div class="form-group">
                 <label>จังหวัด</label>
-                <input type="text" class="form-input" id="i-prov" list="h-provs" placeholder="เช่น เชียงใหม่ (พิมพ์หรือเลือกจากรายการ)">
+                <input type="text" class="form-input" id="i-prov" list="h-provs" placeholder="เช่น เชียงใหม่ (พิมพ์หรือเลือก)" oninput="updateModalFilters()">
             </div>
             
             <div class="flex-row">
-                <div class="flex-col"><label>รหัสโครงการหลัก</label><input type="text" class="form-input" id="i-id" placeholder="214" list="h-ids"></div>
-                <div class="flex-col"><label>รหัสงานย่อย (Job ID)</label><input type="text" class="form-input" id="i-job" placeholder="001" list="h-jobs"></div>
+                <div class="flex-col"><label>รหัสโครงการหลัก</label><input type="text" class="form-input" id="i-id" placeholder="214" list="h-ids" oninput="updateModalFilters()"></div>
+                <div class="flex-col"><label>รหัสงานย่อย (Job ID)</label><input type="text" class="form-input" id="i-job" placeholder="001" list="h-jobs" oninput="updateModalFilters()"></div>
             </div>
             
-            <div class="form-group"><label>ชื่องาน (รายละเอียดงานย่อย)</label><input type="text" class="form-input" id="i-job-name" list="h-job-names" placeholder="เช่น งานซ่อมแซมผิวทาง หรือ งานบูรณะสะพาน"></div>
+            <div class="form-group"><label>ชื่องาน (รายละเอียดงานย่อย)</label><input type="text" class="form-input" id="i-job-name" list="h-job-names" placeholder="ระบบจะช่วยเติมให้หากมีข้อมูล"></div>
             
             <div class="flex-row">
                 <div class="flex-col"><label>กม.ต้น</label><input type="number" class="form-input" id="i-km-start" value="0" step="0.001"></div>
@@ -229,6 +229,7 @@
         });
 
         let allData = [];
+        let modalData = []; // 🌟 เก็บข้อมูลเฉพาะของหน้าต่าง Modal
         const activeLayers = {};
 
         function showL(text) { 
@@ -241,7 +242,6 @@
             document.getElementById('left-sidebar').classList.toggle('hidden');
         }
 
-        // 🌟 เปิดหน้าต่าง Modal ใช้งานได้เลยไม่ต้องรอ
         function openUploadModal() {
             document.getElementById('upload-modal').style.display = 'flex';
         }
@@ -249,27 +249,66 @@
             document.getElementById('upload-modal').style.display = 'none';
         }
 
-        // 🌟 ดึงตัวเลือกให้หน้าต่าง Modal (แยกโหลดเฉพาะตอนเลือก สร.รว. ใน Modal)
+        // ==========================================
+        // 🌟 ระบบคัดกรองแบบลดหลั่นในหน้าต่าง Modal (Cascading Filter)
+        // ==========================================
         async function loadModalSuggestions(agency) {
             if(!agency) return;
             try {
                 const res = await fetch(`${API}/api/projects/by-agency?agency=${agency}&_t=${Date.now()}`);
-                const data = await res.json();
-                
-                const provinces = [...new Set(data.map(d => d['จังหวัด']))].filter(Boolean).sort();
-                const ids = [...new Set(data.map(d => d['รหัสโครงการ']))].filter(Boolean);
-                const jobs = [...new Set(data.map(d => d['รหัสงาน']))].filter(Boolean);
-                const job_names = [...new Set(data.map(d => d['ชื่องาน']))].filter(Boolean);
-                
-                document.getElementById('h-provs').innerHTML = provinces.map(v => `<option value="${v}">`).join('');
-                document.getElementById('h-ids').innerHTML = ids.map(v => `<option value="${v}">`).join('');
-                document.getElementById('h-jobs').innerHTML = jobs.map(v => `<option value="${v}">`).join('');
-                document.getElementById('h-job-names').innerHTML = job_names.map(v => `<option value="${v}">`).join('');
+                modalData = await res.json();
+                updateModalFilters(); 
             } catch(e) {
                 console.error("ไม่สามารถดึงข้อมูล Suggestion สำหรับ Modal ได้");
             }
         }
 
+        function updateModalFilters() {
+            if (!modalData || modalData.length === 0) return;
+
+            const prov = document.getElementById('i-prov').value.trim();
+            const id = document.getElementById('i-id').value.trim();
+            const job = document.getElementById('i-job').value.trim();
+
+            // 1. จังหวัด (คงไว้ทั้งหมดเสมอเพื่อให้เลือกเปลี่ยนได้ตลอด)
+            const allProvs = [...new Set(modalData.map(d => d['จังหวัด']))].filter(Boolean).sort();
+            document.getElementById('h-provs').innerHTML = allProvs.map(v => `<option value="${v}">`).join('');
+
+            // 2. รหัสโครงการ (คัดจากจังหวัดที่เลือก)
+            let filteredForId = prov ? modalData.filter(d => d['จังหวัด'] === prov) : modalData;
+            const ids = [...new Set(filteredForId.map(d => d['รหัสโครงการ']))].filter(Boolean);
+            document.getElementById('h-ids').innerHTML = ids.map(v => `<option value="${v}">`).join('');
+
+            // 3. รหัสงานย่อย (คัดจาก รหัสโครงการ)
+            let filteredForJob = id ? filteredForId.filter(d => d['รหัสโครงการ'] === id) : filteredForId;
+            const jobs = [...new Set(filteredForJob.map(d => d['รหัสงาน']))].filter(Boolean);
+            document.getElementById('h-jobs').innerHTML = jobs.map(v => `<option value="${v}">`).join('');
+
+            // 4. ชื่องาน (คัดจาก รหัสงาน)
+            let filteredForName = job ? filteredForJob.filter(d => d['รหัสงาน'] === job) : filteredForJob;
+            const jobNames = [...new Set(filteredForName.map(d => d['ชื่องาน']))].filter(Boolean);
+            document.getElementById('h-job-names').innerHTML = jobNames.map(v => `<option value="${v}">`).join('');
+
+            // 🌟 5. ระบบ Auto-fill (เติมคำอัตโนมัติเมื่อระบุข้อมูลชัดเจนจนเหลือ 1 งาน)
+            if (job && jobs.includes(job) && filteredForName.length > 0) {
+                const match = filteredForName[0];
+                
+                // เติมชื่องานอัตโนมัติ ถ้าช่องยังว่างอยู่
+                const currentName = document.getElementById('i-job-name').value.trim();
+                if(!currentName && match['ชื่องาน']) document.getElementById('i-job-name').value = match['ชื่องาน'];
+                
+                // เติม กม.ต้น / กม.ปลาย อัตโนมัติ
+                const currentKmStart = document.getElementById('i-km-start').value;
+                if((currentKmStart === "0" || currentKmStart === "") && match['กม.ต้น']) document.getElementById('i-km-start').value = match['กม.ต้น'];
+                
+                const currentKmEnd = document.getElementById('i-km-end').value;
+                if((currentKmEnd === "0" || currentKmEnd === "") && match['กม.ปลาย']) document.getElementById('i-km-end').value = match['กม.ปลาย'];
+            }
+        }
+
+        // ==========================================
+        // ระบบควบคุมแผนที่และแผงข้อมูลด้านนอก
+        // ==========================================
         async function loadDataByAgency(agency) {
             if(!agency) {
                 document.getElementById("f-prov").innerHTML = '<option value="" disabled selected hidden>-- 3. จังหวัด --</option>';
@@ -305,11 +344,7 @@
 
         function updateMapSuggestions(data) {
             const ids = [...new Set(data.map(d => d['รหัสโครงการ']))].filter(Boolean);
-            const jobs = [...new Set(data.map(d => d['รหัสงาน']))].filter(Boolean);
-            const job_names = [...new Set(data.map(d => d['ชื่องาน']))].filter(Boolean);
-            
-            // ใช้ร่วมกันกับช่องค้นหาด้านบนได้
-            document.getElementById('h-ids').innerHTML = ids.map(v => `<option value="${v}">`).join('');
+            document.getElementById('search-box').placeholder = `🔍 ค้นหารหัส Smart ID หรือชื่อโครงการ...`;
         }
 
         function filterAll() {
@@ -457,7 +492,6 @@
             finally { hideL(); }
         }
 
-        // 🌟 ดึงข้อมูลจากช่องในหน้าต่าง Modal ทั้งหมด
         async function saveData() {
             const payload = {
                 agency: document.getElementById("i-agency").value,
@@ -486,7 +520,7 @@
                 } else {
                     alert("✅ ระบบบันทึกพิกัดและข้อมูลสำเร็จ!");
                     
-                    // เคลียร์ค่าแค่บางช่อง เผื่ออัปโหลดงานต่อไปในจังหวัดเดิม
+                    // เคลียร์ค่าเตรียมรับงานใหม่
                     document.getElementById("i-id").value = "";
                     document.getElementById("i-job").value = "";
                     document.getElementById("i-job-name").value = "";
@@ -496,7 +530,6 @@
                     
                     closeUploadModal(); 
                     
-                    // ถ้าระบบด้านหน้า (แผนที่) กำลังเปิดดูหน่วยงานเดียวกัน ให้รีเฟรชข้อมูลให้เลย
                     const currentTopAgency = document.getElementById("f-agency").value;
                     if (currentTopAgency === payload.agency) {
                         loadDataByAgency(payload.agency); 
@@ -514,7 +547,7 @@
             document.getElementById(id).classList.add('active'); e.currentTarget.classList.add('active');
         }
 
-        // 🌟 เติมตัวเลือก สร.รว. ให้ทั้ง 2 จุด (แถบด้านบน และ ในหน้าต่าง Modal)
+        // 🌟 เติมตัวเลือก สร.รว. ให้ทั้ง 2 จุด
         const aSel = document.getElementById("f-agency");
         const iAgencySel = document.getElementById("i-agency");
         for(let i=1; i<=17; i++) {
