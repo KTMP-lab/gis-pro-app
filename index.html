@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>GIS Pro Manager - Mobile Responsive & Smart ID</title>
+    <title>GIS Pro Manager - World Class Edition</title>
 
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -21,6 +21,10 @@
         #map { width: 100%; height: 100%; z-index: 1; }
         .glass-panel { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px); border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); z-index: 9999; }
         
+        /* 📏 อัปเกรด: เปลี่ยนสัญลักษณ์เครื่องมือวัดเป็นไม้บรรทัด */
+        .polyline-measure-unicode-icon::before { content: "📏" !important; font-size: 18px !important; }
+        .polyline-measure-unicode-icon { color: transparent !important; display: flex; align-items: center; justify-content: center; }
+
         /* แถบตัวกรองด้านบน */
         #top-bar { position: absolute; top: 15px; left: 50%; transform: translateX(-50%); width: 75%; display: flex; gap: 6px; padding: 12px; align-items: center; justify-content: center; z-index: 9999; }
         .filter-select { flex: 1; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-family: 'Kanit'; font-size: 13px; outline: none; }
@@ -70,6 +74,11 @@
         #hud-box { position: absolute; bottom: 25px; right: 10px; background: rgba(0,0,0,0.7); color: #00FFCC; padding: 10px 18px; border-radius: 8px; font-family: monospace; font-size: 13px; z-index: 9999; border: 1px solid rgba(0, 255, 204, 0.4); }
         .my-kmz-label { background: transparent !important; border: none !important; box-shadow: none !important; color: #ffeb3b !important; font-weight: bold; text-shadow: 2px 2px 4px #000; font-size: 14px; }
         
+        /* 🎚️ แผงควบคุม Opacity ปรับความโปร่งแสง */
+        #opacity-control { position: absolute; bottom: 85px; right: 10px; padding: 12px; width: 220px; z-index: 9999; }
+        #opacity-control label { font-size: 12px; font-weight: 600; color: #1e293b; display: block; margin-bottom: 8px; }
+        input[type=range] { width: 100%; cursor: pointer; accent-color: #2563eb; }
+
         #loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); backdrop-filter: blur(10px); z-index: 100005; display: none; justify-content: center; align-items: center; flex-direction: column; color: white; }
         .loader-container { position: relative; width: 180px; height: 180px; display: flex; justify-content: center; align-items: center; }
         .logo-center { width: 135px; height: 135px; background: url('images.jpg') no-repeat center/contain; border-radius: 50%; z-index: 10; border: 4px solid #fff; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
@@ -84,15 +93,16 @@
             .filter-select { flex: 1 1 45%; font-size: 12px; padding: 8px; }
             #search-box { flex: 1 1 100%; font-size: 13px; }
             #btn-open-upload { top: auto; bottom: 25px; right: 10px; padding: 12px 15px; font-size: 13px; box-shadow: 0 -2px 10px rgba(0,0,0,0.3); border-radius: 25px; }
-            #btn-show-sidebar { top: auto; bottom: 25px; left: 10px; padding: 12px 15px; font-size: 13px; border-radius: 25px; }
+            #btn-show-sidebar { top: auto; bottom: 25px; left: 10px; padding: 12px 15px; font-size: 13px; border-radius: 25px; box-shadow: 0 -2px 10px rgba(0,0,0,0.3); }
             #left-sidebar { width: calc(100% - 20px); left: 10px; top: auto; bottom: 80px; height: 50vh; }
             #left-sidebar.hidden { transform: translateX(-120%); }
             .modal-content { width: 90%; padding: 15px; max-height: 85vh; }
             .flex-row { flex-direction: column; gap: 0 !important; margin-bottom: 0; }
             .flex-col { width: 100%; margin-bottom: 12px; }
             .excel-table { display: block; overflow-x: auto; white-space: nowrap; }
+            #opacity-control { bottom: 130px; width: 180px; }
             #hud-box { bottom: 85px; right: 10px; font-size: 11px; padding: 6px 10px; }
-            .leaflet-top.leaflet-right { top: 150px !important; }
+            .leaflet-top.leaflet-right { top: 180px !important; }
         }
     </style>
 </head>
@@ -124,6 +134,11 @@
             <option value="" disabled selected hidden>-- 4. โครงการ --</option>
         </select>
         <input type="text" class="filter-select" id="search-box" placeholder="🔍 ค้นหารหัส Smart ID หรือชื่อโครงการ..." onkeyup="filterAll()">
+    </div>
+
+    <div id="opacity-control" class="glass-panel">
+        <label>🎚️ ปรับความโปร่งแสงเวกเตอร์</label>
+        <input type="range" id="vector-opacity" min="0" max="1" step="0.1" value="1" oninput="updateVectorOpacity(this.value)">
     </div>
 
     <button id="btn-show-sidebar" onclick="toggleSidebar()">☰ แผงข้อมูล</button>
@@ -192,15 +207,15 @@
             </div>
             
             <div class="flex-row">
-                <div class="flex-col"><label>รหัสโครงการหลัก</label><input type="text" class="form-input" id="i-id" placeholder="214" list="h-ids" oninput="updateModalFilters()"></div>
-                <div class="flex-col"><label>รหัสงานย่อย (Job ID)</label><input type="text" class="form-input" id="i-job" placeholder="001" list="h-jobs" oninput="updateModalFilters()"></div>
+                <div class="flex-col"><label>รหัสโครงการ</label><input type="text" class="form-input" id="i-id" placeholder="214" list="h-ids" oninput="updateModalFilters()"></div>
+                <div class="flex-col"><label>รหัสงาน</label><input type="text" class="form-input" id="i-job" placeholder="010" list="h-jobs" oninput="updateModalFilters()"></div>
             </div>
             
-            <div class="form-group"><label>ชื่องาน (รายละเอียดงานย่อย)</label><input type="text" class="form-input" id="i-job-name" list="h-job-names" placeholder="ระบบจะช่วยเติมให้หากมีข้อมูล"></div>
+            <div class="form-group"><label>ชื่องาน</label><input type="text" class="form-input" id="i-job-name" list="h-job-names" placeholder="ระบบจะช่วยเติมให้หากมีข้อมูล"></div>
             
             <div class="flex-row">
-                <div class="flex-col"><label>กม.ต้น</label><input type="number" class="form-input" id="i-km-start" value="0" step="0.001"></div>
-                <div class="flex-col"><label>กม.ปลาย</label><input type="number" class="form-input" id="i-km-end" value="0" step="0.001"></div>
+                <div class="flex-col"><label>กม.ต้น</label><input type="number" class="form-input" id="i-km-start" placeholder="0.000" step="0.001"></div>
+                <div class="flex-col"><label>กม.ปลาย</label><input type="number" class="form-input" id="i-km-end" placeholder="0.000" step="0.001"></div>
             </div>
             
             <div class="form-group"><label>แนบไฟล์แผนที่ (KMZ / ภาพโดรน)</label><input type="file" id="i-file" class="form-input" style="padding:5px;"><button class="btn-save" id="btn-upload" style="background:#3b82f6;" onclick="uploadFile()">☁️ อัปโหลดขึ้น R2 Cloud</button></div>
@@ -220,7 +235,9 @@
         const API = "https://my-gis-backend.onrender.com";
         const map = L.map('map', { zoomControl: false }).setView([15.5, 100], 6);
         L.tileLayer('https://mt0.google.com/vt/lyrs=y&x={x}&y={y}&z={z}').addTo(map);
-        L.control.polylineMeasure({ position: 'topright', unit: 'metres' }).addTo(map);
+        
+        // 📏 ปลั๊กอินไม้บรรทัดวัดระยะทาง
+        L.control.polylineMeasure({ position: 'topright', unit: 'metres', showClearControl: true, showUnitControl: true }).addTo(map);
 
         map.on('mousemove', function(e) {
             const z = Math.floor((e.latlng.lng + 180) / 6) + 1;
@@ -230,7 +247,37 @@
 
         let allData = [];
         let modalData = [];
-        const activeLayers = {};
+        const activeLayers = {}; 
+
+        // 🧹 ฟังก์ชันล้างไพ่ แผนที่สะอาดเมื่อเปลี่ยนตัวกรอง
+        function clearAllMapLayers() {
+            for (let url in activeLayers) {
+                if (activeLayers[url]) {
+                    map.removeLayer(activeLayers[url]);
+                    delete activeLayers[url];
+                }
+            }
+            document.querySelectorAll('.layer-item input[type="checkbox"]').forEach(cb => cb.checked = false);
+            document.getElementById('vector-opacity').value = 1;
+        }
+
+        // 🎚️ ฟังก์ชันควบคุมความทึบแสง (Interactive Slider)
+        function updateVectorOpacity(val) {
+            let opacityVal = parseFloat(val);
+            for (let url in activeLayers) {
+                let layer = activeLayers[url];
+                if (layer && layer.eachLayer) {
+                    layer.eachLayer(function(sublayer) {
+                        if (sublayer.setStyle) {
+                            sublayer.setStyle({ opacity: opacityVal, fillOpacity: opacityVal * 0.4 });
+                        }
+                        if (sublayer.setOpacity) {
+                            sublayer.setOpacity(opacityVal); 
+                        }
+                    });
+                }
+            }
+        }
 
         function showL(text) { 
             document.getElementById('loading-overlay').style.display='flex'; 
@@ -238,16 +285,9 @@
         }
         function hideL() { document.getElementById('loading-overlay').style.display='none'; }
 
-        function toggleSidebar() {
-            document.getElementById('left-sidebar').classList.toggle('hidden');
-        }
-
-        function openUploadModal() {
-            document.getElementById('upload-modal').style.display = 'flex';
-        }
-        function closeUploadModal() {
-            document.getElementById('upload-modal').style.display = 'none';
-        }
+        function toggleSidebar() { document.getElementById('left-sidebar').classList.toggle('hidden'); }
+        function openUploadModal() { document.getElementById('upload-modal').style.display = 'flex'; }
+        function closeUploadModal() { document.getElementById('upload-modal').style.display = 'none'; }
 
         async function loadModalSuggestions(agency) {
             if(!agency) return;
@@ -255,9 +295,7 @@
                 const res = await fetch(`${API}/api/projects/by-agency?agency=${agency}&_t=${Date.now()}`);
                 modalData = await res.json();
                 updateModalFilters(); 
-            } catch(e) {
-                console.error("ไม่สามารถดึงข้อมูล Suggestion สำหรับ Modal ได้");
-            }
+            } catch(e) { console.error("ไม่สามารถดึงข้อมูล Suggestion สำหรับ Modal ได้"); }
         }
 
         function updateModalFilters() {
@@ -334,6 +372,8 @@
         }
 
         function filterAll() {
+            clearAllMapLayers(); // 🧹 เรียกใช้งานอัตโนมัติเมื่อมีการเปลี่ยนแปลงตัวกรองใดๆ บนหน้าจอ
+
             const yearVal = document.getElementById("f-year").value;
             const year = yearVal ? yearVal.slice(-2) : '';
             const prov = document.getElementById("f-prov").value;
@@ -354,11 +394,15 @@
             });
 
             const html = filtered.map(d => {
-                const start = parseFloat(d['กม.ต้น'] || 0);
-                const end = parseFloat(d['กม.ปลาย'] || 0);
+                // 🧮 อัปเกรด: ดักจับค่าว่างหรือ NaN แล้วแปลงเป็น 0 ทันที ยอดรวมรอดตาย!
+                let start = parseFloat(d['กม.ต้น']);
+                let end = parseFloat(d['กม.ปลาย']);
+                if (isNaN(start)) start = 0;
+                if (isNaN(end)) end = 0;
+                
                 const dist = Math.abs(end - start);
                 
-                sumDist += dist;
+                sumDist += dist; 
                 countProj++;
 
                 return `
@@ -395,13 +439,9 @@
                     if (!url) return; 
                     
                     let type = f['ประเภทไฟล์'];
-                    let f_projId = f['รหัสโครงการ'] ? String(f['รหัสโครงการ']).trim() : '';
-                    let f_jobId = f['รหัสงาน'] ? String(f['รหัสงาน']).trim() : '';
-                    let f_jobName = f['ชื่องาน'] ? String(f['ชื่องาน']).trim() : '';
-                    
-                    let projId = f_projId || p['รหัสโครงการ'] || '-';
-                    let jobId = f_jobId || p['รหัสงาน'] || '-';
-                    let jobName = f_jobName || p['ชื่องาน'] || p['ชื่อโครงการ'] || 'ไม่มีชื่องาน';
+                    let projId = f['รหัสโครงการ'] || p['รหัสโครงการ'] || '-';
+                    let jobId = f['รหัสงาน'] || p['รหัสงาน'] || '-';
+                    let jobName = f['ชื่องาน'] || p['ชื่องาน'] || p['ชื่อโครงการ'] || 'ไม่มีชื่องาน';
                     
                     let displayName = `[รหัส ${projId}-${jobId}] ${jobName}`;
                     let prov = f['จังหวัด'] || p['จังหวัด'] || '';
@@ -441,29 +481,27 @@
             `).join('') : '<p style="text-align:center; color:#94a3b8; font-size:13px; margin-top:15px;">ไม่มีไฟล์ข้อมูลในเงื่อนไขที่เลือก</p>';
         }
 
-        // ==========================================
-        // 🌟 ปรับปรุง: วาดเวกเตอร์ครบ แต่โชว์ป้ายชื่อเฉพาะที่มีคำว่า SideShot_Text
-        // ==========================================
         function toggleV(url, cb) {
             if(cb.checked) {
                 const l = L.kmzLayer(url).addTo(map); activeLayers[url] = l;
                 l.on('load', e => {
                     e.layer.eachLayer(sub => {
-                        // เช็คว่ามีค่า name ให้ดึงมาใช้ ถ้าไม่มีให้ใช้ "ไม่มีชื่อ"
-                        const name = sub.feature?.properties?.name || "ไม่มีชื่อ";
+                        let name = sub.feature?.properties?.name || sub.options?.title || sub.name || "";
+                        name = String(name).trim();
+
+                        if (!name || name === "undefined") name = "ไม่มีชื่อ";
                         
-                        // 🎯 เช็คเงื่อนไข: โชว์ป้ายเฉพาะชื่อที่มีคำว่า "SideShot_Text"
                         if (name.includes("SideShot_Text")) {
                             sub.bindTooltip(name, { permanent: true, className: 'my-kmz-label' });
                         }
                     });
                     map.fitBounds(e.layer.getBounds());
+                    
+                    let currentOpacity = document.getElementById('vector-opacity').value;
+                    if(currentOpacity < 1) updateVectorOpacity(currentOpacity);
                 });
             } else { 
-                if(activeLayers[url]) { 
-                    map.removeLayer(activeLayers[url]); 
-                    delete activeLayers[url]; 
-                } 
+                if(activeLayers[url]) { map.removeLayer(activeLayers[url]); delete activeLayers[url]; } 
             }
         }
 
@@ -492,6 +530,11 @@
         }
 
         async function saveData() {
+            let kmStartVal = document.getElementById("i-km-start").value.toString().trim();
+            let kmEndVal = document.getElementById("i-km-end").value.toString().trim();
+            if (kmStartVal === "") kmStartVal = "0.000";
+            if (kmEndVal === "") kmEndVal = "0.000";
+
             const payload = {
                 agency: document.getElementById("i-agency").value,
                 year: document.getElementById("i-year").value,
@@ -499,8 +542,8 @@
                 project_id: document.getElementById("i-id").value.trim(),
                 job_id: document.getElementById("i-job").value.trim(),
                 job_name: document.getElementById("i-job-name").value.trim(),
-                km_start: document.getElementById("i-km-start").value,
-                km_end: document.getElementById("i-km-end").value,
+                km_start: kmStartVal,
+                km_end: kmEndVal,
                 survey_link: document.getElementById("i-link").value
             };
             
@@ -518,26 +561,19 @@
                     alert("❌ เซิร์ฟเวอร์แจ้งว่า: " + result.message);
                 } else {
                     alert("✅ ระบบบันทึกพิกัดและข้อมูลสำเร็จ!");
-                    
                     document.getElementById("i-id").value = "";
                     document.getElementById("i-job").value = "";
                     document.getElementById("i-job-name").value = "";
                     document.getElementById("i-link").value = "";
-                    document.getElementById("i-km-start").value = "0";
-                    document.getElementById("i-km-end").value = "0";
+                    document.getElementById("i-km-start").value = "";
+                    document.getElementById("i-km-end").value = "";
                     
                     closeUploadModal(); 
-                    
                     const currentTopAgency = document.getElementById("f-agency").value;
-                    if (currentTopAgency === payload.agency) {
-                        loadDataByAgency(payload.agency); 
-                    }
+                    if (currentTopAgency === payload.agency) loadDataByAgency(payload.agency); 
                 }
-            } catch(e) { 
-                alert("❌ บันทึกไม่สำเร็จ: " + e.message); 
-            } finally { 
-                hideL(); 
-            }
+            } catch(e) { alert("❌ บันทึกไม่สำเร็จ: " + e.message); } 
+            finally { hideL(); }
         }
 
         function openTab(e, id) {
