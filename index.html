@@ -21,10 +21,6 @@
         #map { width: 100%; height: 100%; z-index: 1; }
         .glass-panel { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px); border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); z-index: 9999; }
         
-        /* 📏 อัปเกรด: เปลี่ยนสัญลักษณ์เครื่องมือวัดเป็นไม้บรรทัด */
-        .polyline-measure-unicode-icon::before { content: "📏" !important; font-size: 18px !important; }
-        .polyline-measure-unicode-icon { color: transparent !important; display: flex; align-items: center; justify-content: center; }
-
         /* แถบตัวกรองด้านบน */
         #top-bar { position: absolute; top: 15px; left: 50%; transform: translateX(-50%); width: 75%; display: flex; gap: 6px; padding: 12px; align-items: center; justify-content: center; z-index: 9999; }
         .filter-select { flex: 1; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-family: 'Kanit'; font-size: 13px; outline: none; }
@@ -87,7 +83,6 @@
         
         .leaflet-top.leaflet-right { top: 70px !important; }
 
-        /* Mobile Responsive */
         @media (max-width: 768px) {
             #top-bar { width: 92%; flex-wrap: wrap; top: 10px; padding: 10px; gap: 8px; }
             .filter-select { flex: 1 1 45%; font-size: 12px; padding: 8px; }
@@ -236,8 +231,14 @@
         const map = L.map('map', { zoomControl: false }).setView([15.5, 100], 6);
         L.tileLayer('https://mt0.google.com/vt/lyrs=y&x={x}&y={y}&z={z}').addTo(map);
         
-        // 📏 ปลั๊กอินไม้บรรทัดวัดระยะทาง
-        L.control.polylineMeasure({ position: 'topright', unit: 'metres', showClearControl: true, showUnitControl: true }).addTo(map);
+        // 📏 ปลั๊กอินไม้บรรทัดวัดระยะทาง (แก้บั๊กคืนค่าไอคอนปกติทั้งหมด)
+        L.control.polylineMeasure({ 
+            position: 'topright', 
+            unit: 'metres', 
+            showClearControl: true, 
+            showUnitControl: true,
+            // ✖ ไม่ต้องตั้งค่า Label พิสดารแล้ว ใช้ค่าเริ่มต้นที่ตัวปลั๊กอินจัดมาให้เลย
+        }).addTo(map);
 
         map.on('mousemove', function(e) {
             const z = Math.floor((e.latlng.lng + 180) / 6) + 1;
@@ -483,16 +484,30 @@
 
         function toggleV(url, cb) {
             if(cb.checked) {
-                const l = L.kmzLayer(url).addTo(map); activeLayers[url] = l;
+                const l = L.kmzLayer(url).addTo(map); 
+                activeLayers[url] = l;
+                
                 l.on('load', e => {
                     e.layer.eachLayer(sub => {
-                        let name = sub.feature?.properties?.name || sub.options?.title || sub.name || "";
+                        // 🏷️ อัปเกรด: ค้นหาชื่อหมุดจาก KML ได้รัดกุมยิ่งขึ้น
+                        let name = "";
+                        if (sub.feature && sub.feature.properties && sub.feature.properties.name) {
+                            name = sub.feature.properties.name;
+                        } else if (sub.options && sub.options.title) {
+                            name = sub.options.title;
+                        }
+                        
                         name = String(name).trim();
 
-                        if (!name || name === "undefined") name = "ไม่มีชื่อ";
-                        
+                        // 🎯 เช็คเงื่อนไข: โชว์ป้ายชื่อเฉพาะชื่อที่มีคำว่า "SideShot_Text"
                         if (name.includes("SideShot_Text")) {
-                            sub.bindTooltip(name, { permanent: true, className: 'my-kmz-label' });
+                             // ผูกป้ายชื่อแบบถาวร ( permanent) โชว์ขึ้นมาบนแผนที่ทันที
+                             sub.bindTooltip(name, { 
+                                 permanent: true,       // โชว์ค้างไว้ตลอด
+                                 className: 'my-kmz-label', // คลาส CSS สำหรับตกแต่งป้ายสีเหลือง
+                                 direction: 'top',       // แปะไว้ข้างบนหมุด
+                                 sticky: false          // ไม่วิ่งตามเมาส์
+                             }).openTooltip();
                         }
                     });
                     map.fitBounds(e.layer.getBounds());
@@ -501,7 +516,10 @@
                     if(currentOpacity < 1) updateVectorOpacity(currentOpacity);
                 });
             } else { 
-                if(activeLayers[url]) { map.removeLayer(activeLayers[url]); delete activeLayers[url]; } 
+                if(activeLayers[url]) { 
+                    map.removeLayer(activeLayers[url]); 
+                    delete activeLayers[url]; 
+                } 
             }
         }
 
