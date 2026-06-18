@@ -21,6 +21,10 @@
         #map { width: 100%; height: 100%; z-index: 1; }
         .glass-panel { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px); border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); z-index: 9999; }
         
+        /* เปลี่ยนไอคอนวัดระยะทางเป็นไม้บรรทัด */
+        .polyline-measure-unicode-icon::after { content: "📏" !important; font-size: 18px !important; }
+        .polyline-measure-unicode-icon { color: transparent !important; display: flex; align-items: center; justify-content: center; }
+
         /* แถบตัวกรองด้านบน */
         #top-bar { position: absolute; top: 15px; left: 50%; transform: translateX(-50%); width: 75%; display: flex; gap: 6px; padding: 12px; align-items: center; justify-content: center; z-index: 9999; }
         .filter-select { flex: 1; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-family: 'Kanit'; font-size: 13px; outline: none; }
@@ -70,6 +74,9 @@
         #hud-box { position: absolute; bottom: 25px; right: 10px; background: rgba(0,0,0,0.7); color: #00FFCC; padding: 10px 18px; border-radius: 8px; font-family: monospace; font-size: 13px; z-index: 9999; border: 1px solid rgba(0, 255, 204, 0.4); }
         .my-kmz-label { background: transparent !important; border: none !important; box-shadow: none !important; color: #ffeb3b !important; font-weight: bold; text-shadow: 2px 2px 4px #000; font-size: 14px; }
         
+        /* กรอบสีแดงตีกรอบรอบแผ่นภาพโดรนให้สังเกตเห็นง่ายๆ */
+        .drone-red-frame { outline: 1px solid rgba(255, 0, 0, 0.6); outline-offset: -1px; }
+
         /* 🎚️ แผงควบคุม Opacity ปรับความโปร่งแสง */
         #opacity-control { position: absolute; bottom: 85px; right: 10px; padding: 12px; width: 220px; z-index: 9999; }
         #opacity-control label { font-size: 12px; font-weight: 600; color: #1e293b; display: block; margin-bottom: 8px; }
@@ -83,6 +90,7 @@
         
         .leaflet-top.leaflet-right { top: 70px !important; }
 
+        /* Mobile Responsive */
         @media (max-width: 768px) {
             #top-bar { width: 92%; flex-wrap: wrap; top: 10px; padding: 10px; gap: 8px; }
             .filter-select { flex: 1 1 45%; font-size: 12px; padding: 8px; }
@@ -231,13 +239,12 @@
         const map = L.map('map', { zoomControl: false }).setView([15.5, 100], 6);
         L.tileLayer('https://mt0.google.com/vt/lyrs=y&x={x}&y={y}&z={z}').addTo(map);
         
-        // 📏 ปลั๊กอินไม้บรรทัดวัดระยะทาง (แก้บั๊กคืนค่าไอคอนปกติทั้งหมด)
+        // คืนค่าการทำงานของไอคอนไม้บรรทัดแบบปกติ
         L.control.polylineMeasure({ 
             position: 'topright', 
             unit: 'metres', 
             showClearControl: true, 
-            showUnitControl: true,
-            // ✖ ไม่ต้องตั้งค่า Label พิสดารแล้ว ใช้ค่าเริ่มต้นที่ตัวปลั๊กอินจัดมาให้เลย
+            showUnitControl: true
         }).addTo(map);
 
         map.on('mousemove', function(e) {
@@ -335,6 +342,7 @@
         }
 
         async function loadDataByAgency(agency) {
+            clearAllMapLayers(); 
             if(!agency) {
                 document.getElementById("f-prov").innerHTML = '<option value="" disabled selected hidden>-- 3. จังหวัด --</option>';
                 allData = []; 
@@ -356,6 +364,7 @@
         }
 
         function populateProj() {
+            clearAllMapLayers(); 
             const prov = document.getElementById("f-prov").value;
             const pSel = document.getElementById("f-proj");
             pSel.innerHTML = '<option value="" disabled selected hidden>-- 4. โครงการ --</option>';
@@ -373,7 +382,7 @@
         }
 
         function filterAll() {
-            clearAllMapLayers(); // 🧹 เรียกใช้งานอัตโนมัติเมื่อมีการเปลี่ยนแปลงตัวกรองใดๆ บนหน้าจอ
+            clearAllMapLayers(); 
 
             const yearVal = document.getElementById("f-year").value;
             const year = yearVal ? yearVal.slice(-2) : '';
@@ -395,14 +404,15 @@
             });
 
             const html = filtered.map(d => {
-                // 🧮 อัปเกรด: ดักจับค่าว่างหรือ NaN แล้วแปลงเป็น 0 ทันที ยอดรวมรอดตาย!
                 let start = parseFloat(d['กม.ต้น']);
                 let end = parseFloat(d['กม.ปลาย']);
                 if (isNaN(start)) start = 0;
                 if (isNaN(end)) end = 0;
                 
+                let d_jobName = d['ชื่องาน'] ? String(d['ชื่องาน']).trim() : '';
+                if (!d_jobName || d_jobName === "undefined" || d_jobName === "null") d_jobName = "-";
+
                 const dist = Math.abs(end - start);
-                
                 sumDist += dist; 
                 countProj++;
 
@@ -411,7 +421,7 @@
                         <td style="color:#2563eb; font-weight:600;">${agencyNum}-${year}-${d['รหัสโครงการ']}-${d['รหัสงาน'] || '000'}</td>
                         <td>
                             <strong>${d['ชื่อโครงการ']}</strong><br>
-                            <span style="color:#b45309; font-size:11.5px; font-weight:500;">🚧 งาน: ${d['ชื่องาน'] || '-'}</span><br>
+                            <span style="color:#b45309; font-size:11.5px; font-weight:500;">🚧 งาน: ${d_jobName}</span><br>
                             <small style="color:#64748b;">จ.${d['จังหวัด']}</small>
                         </td>
                         <td>${start.toFixed(3)}</td>
@@ -440,9 +450,19 @@
                     if (!url) return; 
                     
                     let type = f['ประเภทไฟล์'];
-                    let projId = f['รหัสโครงการ'] || p['รหัสโครงการ'] || '-';
-                    let jobId = f['รหัสงาน'] || p['รหัสงาน'] || '-';
-                    let jobName = f['ชื่องาน'] || p['ชื่องาน'] || p['ชื่อโครงการ'] || 'ไม่มีชื่องาน';
+                    let f_projId = f['รหัสโครงการ'] ? String(f['รหัสโครงการ']).trim() : '';
+                    let f_jobId = f['รหัสงาน'] ? String(f['รหัสงาน']).trim() : '';
+                    
+                    let f_jobName = f['ชื่องาน'] ? String(f['ชื่องาน']).trim() : '';
+                    let p_jobName = p['ชื่องาน'] ? String(p['ชื่องาน']).trim() : '';
+                    
+                    let projId = f_projId || p['รหัสโครงการ'] || '-';
+                    let jobId = f_jobId || p['รหัสงาน'] || '-';
+                    
+                    let jobName = f_jobName || p_jobName;
+                    if (!jobName || jobName === "undefined" || jobName === "null") {
+                        jobName = "-";
+                    }
                     
                     let displayName = `[รหัส ${projId}-${jobId}] ${jobName}`;
                     let prov = f['จังหวัด'] || p['จังหวัด'] || '';
@@ -458,11 +478,24 @@
                 });
             });
 
-            let formatFiles = (mapObj) => Array.from(mapObj.values()).map(item => ({
-                url: item.url,
-                name: Array.from(item.names).map(n => `▪️ ${n}`).join('<br>'),
-                prov: item.prov
-            }));
+            // ตัดคำให้สั้นลงถ้ารายชื่อเกิน 3 งานย่อย ป้องกันกล่อง Checkbox ทะลักยาวเกินไป
+            let formatFiles = (mapObj) => Array.from(mapObj.values()).map(item => {
+                let namesArr = Array.from(item.names);
+                let displayStr = "";
+                
+                if (namesArr.length > 3) {
+                    let firstThree = namesArr.slice(0, 3).map(n => `▪️ ${n}`).join('<br>');
+                    displayStr = `${firstThree}<br><span style="color:#ef4444; font-size:11px; font-weight:600;"><i>...และอีก ${namesArr.length - 3} รายการ</i></span>`;
+                } else {
+                    displayStr = namesArr.map(n => `▪️ ${n}`).join('<br>');
+                }
+
+                return {
+                    url: item.url,
+                    name: displayStr,
+                    prov: item.prov
+                };
+            });
 
             let vArr = formatFiles(vMap);
             let dArr = formatFiles(dMap);
@@ -484,29 +517,27 @@
 
         function toggleV(url, cb) {
             if(cb.checked) {
-                const l = L.kmzLayer(url).addTo(map); 
-                activeLayers[url] = l;
-                
+                const l = L.kmzLayer(url).addTo(map); activeLayers[url] = l;
                 l.on('load', e => {
                     e.layer.eachLayer(sub => {
-                        // 🏷️ อัปเกรด: ค้นหาชื่อหมุดจาก KML ได้รัดกุมยิ่งขึ้น
                         let name = "";
                         if (sub.feature && sub.feature.properties && sub.feature.properties.name) {
                             name = sub.feature.properties.name;
                         } else if (sub.options && sub.options.title) {
                             name = sub.options.title;
+                        } else if (sub.name) {
+                            name = sub.name;
                         }
                         
                         name = String(name).trim();
 
-                        // 🎯 เช็คเงื่อนไข: โชว์ป้ายชื่อเฉพาะชื่อที่มีคำว่า "SideShot_Text"
+                        // ซ่อนชื่อที่ไม่ต้องการ และโชว์เฉพาะชื่อที่มี SideShot_Text
                         if (name.includes("SideShot_Text")) {
-                             // ผูกป้ายชื่อแบบถาวร ( permanent) โชว์ขึ้นมาบนแผนที่ทันที
                              sub.bindTooltip(name, { 
-                                 permanent: true,       // โชว์ค้างไว้ตลอด
-                                 className: 'my-kmz-label', // คลาส CSS สำหรับตกแต่งป้ายสีเหลือง
-                                 direction: 'top',       // แปะไว้ข้างบนหมุด
-                                 sticky: false          // ไม่วิ่งตามเมาส์
+                                 permanent: true, 
+                                 className: 'my-kmz-label', 
+                                 direction: 'top', 
+                                 sticky: false 
                              }).openTooltip();
                         }
                     });
@@ -516,16 +547,14 @@
                     if(currentOpacity < 1) updateVectorOpacity(currentOpacity);
                 });
             } else { 
-                if(activeLayers[url]) { 
-                    map.removeLayer(activeLayers[url]); 
-                    delete activeLayers[url]; 
-                } 
+                if(activeLayers[url]) { map.removeLayer(activeLayers[url]); delete activeLayers[url]; } 
             }
         }
 
         async function toggleD(url, cb, prov) {
             if(cb.checked) {
-                activeLayers[url] = L.tileLayer(url, { maxNativeZoom: 20, maxZoom: 22 }).addTo(map);
+                // ใส่คลาส drone-red-frame ให้โดรนเพื่อวาดกรอบสีแดงล้อมรอบภาพแผ่นตัด
+                activeLayers[url] = L.tileLayer(url, { maxNativeZoom: 20, maxZoom: 22, className: 'drone-red-frame' }).addTo(map);
                 if(prov) {
                     const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=จังหวัด${prov.replace('จ.','')}`);
                     const data = await res.json();
