@@ -594,7 +594,7 @@
 
         async function toggleD(safeId, url, cb, prov) {
             if(cb.checked) {
-                activeLayers[safeId] = L.tileLayer(url, { maxNativeZoom: 20, maxZoom: 22 }).addTo(map);
+                activeLayers[safeId] = L.tileLayer(url, { maxNativeZoom: 20, maxZoom: 22, zIndex: 100 }).addTo(map);
                 if(prov) {
                     const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=จังหวัด${prov.replace('จ.','')}`);
                     const data = await res.json();
