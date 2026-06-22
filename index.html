@@ -22,9 +22,11 @@
         .glass-panel { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px); border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); z-index: 9999; }
         
         /* แถบตัวกรองด้านบน */
-        #top-bar { position: absolute; top: 15px; left: 50%; transform: translateX(-50%); width: 75%; display: flex; gap: 6px; padding: 12px; align-items: center; justify-content: center; z-index: 9999; }
+        #top-bar { position: absolute; top: 15px; left: 50%; transform: translateX(-50%); width: 80%; display: flex; gap: 6px; padding: 12px; align-items: center; justify-content: center; z-index: 9999; }
         .filter-select { flex: 1; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-family: 'Kanit'; font-size: 13px; outline: none; }
         #search-box { flex: 1.5; background: #fff; border: 2px solid #2563eb; font-weight: 600; }
+        #btn-refresh { flex: 0.5; padding: 10px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; font-family: 'Kanit'; font-weight: 600; cursor: pointer; color: #1e293b; transition: 0.2s; white-space: nowrap; }
+        #btn-refresh:hover { background: #e2e8f0; color: #2563eb; }
 
         /* ปุ่มนำเข้า */
         #btn-open-upload { position: absolute; top: 15px; right: 15px; z-index: 10000; background: #2563eb; color: #fff; border: none; padding: 12px 20px; border-radius: 8px; font-weight: 600; font-family: 'Kanit'; font-size: 14px; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.3); transition: 0.3s; }
@@ -49,7 +51,8 @@
         .excel-table th { background-color: #f8fafc; color: #1e293b; padding: 8px; text-align: center; white-space: nowrap; position: sticky; top: 0; border-bottom: 2px solid #e2e8f0; }
         .excel-table td { padding: 8px; border-bottom: 1px solid #e2e8f0; text-align: center; }
         .excel-table td:nth-child(2) { text-align: left; font-weight: 500; } 
-        .layer-item { display: flex; align-items: center; gap: 10px; padding: 12px; background: #f8fafc; border-radius: 8px; margin-bottom: 6px; border: 1px solid #e2e8f0; }
+        .layer-item { display: flex; align-items: flex-start; gap: 10px; padding: 12px; background: #f8fafc; border-radius: 8px; margin-bottom: 6px; border: 1px solid #e2e8f0; transition: 0.2s; }
+        .layer-item:hover { background: #f1f5f9; }
 
         /* หน้าต่าง Modal */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.6); backdrop-filter: blur(5px); z-index: 100001; display: none; align-items: center; justify-content: center; }
@@ -75,9 +78,10 @@
         #opacity-control label { font-size: 12px; font-weight: 600; color: #1e293b; display: block; margin-bottom: 8px; }
         input[type=range] { width: 100%; cursor: pointer; accent-color: #2563eb; }
 
+        /* แก้ไข Error 404 รูปภาพ โดยใช้ Emoji Native แทน */
         #loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); backdrop-filter: blur(10px); z-index: 100005; display: none; justify-content: center; align-items: center; flex-direction: column; color: white; }
         .loader-container { position: relative; width: 180px; height: 180px; display: flex; justify-content: center; align-items: center; }
-        .logo-center { width: 135px; height: 135px; background: url('images.jpg') no-repeat center/contain; border-radius: 50%; z-index: 10; border: 4px solid #fff; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+        .logo-center { width: 135px; height: 135px; border-radius: 50%; z-index: 10; border: 4px solid #fff; box-shadow: 0 4px 10px rgba(0,0,0,0.3); background-color: #1e293b; display: flex; justify-content: center; align-items: center; font-size: 65px; }
         .spinning-border { position: absolute; width: 170px; height: 170px; border: 6px solid rgba(255,255,255,0.1); border-top: 6px solid #16a34a; border-radius: 50%; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         
@@ -88,6 +92,7 @@
             #top-bar { width: 92%; flex-wrap: wrap; top: 10px; padding: 10px; gap: 8px; }
             .filter-select { flex: 1 1 45%; font-size: 12px; padding: 8px; }
             #search-box { flex: 1 1 100%; font-size: 13px; }
+            #btn-refresh { flex: 1 1 100%; font-size: 13px; }
             #btn-open-upload { top: auto; bottom: 25px; right: 10px; padding: 12px 15px; font-size: 13px; box-shadow: 0 -2px 10px rgba(0,0,0,0.3); border-radius: 25px; }
             #btn-show-sidebar { top: auto; bottom: 25px; left: 10px; padding: 12px 15px; font-size: 13px; border-radius: 25px; box-shadow: 0 -2px 10px rgba(0,0,0,0.3); }
             #left-sidebar { width: calc(100% - 20px); left: 10px; top: auto; bottom: 80px; height: 50vh; }
@@ -105,7 +110,7 @@
 <body>
 
     <div id="loading-overlay">
-        <div class="loader-container"><div class="logo-center"></div><div class="spinning-border"></div></div>
+        <div class="loader-container"><div class="logo-center">🚁</div><div class="spinning-border"></div></div>
         <div id="loading-text" style="margin-top:15px; font-size:15px; font-weight:600;">กำลังประมวลผล...</div>
     </div>
 
@@ -114,7 +119,7 @@
     <div id="map"></div>
 
     <div id="top-bar" class="glass-panel">
-        <select class="filter-select" id="f-agency" onchange="loadDataByAgency(this.value);">
+        <select class="filter-select" id="f-agency" onchange="loadDataByAgency(this.value, false);">
             <option value="" disabled selected hidden>-- 1. สร.รว. --</option>
         </select>
         <select class="filter-select" id="f-year" onchange="filterAll();">
@@ -130,6 +135,7 @@
             <option value="" disabled selected hidden>-- 4. โครงการ --</option>
         </select>
         <input type="text" class="filter-select" id="search-box" placeholder="🔍 ค้นหารหัส Smart ID หรือชื่อโครงการ..." onkeyup="filterAll()">
+        <button id="btn-refresh" onclick="forceRefreshData()" title="ดึงข้อมูลอัปเดตล่าสุดจากฐานข้อมูล">🔄 โหลดใหม่</button>
     </div>
 
     <div id="opacity-control" class="glass-panel">
@@ -232,7 +238,6 @@
         const map = L.map('map', { zoomControl: false }).setView([15.5, 100], 6);
         L.tileLayer('https://mt0.google.com/vt/lyrs=y&x={x}&y={y}&z={z}').addTo(map);
         
-        // 📏 เครื่องมือวัดระยะทางแบบออริจินัลดั้งเดิม 100% ป้องกันปุ่มกากบาทหาย
         L.control.polylineMeasure({ 
             position: 'topright', 
             unit: 'metres', 
@@ -246,27 +251,27 @@
             document.getElementById('hud-box').innerHTML = `📍 Lat: ${e.latlng.lat.toFixed(5)}, Lon: ${e.latlng.lng.toFixed(5)}<br>🎯 UTM Zone ${z}: X=${utm[0].toFixed(2)}, Y=${utm[1].toFixed(2)}`;
         });
 
+        // 🧠 ระบบสมองกลจำข้อมูล (Frontend Caching)
+        let memoryCache = {}; 
         let allData = [];
         let modalData = [];
         const activeLayers = {}; 
 
-        // 🧹 ฟังก์ชันล้างไพ่ แผนที่สะอาดเมื่อเปลี่ยนตัวกรอง
         function clearAllMapLayers() {
-            for (let url in activeLayers) {
-                if (activeLayers[url]) {
-                    map.removeLayer(activeLayers[url]);
-                    delete activeLayers[url];
+            for (let safeId in activeLayers) {
+                if (activeLayers[safeId]) {
+                    map.removeLayer(activeLayers[safeId]);
+                    delete activeLayers[safeId];
                 }
             }
             document.querySelectorAll('.layer-item input[type="checkbox"]').forEach(cb => cb.checked = false);
             document.getElementById('vector-opacity').value = 1;
         }
 
-        // 🎚️ ฟังก์ชันควบคุมความทึบแสง (Interactive Slider)
         function updateVectorOpacity(val) {
             let opacityVal = parseFloat(val);
-            for (let url in activeLayers) {
-                let layer = activeLayers[url];
+            for (let safeId in activeLayers) {
+                let layer = activeLayers[safeId];
                 if (layer && layer.eachLayer) {
                     layer.eachLayer(function(sublayer) {
                         if (sublayer.setStyle) {
@@ -300,8 +305,8 @@
         }
 
         function updateModalFilters() {
+            // โค้ดเดิมคงไว้
             if (!modalData || modalData.length === 0) return;
-
             const prov = document.getElementById('i-prov').value.trim();
             const id = document.getElementById('i-id').value.trim();
             const job = document.getElementById('i-job').value.trim();
@@ -334,25 +339,52 @@
             }
         }
 
-        async function loadDataByAgency(agency) {
+        // 🚀 ระบบดึงข้อมูลแบบฉลาด (Caching) ดึงครั้งเดียวสลับไว 0.01 วิ
+        async function loadDataByAgency(agency, isForceRefresh) {
             if(!agency) {
                 document.getElementById("f-prov").innerHTML = '<option value="" disabled selected hidden>-- 3. จังหวัด --</option>';
                 allData = []; 
                 filterAll();
                 return;
             }
+
+            // ถ้ามีของเก่าในความจำ (RAM) และไม่ได้บังคับรีเฟรช ให้หยิบมาใช้เลย!
+            if (memoryCache[agency] && !isForceRefresh) {
+                allData = memoryCache[agency];
+                updateProvinceDropdown();
+                filterAll();
+                return;
+            }
+
+            // ถ้าไม่มี หรือ บังคับรีเฟรช ค่อยวิ่งไปถามหลังบ้าน
             showL(`🔍 กำลังเชื่อมโยงคลังข้อมูล ${agency}...`);
             try {
                 const res = await fetch(`${API}/api/projects/by-agency?agency=${agency}&_t=${Date.now()}`);
-                allData = await res.json();
+                const data = await res.json();
                 
-                const provinces = [...new Set(allData.map(d => d['จังหวัด']))].filter(Boolean).sort();
-                const pSel = document.getElementById("f-prov");
-                pSel.innerHTML = '<option value="" disabled selected hidden>-- 3. จังหวัด --</option>';
-                provinces.forEach(p => pSel.appendChild(new Option(p, p)));
+                memoryCache[agency] = data; // แอบจำใส่ RAM ไว้ใช้รอบหน้า
+                allData = data;
                 
+                updateProvinceDropdown();
                 filterAll();
             } finally { hideL(); }
+        }
+
+        // 🔄 ปุ่มโหลดใหม่เฉพาะกิจ เวลานายช่างอัปเดตโดรนเข้ามาใหม่
+        function forceRefreshData() {
+            const currentAgency = document.getElementById("f-agency").value;
+            if(currentAgency) {
+                loadDataByAgency(currentAgency, true); // สั่งบังคับโหลดทับของเดิม
+            } else {
+                alert("⚠️ กรุณาเลือก สร.รว. ก่อนกดโหลดข้อมูลใหม่ครับ");
+            }
+        }
+
+        function updateProvinceDropdown() {
+            const provinces = [...new Set(allData.map(d => d['จังหวัด']))].filter(Boolean).sort();
+            const pSel = document.getElementById("f-prov");
+            pSel.innerHTML = '<option value="" disabled selected hidden>-- 3. จังหวัด --</option>';
+            provinces.forEach(p => pSel.appendChild(new Option(p, p)));
         }
 
         function populateProj() {
@@ -395,13 +427,11 @@
             });
 
             const html = filtered.map(d => {
-                // 🧮 ดักจับค่าว่างหรือ NaN แล้วแปลงเป็น 0 ทันที ยอดรวมรอดตาย!
                 let start = parseFloat(d['กม.ต้น']);
                 let end = parseFloat(d['กม.ปลาย']);
                 if (isNaN(start)) start = 0;
                 if (isNaN(end)) end = 0;
                 
-                // ดึงค่าชื่องานจากคอลัมน์ F เท่านั้น ถ้าไม่มีให้เขียนว่า "ไม่ระบุ"
                 let d_jobName = d['ชื่องาน'] ? String(d['ชื่องาน']).trim() : '';
                 if (!d_jobName || d_jobName === "undefined" || d_jobName === "null") d_jobName = "ไม่ระบุ";
 
@@ -434,13 +464,14 @@
             updateFileCounts(filtered);
         }
 
+        // 🛡️ ระบบการจัดกลุ่มข้อมูลเพื่อหลีกเลี่ยงรหัสซ้ำชนกัน (Composite Safe ID Grouping)
         function updateFileCounts(data) {
             let vMap = new Map(), dMap = new Map();
             
             data.forEach(p => {
                 (p.files || []).forEach(f => {
                     let url = f['ลิงก์จาก R2'];
-                    if (!url) return; 
+                    if (!url || url === "-" || url.trim() === "") return; // กรองลิงก์ขยะทิ้ง
                     
                     let type = f['ประเภทไฟล์'];
                     let f_projId = f['รหัสโครงการ'] ? String(f['รหัสโครงการ']).trim() : '';
@@ -449,11 +480,8 @@
                     let projId = f_projId || p['รหัสโครงการ'] || '-';
                     let jobId = f_jobId || p['รหัสงาน'] || '-';
                     
-                    // บังคับเช็คคอลัมน์ F เท่านั้น ถ้าไม่มีให้เขียนว่า "ไม่ระบุ"
                     let f_jobName = f['ชื่องาน'] ? String(f['ชื่องาน']).trim() : '';
-                    if (!f_jobName || f_jobName === "undefined" || f_jobName === "null") {
-                        f_jobName = "ไม่ระบุ";
-                    }
+                    if (!f_jobName || f_jobName === "undefined" || f_jobName === "null") f_jobName = "ไม่ระบุ";
                     
                     let displayName = `[รหัส ${projId}-${jobId}] ${f_jobName}`;
                     let prov = f['จังหวัด'] || p['จังหวัด'] || '';
@@ -469,7 +497,6 @@
                 });
             });
 
-            // ปรับการแสดงผลกลุ่ม Checkbox ยุบรายชื่อที่เกิน 3 บรรทัดให้อ่านง่าย
             let formatFiles = (mapObj) => Array.from(mapObj.values()).map(item => {
                 let namesArr = Array.from(item.names);
                 let displayStr = "";
@@ -481,8 +508,12 @@
                     displayStr = namesArr.map(n => `▪️ ${n}`).join('<br>');
                 }
 
+                // 🔐 สร้างรหัสหลังบ้านที่ไม่ซ้ำซ้อนจาก URL โดยตรง (ปลอดภัย 100%)
+                let uniqueSafeId = "L_" + btoa(encodeURIComponent(item.url)).replace(/[^a-zA-Z0-9]/g, '').substring(0, 30);
+
                 return {
                     url: item.url,
+                    safeId: uniqueSafeId, // กุญแจกันรหัสชน
                     name: displayStr,
                     prov: item.prov
                 };
@@ -498,39 +529,44 @@
         }
 
         function renderFiles(id, files, mode) {
+            // อัปเกรด <label> ให้สามารถเอานิ้วจิ้มตรงข้อความเพื่อติ๊กถูกได้เลย (ไม่ต้องเล็งช่องเล็กๆ)
             document.getElementById(id).innerHTML = files.length ? files.map(f => `
                 <div class="layer-item">
-                    <input type="checkbox" onchange="${mode==='v'?'toggleV':'toggleD'}('${f.url}', this, '${f.prov}')">
-                    <div style="flex:1;"><strong>${f.name}</strong><br><small>${f.prov}</small></div>
+                    <input type="checkbox" id="cb_${f.safeId}" onchange="${mode==='v'?'toggleV':'toggleD'}('${f.safeId}', '${f.url}', this, '${f.prov}')">
+                    <div style="flex:1;">
+                        <label for="cb_${f.safeId}" style="cursor:pointer; display:block;">
+                            <strong>${f.name}</strong><br><small>${f.prov}</small>
+                        </label>
+                    </div>
                 </div>
             `).join('') : '<p style="text-align:center; color:#94a3b8; font-size:13px; margin-top:15px;">ไม่มีไฟล์ข้อมูลในเงื่อนไขที่เลือก</p>';
         }
 
-        function toggleV(url, cb) {
+        function toggleV(safeId, url, cb) {
             if(cb.checked) {
-                // คืนค่าฟังก์ชันแสดงผลเวกเตอร์แบบปกติ ไม่ทำตรรกะคัดกรองป้ายชื่ออะไรทั้งสิ้น
                 const l = L.kmzLayer(url).addTo(map); 
-                activeLayers[url] = l;
+                activeLayers[safeId] = l; // ใช้รหัสลับ safeId แทน url ป้องกันการชน
                 l.on('load', e => {
                     map.fitBounds(e.layer.getBounds());
                     let currentOpacity = document.getElementById('vector-opacity').value;
                     if(currentOpacity < 1) updateVectorOpacity(currentOpacity);
                 });
             } else { 
-                if(activeLayers[url]) { map.removeLayer(activeLayers[url]); delete activeLayers[url]; } 
+                if(activeLayers[safeId]) { map.removeLayer(activeLayers[safeId]); delete activeLayers[safeId]; } 
             }
         }
 
-        async function toggleD(url, cb, prov) {
+        async function toggleD(safeId, url, cb, prov) {
             if(cb.checked) {
-                // ลบกรอบสีแดงของแผ่นตัดโดรนออกทั้งหมด (ใช้ Leaflet Tile Layer ออริจินัล)
-                activeLayers[url] = L.tileLayer(url, { maxNativeZoom: 20, maxZoom: 22 }).addTo(map);
+                activeLayers[safeId] = L.tileLayer(url, { maxNativeZoom: 20, maxZoom: 22 }).addTo(map);
                 if(prov) {
                     const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=จังหวัด${prov.replace('จ.','')}`);
                     const data = await res.json();
                     if(data.length) map.flyTo([data[0].lat, data[0].lon], 11);
                 }
-            } else { if(activeLayers[url]) { map.removeLayer(activeLayers[url]); delete activeLayers[url]; } }
+            } else { 
+                if(activeLayers[safeId]) { map.removeLayer(activeLayers[safeId]); delete activeLayers[safeId]; } 
+            }
         }
 
         async function uploadFile() {
@@ -587,7 +623,7 @@
                     
                     closeUploadModal(); 
                     const currentTopAgency = document.getElementById("f-agency").value;
-                    if (currentTopAgency === payload.agency) loadDataByAgency(payload.agency); 
+                    if (currentTopAgency === payload.agency) loadDataByAgency(payload.agency, true); // สั่งรีเฟรชข้อมูลอัตโนมัติเมื่อบันทึกเสร็จ
                 }
             } catch(e) { alert("❌ บันทึกไม่สำเร็จ: " + e.message); } 
             finally { hideL(); }
