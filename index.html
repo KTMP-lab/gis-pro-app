@@ -17,50 +17,214 @@
     <script src="https://ppete2.github.io/Leaflet.PolylineMeasure/Leaflet.PolylineMeasure.js"></script>
 
     <style>
-        body, html { margin: 0; padding: 0; width: 100vw; height: 100vh; overflow: hidden; font-family: 'Kanit', sans-serif; background-color: #000; }
+        body, html { margin: 0; padding: 0; width: 100vw; height: 100vh; overflow: hidden; font-family: 'Kanit', sans-serif; background-color: #0b0f19; }
         #map { width: 100%; height: 100%; z-index: 1; }
-        .glass-panel { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px); border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); z-index: 9999; }
         
-        /* แถบตัวกรองด้านบน พร้อมแอนิเมชันพับเก็บ */
-        #top-bar { position: absolute; top: 15px; left: 50%; transform: translateX(-50%); width: 80%; display: flex; gap: 6px; padding: 12px; align-items: center; justify-content: center; z-index: 9999; transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
-        #top-bar.collapsed { transform: translate(-50%, calc(-100% - 15px)); }
+        /* ✨ สไตล์กระจกดำสุดล้ำ (Dark Glassmorphism) แรงบันดาลใจจาก GeoLibre */
+        .glass-panel { 
+            background: rgba(15, 23, 42, 0.8); 
+            backdrop-filter: blur(16px); 
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08); 
+            border-radius: 12px;
+            box-shadow: 0 10px 35px rgba(0,0,0,0.5); 
+            color: #f8fafc;
+            z-index: 9999; 
+        }
         
-        .filter-select { flex: 1; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-family: 'Kanit'; font-size: 13px; outline: none; }
-        #search-box { flex: 1.5; background: #fff; border: 2px solid #2563eb; font-weight: 600; }
+        /* 🎛️ แถบตัวกรองแคปซูลลอยด้านบน */
+        #top-bar { 
+            position: absolute; 
+            top: 15px; 
+            left: 50%; 
+            transform: translateX(-50%); 
+            width: 75%; 
+            display: flex; 
+            gap: 8px; 
+            padding: 10px 16px; 
+            align-items: center; 
+            justify-content: center; 
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); 
+        }
+        #top-bar.collapsed { transform: translate(-50%, calc(-100% - 20px)); }
+        
+        /* 📱 ปรับแต่ง Inputs & Selects ให้ดูดุดัน มินิมอล */
+        .filter-select { 
+            flex: 1; 
+            padding: 10px 12px; 
+            background: rgba(30, 41, 59, 0.7); 
+            border: 1px solid rgba(255, 255, 255, 0.1); 
+            border-radius: 8px; 
+            font-family: 'Kanit'; 
+            font-size: 13px; 
+            color: #f8fafc;
+            outline: none; 
+            transition: 0.3s;
+        }
+        .filter-select:focus {
+            border-color: #38bdf8;
+            box-shadow: 0 0 12px rgba(56, 189, 248, 0.25);
+        }
+        select option { background: #0f172a; color: #f8fafc; }
+        
+        #search-box { 
+            flex: 1.6; 
+            background: rgba(15, 23, 42, 0.9); 
+            border: 1.5px solid #2563eb; 
+            font-weight: 500; 
+            color: #38bdf8;
+        }
+        #search-box::placeholder { color: #64748b; }
 
-        /* ปุ่มพับเก็บแถบด้านบน */
-        #toggle-topbar-btn { position: absolute; bottom: -32px; left: 50%; transform: translateX(-50%); background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px); border: 1px solid #cbd5e1; border-top: none; border-radius: 0 0 16px 16px; padding: 4px 60px; font-size: 16px; color: #475569; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.15); transition: 0.2s; display: flex; align-items: center; justify-content: center; }
-        #toggle-topbar-btn:hover { background: #f8fafc; color: #2563eb; }
+        /* ปุ่มพับเก็บเมนูด้านบน */
+        #toggle-topbar-btn { 
+            position: absolute; 
+            bottom: -26px; 
+            left: 50%; 
+            transform: translateX(-50%); 
+            background: rgba(15, 23, 42, 0.85); 
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.08); 
+            border-top: none; 
+            border-radius: 0 0 12px 16px; 
+            padding: 2px 45px; 
+            font-size: 14px; 
+            color: #94a3b8; 
+            cursor: pointer; 
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3); 
+            transition: 0.2s; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+        }
+        #toggle-topbar-btn:hover { color: #38bdf8; background: #1e293b; }
 
-        /* ปุ่มนำเข้า */
-        #btn-open-upload { position: absolute; top: 15px; right: 15px; z-index: 10000; background: #2563eb; color: #fff; border: none; padding: 12px 20px; border-radius: 8px; font-weight: 600; font-family: 'Kanit'; font-size: 14px; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.3); transition: 0.3s; }
-        #btn-open-upload:hover { background: #1d4ed8; transform: translateY(-2px); }
+        /* ปุ่มฝากไฟล์นำเข้าดีไซน์เฉียบ */
+        #btn-open-upload { 
+            position: absolute; 
+            top: 15px; 
+            right: 15px; 
+            z-index: 10000; 
+            background: linear-gradient(135deg, #2563eb, #1d4ed8); 
+            color: #fff; 
+            border: 1px solid rgba(255,255,255,0.1); 
+            padding: 10px 18px; 
+            border-radius: 8px; 
+            font-weight: 600; 
+            font-family: 'Kanit'; 
+            font-size: 13.5px; 
+            cursor: pointer; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.4); 
+            transition: 0.3s; 
+        }
+        #btn-open-upload:hover { background: linear-gradient(135deg, #3b82f6, #2563eb); transform: translateY(-1px); }
 
-        /* แผงหน้าต่างซ้าย */
-        #btn-show-sidebar { position: absolute; top: 80px; left: 15px; z-index: 9998; padding: 10px 15px; background: #1e293b; color: white; border: none; border-radius: 8px; font-family: 'Kanit'; cursor: pointer; font-weight: 600; box-shadow: 0 4px 6px rgba(0,0,0,0.3); transition: 0.3s;}
-        #left-sidebar { position: absolute; top: 80px; left: 15px; width: 450px; bottom: 30px; display: flex; flex-direction: column; overflow: hidden; transition: transform 0.4s ease-in-out; z-index: 9999; }
-        #left-sidebar.hidden { transform: translateX(-480px); }
-        .sidebar-header { padding: 12px 15px; background: #1e293b; color: white; display: flex; justify-content: space-between; align-items: center; border-radius: 12px 12px 0 0; }
+        /* แผงควบคุมสไลด์ฝั่งซ้าย */
+        #btn-show-sidebar { 
+            position: absolute; 
+            top: 80px; 
+            left: 15px; 
+            z-index: 9997; 
+            padding: 10px 16px; 
+            background: #0f172a; 
+            color: #38bdf8; 
+            border: 1px solid rgba(255, 255, 255, 0.1); 
+            border-radius: 8px; 
+            font-family: 'Kanit'; 
+            cursor: pointer; 
+            font-weight: 600; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4); 
+            transition: 0.3s;
+        }
+        #btn-show-sidebar:hover { background: #1e293b; color: #fff; }
         
-        .tab-header { display: flex; background-color: #f1f5f9; border-bottom: 1px solid #cbd5e1; }
-        .tab-btn { flex: 1; padding: 12px; font-family: 'Kanit'; font-weight: 600; cursor: pointer; border: none; border-bottom: 3px solid transparent; color: #64748b; background: none;}
-        .tab-btn.active { color: #2563eb; border-bottom: 3px solid #2563eb; background: #fff; }
+        #left-sidebar { 
+            position: absolute; 
+            top: 80px; 
+            left: 15px; 
+            width: 440px; 
+            bottom: 25px; 
+            display: flex; 
+            flex-direction: column; 
+            overflow: hidden; 
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); 
+        }
+        #left-sidebar.hidden { transform: translateX(-470px); }
+        .sidebar-header { padding: 14px 18px; background: #0f172a; color: #fff; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); }
         
-        .tab-content { display: none; padding: 15px; overflow-y: auto; flex: 1; background: #fff; border-radius: 0 0 12px 12px; }
+        /* 📱 แท็บสลับหน้าจอทรง iOS Segmented Control มินิมอล */
+        .tab-header { 
+            display: flex; 
+            background-color: rgba(15, 23, 42, 0.6); 
+            padding: 4px;
+            margin: 12px;
+            border-radius: 8px;
+            gap: 4px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        .tab-btn { 
+            flex: 1; 
+            padding: 8px; 
+            font-family: 'Kanit'; 
+            font-weight: 600; 
+            font-size: 12.5px;
+            cursor: pointer; 
+            border: none; 
+            border-radius: 6px;
+            color: #94a3b8; 
+            background: none;
+            transition: 0.2s ease;
+        }
+        .tab-btn.active { 
+            color: #fff; 
+            background: #2563eb; 
+            box-shadow: 0 2px 8px rgba(37, 99, 235, 0.4); 
+        }
+        
+        /* เนื้อหาแท็บลอยตัว */
+        .tab-content { display: none; padding: 0 15px 15px 15px; overflow-y: auto; flex: 1; background: transparent; }
         .tab-content.active { display: block; }
-        #tab-stats.active { display: flex !important; flex-direction: column; padding: 0; } 
+        #tab-stats.active { display: flex !important; flex-direction: column; padding: 0 15px 15px 15px; } 
         
-        /* ตารางและเลเยอร์ */
+        /* ตารางสไตล์โปร่งแสงไร้ขอบตัดสายตา */
         .excel-table { width: 100%; border-collapse: collapse; font-size: 11.5px; }
-        .excel-table th { background-color: #f8fafc; color: #1e293b; padding: 8px; text-align: center; white-space: nowrap; position: sticky; top: 0; border-bottom: 2px solid #e2e8f0; }
-        .excel-table td { padding: 8px; border-bottom: 1px solid #e2e8f0; text-align: center; }
-        .excel-table td:nth-child(2) { text-align: left; font-weight: 500; } 
-        .layer-item { display: flex; align-items: flex-start; gap: 10px; padding: 12px; background: #f8fafc; border-radius: 8px; margin-bottom: 6px; border: 1px solid #e2e8f0; transition: 0.2s; }
-        .layer-item:hover { background: #f1f5f9; }
+        .excel-table th { background-color: #0f172a; color: #94a3b8; padding: 10px 6px; text-align: center; white-space: nowrap; position: sticky; top: 0; border-bottom: 1px solid rgba(255,255,255,0.08); }
+        .excel-table td { padding: 10px 6px; border-bottom: 1px solid rgba(255,255,255,0.04); text-align: center; color: #cbd5e1; }
+        .excel-table tr:hover td { background: rgba(255,255,255,0.03); }
+        .excel-table td:nth-child(2) { text-align: left; font-weight: 400; color: #f1f5f9; } 
+        
+        /* กล่องไอเท็มเลเยอร์ */
+        .layer-item { 
+            display: flex; 
+            align-items: flex-start; 
+            gap: 12px; 
+            padding: 12px; 
+            background: rgba(30, 41, 59, 0.4); 
+            border-radius: 8px; 
+            margin-bottom: 8px; 
+            border: 1px solid rgba(255,255,255,0.04); 
+            transition: 0.2s; 
+        }
+        .layer-item:hover { background: rgba(30, 41, 59, 0.6); border-color: rgba(56, 189, 248, 0.2); }
+        .layer-item input[type="checkbox"] { width: 15px; height: 17px; accent-color: #2563eb; cursor: pointer; }
 
-        /* หน้าต่าง Modal */
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.6); backdrop-filter: blur(5px); z-index: 100001; display: none; align-items: center; justify-content: center; }
-        .modal-content { background: white; padding: 25px; border-radius: 12px; width: 500px; max-width: 90%; box-shadow: 0 10px 30px rgba(0,0,0,0.5); position: relative; font-family: 'Kanit'; max-height: 90vh; overflow-y: auto; }
+        /* กล่องสรุปผลใต้ตาราง */
+        #table-summary { 
+            padding: 12px; 
+            background: #0f172a; 
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 8px;
+            color: #10b981; 
+            font-size: 12.5px; 
+            font-weight: 600; 
+            display: flex; 
+            justify-content: space-between;
+            margin-top: 10px;
+        }
+
+        /* 💾 หน้าต่างป็อปอัปดุดันโหมด */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.75); backdrop-filter: blur(6px); z-index: 100001; display: none; align-items: center; justify-content: center; }
+        .modal-content { background: #0f172a; border: 1px solid rgba(255,255,255,0.1); padding: 25px; border-radius: 12px; width: 480px; max-width: 90%; box-shadow: 0 20px 50px rgba(0,0,0,0.6); position: relative; color: #f8fafc; max-height: 90vh; overflow-y: auto; }
         .close-modal-btn { position: absolute; top: 15px; right: 15px; font-size: 20px; border: none; background: none; color: #64748b; font-weight: bold; cursor: pointer; transition: 0.2s; }
         .close-modal-btn:hover { color: #ef4444; }
         
@@ -68,72 +232,91 @@
         .flex-col { flex: 1; }
         
         .form-group { margin-bottom: 12px; }
-        .form-group label { display: block; font-size: 13px; color: #1e293b; font-weight: 600; margin-bottom: 4px; }
-        .form-input { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; font-family: 'Kanit'; font-size: 13px; }
-        .form-input:disabled { background: #f1f5f9; cursor: not-allowed; }
-        .btn-save { width: 100%; padding: 12px; border: none; background: #16a34a; color: white; border-radius: 8px; font-weight: 600; cursor: pointer; margin-top: 5px; font-family: 'Kanit'; font-size: 14px;}
-        .btn-save:disabled { background: #94a3b8; cursor: not-allowed; }
+        .form-group label { display: block; font-size: 12.5px; color: #94a3b8; font-weight: 600; margin-bottom: 5px; }
+        .form-input { width: 100%; padding: 10px; background: #1e293b; border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; box-sizing: border-box; font-family: 'Kanit'; font-size: 13px; color: #fff; }
+        .form-input:focus { border-color: #2563eb; outline: none; }
+        .form-input:disabled { background: #0f172a; color: #475569; cursor: not-allowed; }
+        .btn-save { width: 100%; padding: 12px; border: none; background: #16a34a; color: white; border-radius: 8px; font-weight: 600; cursor: pointer; margin-top: 5px; font-family: 'Kanit'; font-size: 14px; box-shadow: 0 4px 12px rgba(22, 163, 74, 0.3); }
+        .btn-save:disabled { background: #475569; color: #94a3b8; cursor: not-allowed; box-shadow: none; }
 
-        /* พิกัด UTM */
-        #hud-box { position: absolute; bottom: 25px; right: 10px; background: rgba(0,0,0,0.7); backdrop-filter: blur(5px); color: #00FFCC; padding: 10px 18px; border-radius: 8px; font-family: monospace; font-size: 13px; z-index: 9999; border: 1px solid rgba(0, 255, 204, 0.4); box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
-        
-        /* 📊 กล่องโชว์สถิติหน้าเว็บ (เปลี่ยนเป็นบรรทัดเดียว พื้นหลังดำใส ด้านล่างขวา) */
-        #web-stats-box { 
+        /* 📍 พิกัด UTM สไตล์หน้าปัดไซเบอร์ (HUD System) */
+        #hud-box { 
             position: absolute; 
-            bottom: 75px; /* วางซ้อนอยู่บนกล่องพิกัด UTM พอดี */
-            right: 10px; 
-            background: rgba(0, 0, 0, 0.7); 
-            backdrop-filter: blur(5px);
+            bottom: 20px; 
+            right: 15px; 
+            background: rgba(11, 15, 25, 0.85); 
+            backdrop-filter: blur(10px); 
             color: #00FFCC; 
-            padding: 8px 15px; 
+            padding: 10px 18px; 
             border-radius: 8px; 
             font-family: monospace; 
-            font-size: 13px; 
+            font-size: 12px; 
+            z-index: 9999; 
+            border: 1px solid rgba(0, 255, 204, 0.3); 
+            box-shadow: 0 8px 25px rgba(0,0,0,0.5); 
+        }
+        
+        /* 📊 กล่องโชว์สถิติแนวราบ ลอยเท่ๆ เหนือกล่องพิกัด */
+        #web-stats-box { 
+            position: absolute; 
+            bottom: 74px; 
+            right: 15px; 
+            background: rgba(11, 15, 25, 0.85); 
+            backdrop-filter: blur(10px);
+            color: #00FFCC; 
+            padding: 8px 16px; 
+            border-radius: 8px; 
+            font-family: monospace; 
+            font-size: 12px; 
             z-index: 9998; 
             display: flex; 
             flex-direction: row; 
             align-items: center; 
-            gap: 15px; 
-            border: 1px solid rgba(0, 255, 204, 0.4); 
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            gap: 12px; 
+            border: 1px solid rgba(0, 255, 204, 0.3); 
+            box-shadow: 0 8px 25px rgba(0,0,0,0.5);
             white-space: nowrap;
         }
 
         /* หน้าโหลดดิ้ง */
-        #loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); backdrop-filter: blur(10px); z-index: 100005; display: none; justify-content: center; align-items: center; flex-direction: column; color: white; }
+        #loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(11,15,25,0.5); backdrop-filter: blur(12px); z-index: 100005; display: none; justify-content: center; align-items: center; flex-direction: column; color: white; }
         .loader-container { position: relative; width: 180px; height: 180px; display: flex; justify-content: center; align-items: center; }
-        .logo-center { width: 135px; height: 135px; border-radius: 50%; z-index: 10; border: 4px solid #fff; box-shadow: 0 4px 10px rgba(0,0,0,0.3); background-color: #1e293b; display: flex; justify-content: center; align-items: center; font-size: 65px; }
-        .spinning-border { position: absolute; width: 170px; height: 170px; border: 6px solid rgba(255,255,255,0.1); border-top: 6px solid #16a34a; border-radius: 50%; animation: spin 1s linear infinite; }
+        .logo-center { width: 135px; height: 135px; border-radius: 50%; z-index: 10; border: 3px solid rgba(255,255,255,0.1); box-shadow: 0 8px 20px rgba(0,0,0,0.5); background-color: #0f172a; display: flex; justify-content: center; align-items: center; font-size: 60px; }
+        .spinning-border { position: absolute; width: 165px; height: 170px; border: 5px solid rgba(255,255,255,0.05); border-top: 5px solid #2563eb; border-radius: 50%; animation: spin 0.8s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         
         .leaflet-top.leaflet-right { top: 70px !important; }
 
-        /* ดีไซน์ปุ่มปรับความโปร่งใสแบบพับได้ */
-        .custom-opacity-control { background: #fff; border-radius: 4px; box-shadow: 0 1px 5px rgba(0,0,0,0.65); display: flex; align-items: center; transition: 0.3s; overflow: hidden; }
-        .opacity-icon { width: 30px; height: 30px; line-height: 30px; text-align: center; font-size: 16px; cursor: pointer; }
+        /* แผงปรับความโปร่งใส Dark Theme */
+        .custom-opacity-control { background: rgba(15, 23, 42, 0.9) !important; border: 1px solid rgba(255,255,255,0.1) !important; border-radius: 6px !important; color: #fff !important; box-shadow: 0 4px 15px rgba(0,0,0,0.4) !important; display: flex; align-items: center; transition: 0.3s; overflow: hidden; }
+        .opacity-icon { width: 32px; height: 32px; line-height: 32px; text-align: center; font-size: 15px; cursor: pointer; color: #38bdf8; }
         .opacity-slider-container { width: 0; opacity: 0; overflow: hidden; transition: width 0.3s ease, opacity 0.3s ease; display: flex; align-items: center; gap: 8px; white-space: nowrap; }
-        .custom-opacity-control:hover .opacity-slider-container { width: 160px; opacity: 1; padding: 0 10px; }
+        .custom-opacity-control:hover .opacity-slider-container { width: 160px; opacity: 1; padding: 0 12px; }
+
+        /* ปรับแต่งปุ่มเครื่องมือ Leaflet เดิมให้เข้ากับ Dark Mode */
+        .leaflet-bar a { background-color: rgba(15, 23, 42, 0.9) !important; color: #38bdf8 !important; border-bottom: 1px solid rgba(255,255,255,0.08) !important; }
+        .leaflet-bar a:hover { background-color: #1e293b !important; color: #fff !important; }
+        .leaflet-control-layers { background: rgba(15, 23, 42, 0.9) !important; color: #fff !important; border: 1px solid rgba(255,255,255,0.1) !important; }
 
         /* Mobile Responsive */
         @media (max-width: 768px) {
-            #top-bar { width: 92%; flex-wrap: wrap; top: 10px; padding: 10px; gap: 8px; }
+            #top-bar { width: 92%; flex-wrap: wrap; top: 10px; padding: 10px; gap: 6px; }
             #top-bar.collapsed { transform: translate(-50%, calc(-100% - 10px)); }
-            .filter-select { flex: 1 1 45%; font-size: 12px; padding: 8px; }
-            #search-box { flex: 1 1 100%; font-size: 13px; }
-            #btn-open-upload { top: auto; bottom: 25px; right: 10px; padding: 12px 15px; font-size: 13px; box-shadow: 0 -2px 10px rgba(0,0,0,0.3); border-radius: 25px; }
-            #btn-show-sidebar { top: auto; bottom: 25px; left: 10px; padding: 12px 15px; font-size: 13px; border-radius: 25px; box-shadow: 0 -2px 10px rgba(0,0,0,0.3); }
-            #left-sidebar { width: calc(100% - 20px); left: 10px; top: auto; bottom: 80px; height: 50vh; }
-            #left-sidebar.hidden { transform: translateX(-120%); }
-            .modal-content { width: 90%; padding: 15px; max-height: 85vh; }
+            .filter-select { flex: 1 1 45%; font-size: 11px; padding: 8px; }
+            #search-box { flex: 1 1 100%; font-size: 12px; }
+            #btn-open-upload { top: auto; bottom: 20px; right: 10px; padding: 10px 14px; font-size: 12px; border-radius: 20px; }
+            #btn-show-sidebar { top: auto; bottom: 20px; left: 10px; padding: 10px 14px; font-size: 12px; border-radius: 20px; }
+            #left-sidebar { width: calc(100% - 20px); left: 10px; top: auto; bottom: 75px; height: 48vh; }
+            #left-sidebar.hidden { transform: translateX(-125%); }
+            .modal-content { width: 92%; padding: 15px; }
             .flex-row { flex-direction: column; gap: 0 !important; margin-bottom: 0; }
-            .flex-col { width: 100%; margin-bottom: 12px; }
+            .flex-col { width: 100%; margin-bottom: 10px; }
             .excel-table { display: block; overflow-x: auto; white-space: nowrap; }
             
-            /* ขยับกล่องหลบปุ่มบนมือถือ */
-            #hud-box { bottom: 85px; right: 10px; font-size: 11px; padding: 6px 10px; }
-            #web-stats-box { bottom: 130px; right: 10px; padding: 6px 10px; font-size: 11px; gap: 10px; } 
+            #hud-box { bottom: 75px; right: 10px; font-size: 10px; padding: 6px 10px; }
+            #web-stats-box { bottom: 122px; right: 10px; padding: 6px 10px; font-size: 10px; gap: 8px; } 
             
-            .leaflet-top.leaflet-right { top: 180px !important; }
+            .leaflet-top.leaflet-right { top: 160px !important; }
         }
     </style>
 </head>
@@ -141,7 +324,7 @@
 
     <div id="loading-overlay">
         <div class="loader-container"><div class="logo-center">🚁</div><div class="spinning-border"></div></div>
-        <div id="loading-text" style="margin-top:15px; font-size:15px; font-weight:600;">กำลังประมวลผล...</div>
+        <div id="loading-text" style="margin-top:15px; font-size:14px; font-weight:600; color: #94a3b8;">กำลังประมวลผลระบบแผนที่...</div>
     </div>
 
     <button id="btn-open-upload" onclick="openUploadModal()">☁️ นำเข้าข้อมูลแผนที่</button>
@@ -149,16 +332,16 @@
     <div id="map"></div>
 
     <div id="web-stats-box">
-        <div style="display: flex; align-items: center; gap: 8px;">
-            <span style="color: #fff; font-family: 'Kanit', sans-serif;">👁️ เข้าชม:</span>
-            <img src="https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https%3A%2F%2Fktmp-lab.github.io%2Fgis-pro-app%2F&count_bg=%2316A34A&title_bg=%231E293B&title=Hits&edge_flat=true" alt="Visitor Count" style="height: 18px;" onerror="this.style.display='none'"/>
+        <div style="display: flex; align-items: center; gap: 6px;">
+            <span style="color: #94a3b8; font-family: 'Kanit', sans-serif;">👁️ เข้าชม:</span>
+            <img src="https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https%3A%2F%2Fktmp-lab.github.io%2Fgis-pro-app%2F&count_bg=%2316A34A&title_bg=%231E293B&title=Hits&edge_flat=true" alt="Visitor Count" style="height: 16px;" onerror="this.style.display='none'"/>
         </div>
         
-        <div style="width: 1px; height: 14px; background: rgba(0, 255, 204, 0.4);"></div>
+        <div style="width: 1px; height: 12px; background: rgba(0, 255, 204, 0.3);"></div>
         
-        <div style="display: flex; align-items: center; gap: 8px;">
-            <span style="color: #fff; font-family: 'Kanit', sans-serif;">🚁 โดรนอัปโหลด:</span>
-            <span id="total-upload-badge" style="font-weight: bold; font-size: 15px;">0</span>
+        <div style="display: flex; align-items: center; gap: 6px;">
+            <span style="color: #94a3b8; font-family: 'Kanit', sans-serif;">🚁 โดรนอัปโหลด:</span>
+            <span id="total-upload-badge" style="font-weight: bold; font-size: 14px; color: #38bdf8;">0</span>
         </div>
     </div>
 
@@ -189,8 +372,8 @@
 
     <div id="left-sidebar" class="glass-panel">
         <div class="sidebar-header">
-            <span style="font-weight:600;">📋 รายการข้อมูลแผนงาน</span>
-            <button onclick="toggleSidebar()" style="background:none; border:none; color:white; cursor:pointer; font-size:14px;">❌ ปิดแผงข้อมูล</button>
+            <span style="font-weight:600; color: #38bdf8;">📋 รายการข้อมูลแผนงาน</span>
+            <button onclick="toggleSidebar()" style="background:none; border:none; color:#64748b; cursor:pointer; font-size:13px; font-family:'Kanit';">❌ ปิด</button>
         </div>
         <div class="tab-header">
             <button class="tab-btn active" onclick="openTab(event, 'tab-stats')">📊 ตารางงาน</button>
@@ -213,7 +396,7 @@
                     <tbody id="tbody-stats"></tbody>
                 </table>
             </div>
-            <div id="table-summary" style="padding:12px; background:#1e293b; color:white; font-size:13px; font-weight:600; display:flex; justify-content:space-between;">
+            <div id="table-summary">
                 <span>📈 รวม: - งาน</span>
                 <span>🛣️ ระยะ: - กม.</span>
             </div>
@@ -226,18 +409,18 @@
     <div id="upload-modal" class="modal-overlay">
         <div class="modal-content">
             <button class="close-modal-btn" onclick="closeUploadModal()">✖</button>
-            <h3 style="margin-top:0; margin-bottom:15px; color:#1e293b; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px;">📥 นำเข้าข้อมูลแผนที่เข้าระบบ</h3>
+            <h3 style="margin-top:0; margin-bottom:15px; color:#38bdf8; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; font-weight: 400;">📥 นำเข้าข้อมูลแผนที่เข้าระบบ</h3>
             
             <div class="flex-row">
                 <div class="flex-col">
                     <label>หน่วยงาน (สร.รว.)</label>
-                    <select class="form-input" id="i-agency" onchange="loadModalSuggestions(this.value)">
+                    <select class="form-input" id="i-agency" onchange="loadModalSuggestions(this.value)" style="color:#fff;">
                         <option value="">-- เลือก สร.รว. --</option>
                     </select>
                 </div>
                 <div class="flex-col">
                     <label>ปีงบประมาณ</label>
-                    <select class="form-input" id="i-year">
+                    <select class="form-input" id="i-year" style="color:#fff;">
                         <option value="2569" selected>2569</option>
                         <option value="2568">2568</option>
                         <option value="2567">2567</option>
@@ -247,7 +430,7 @@
 
             <div class="form-group">
                 <label>จังหวัด</label>
-                <input type="text" class="form-input" id="i-prov" list="h-provs" placeholder="เช่น เชียงใหม่ (พิมพ์หรือเลือก)" oninput="updateModalFilters()">
+                <input type="text" class="form-input" id="i-prov" list="h-provs" placeholder="เช่น เชียงใหม่ (พิมพ์หรือเลือก)">
             </div>
             
             <div class="flex-row">
@@ -262,8 +445,12 @@
                 <div class="flex-col"><label>กม.ปลาย</label><input type="number" class="form-input" id="i-km-end" placeholder="0.000" step="0.001"></div>
             </div>
             
-            <div class="form-group"><label>แนบไฟล์แผนที่ (KMZ / ภาพโดรน)</label><input type="file" id="i-file" class="form-input" style="padding:5px;"><button class="btn-save" id="btn-upload" style="background:#3b82f6;" onclick="uploadFile()">☁️ อัปโหลดขึ้น R2 Cloud</button></div>
-            <input type="text" id="i-link" class="form-input" readonly placeholder="ลิงก์ไฟล์จากระบบคลาวด์จะปรากฏที่นี่" style="background:#f1f5f9; margin-bottom:15px;">
+            <div class="form-group">
+                <label>แนบไฟล์แผนที่ (KMZ / ภาพโดรน)</label>
+                <input type="file" id="i-file" class="form-input" style="padding:5px; background: rgba(30,41,59,0.5);">
+                <button class="btn-save" id="btn-upload" style="background:#2563eb; box-shadow: 0 4px 12px rgba(37,99,235,0.3);" onclick="uploadFile()">☁️ อัปโหลดขึ้น R2 Cloud</button>
+            </div>
+            <input type="text" id="i-link" class="form-input" readonly placeholder="ลิงก์ไฟล์จากระบบคลาวด์จะปรากฏที่นี่" style="background: rgba(15,23,42,0.6); border-color:rgba(255,255,255,0.05); color:#64748b; margin-bottom:15px;">
             <button class="btn-save" id="btn-save-data" onclick="saveData()">💾 บันทึกเข้าระบบ Smart ID</button>
             
             <datalist id="h-provs"></datalist>
@@ -277,7 +464,7 @@
         const API = "https://my-gis-backend.onrender.com";
         const map = L.map('map', { zoomControl: false }).setView([15.5, 100], 6);
         
-        // 🗺️ ระบบสลับแผนที่ฐาน 7 แบบ (Base Maps Control)
+        // 🗺️ ระบบสลับแผนที่ฐาน 7 แบบ
         const googleMaps = L.tileLayer('https://mt1.google.com/vt/lyrs=r&x={x}&y={y}&z={z}');
         const googleRoads = L.tileLayer('https://mt1.google.com/vt/lyrs=h&x={x}&y={y}&z={z}');
         const googleSatellite = L.tileLayer('https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}');
@@ -300,7 +487,6 @@
 
         L.control.layers(baseMaps, null, { position: 'topright' }).addTo(map);
         
-        // เครื่องมือวัดระยะทางดั้งเดิม
         L.control.polylineMeasure({ 
             position: 'topright', 
             unit: 'metres', 
@@ -308,14 +494,14 @@
             showUnitControl: true
         }).addTo(map);
 
-        // 🎚️ สร้างแผงควบคุม Opacity แบบพับได้ (Leaflet Custom Control)
+        // 🎚️ แผงควบคุม Opacity แบบพับได้
         L.Control.Opacity = L.Control.extend({
             onAdd: function(map) {
                 var container = L.DomUtil.create('div', 'leaflet-bar leaflet-control custom-opacity-control');
                 container.innerHTML = `
                     <div class="opacity-icon" title="ปรับความโปร่งใสเวกเตอร์">🎚️</div>
                     <div class="opacity-slider-container">
-                        <label style="font-size: 13px; font-weight: 600; color: #1e293b; margin:0;">โปร่งใส</label>
+                        <label style="font-size: 12px; font-weight: 600; color: #94a3b8; margin:0;">โปร่งใส</label>
                         <input type="range" id="vector-opacity" min="0" max="1" step="0.1" value="1" oninput="updateVectorOpacity(this.value)" style="flex: 1; cursor: pointer; accent-color: #2563eb;">
                     </div>
                 `;
@@ -332,17 +518,11 @@
             document.getElementById('hud-box').innerHTML = `📍 Lat: ${e.latlng.lat.toFixed(5)}, Lon: ${e.latlng.lng.toFixed(5)}<br>🎯 UTM Zone ${z}: X=${utm[0].toFixed(2)}, Y=${utm[1].toFixed(2)}`;
         });
 
-        // 🟢 ฟังก์ชันพับเก็บ/กางออก สำหรับแถบเมนูด้านบน
         function toggleTopBar() {
             const tb = document.getElementById('top-bar');
             const btn = document.getElementById('toggle-topbar-btn');
             tb.classList.toggle('collapsed');
-            
-            if(tb.classList.contains('collapsed')) {
-                btn.innerHTML = '▼';
-            } else {
-                btn.innerHTML = '▲';
-            }
+            btn.innerHTML = tb.classList.contains('collapsed') ? '▼' : '▲';
         }
 
         let memoryCache = {}; 
@@ -480,7 +660,6 @@
         }
 
         function updateMapSuggestions(data) {
-            const ids = [...new Set(data.map(d => d['รหัสโครงการ']))].filter(Boolean);
             document.getElementById('search-box').placeholder = `🔍 ค้นหารหัส Smart ID หรือชื่อโครงการ...`;
         }
 
@@ -521,27 +700,26 @@
 
                 return `
                     <tr>
-                        <td style="color:#2563eb; font-weight:600;">${agencyNum}-${year}-${d['รหัสโครงการ']}-${d['รหัสงาน'] || '000'}</td>
+                        <td style="color:#38bdf8; font-weight:600;">${agencyNum}-${year}-${d['รหัสโครงการ']}-${d['รหัสงาน'] || '000'}</td>
                         <td>
                             <strong>${d['ชื่อโครงการ']}</strong><br>
-                            <span style="color:#b45309; font-size:11.5px; font-weight:500;">🚧 งาน: ${d_jobName}</span><br>
+                            <span style="color:#fbbf24; font-size:11.5px; font-weight:500;">🚧 งาน: ${d_jobName}</span><br>
                             <small style="color:#64748b;">จ.${d['จังหวัด']}</small>
                         </td>
                         <td>${start.toFixed(3)}</td>
                         <td>${end.toFixed(3)}</td>
-                        <td style="background:#f8fafc; font-weight:600; color:#16a34a;">${dist.toFixed(3)}</td>
+                        <td style="background:rgba(255,255,255,0.02); font-weight:600; color:#10b981;">${dist.toFixed(3)}</td>
                     </tr>
                 `;
             }).join('');
 
-            document.getElementById("tbody-stats").innerHTML = html ? html : '<tr><td colspan="5" style="text-align:center; padding:15px;">ไม่พบข้อมูล หรือยังไม่ได้เลือก สร.รว.</td></tr>';
+            document.getElementById("tbody-stats").innerHTML = html ? html : '<tr><td colspan="5" style="text-align:center; padding:15px; color:#475569;">ไม่พบข้อมูล หรือยังไม่ได้เลือก สร.รว.</td></tr>';
             
             document.getElementById("table-summary").innerHTML = `
                 <span>📈 รวม: ${countProj} งานย่อย</span>
                 <span>🛣️ ระยะ: ${sumDist.toFixed(3)} กม.</span>
             `;
 
-            // 🌟 อัปเดตตัวเลขโดรนเข้ากล่องสถิติมุมขวาล่างแบบเรียลไทม์
             const totalBadge = document.getElementById("total-upload-badge");
             if(totalBadge) totalBadge.innerText = countProj;
 
@@ -586,7 +764,7 @@
                 
                 if (namesArr.length > 3) {
                     let firstThree = namesArr.slice(0, 3).map(n => `▪️ ${n}`).join('<br>');
-                    displayStr = `${firstThree}<br><span style="color:#ef4444; font-size:11px; font-weight:600;"><i>...และอีก ${namesArr.length - 3} รายการ</i></span>`;
+                    displayStr = `${firstThree}<br><span style="color:#f43f5e; font-size:11px; font-weight:600;"><i>...และอีก ${namesArr.length - 3} รายการ</i></span>`;
                 } else {
                     displayStr = namesArr.map(n => `▪️ ${n}`).join('<br>');
                 }
@@ -616,17 +794,15 @@
                     <input type="checkbox" id="cb_${f.safeId}" onchange="${mode==='v'?'toggleV':'toggleD'}('${f.safeId}', '${f.url}', this, '${f.prov}')">
                     <div style="flex:1;">
                         <label for="cb_${f.safeId}" style="cursor:pointer; display:block;">
-                            <strong>${f.name}</strong><br><small>${f.prov}</small>
+                            <strong style="color:#fff;">${f.name}</strong><br><small style="color:#64748b;">${f.prov}</small>
                         </label>
                     </div>
                 </div>
-            `).join('') : '<p style="text-align:center; color:#94a3b8; font-size:13px; margin-top:15px;">ไม่มีไฟล์ข้อมูลในเงื่อนไขที่เลือก</p>';
+            `).join('') : '<p style="text-align:center; color:#475569; font-size:13px; margin-top:15px;">ไม่มีไฟล์ข้อมูลในเงื่อนไขที่เลือก</p>';
         }
 
-        // 🌟 อัปเกรดฟังก์ชัน toggleV: ใส่เกราะป้องกัน Error 404 และเคลียร์เส้นตกค้าง
         function toggleV(safeId, url, cb) {
             if(cb.checked) {
-                // ป้องกันการกดติ๊กเบิ้ลรัวๆ
                 if(activeLayers[safeId]) return;
 
                 const l = L.kmzLayer(url); 
@@ -634,12 +810,11 @@
                 l.addTo(map);
                 
                 l.on('load', e => {
-                    // 🛡️ ดักจับเน็ตดีเลย์: เช็คว่าระหว่างกำลังโหลด นายช่างเผลอกดติ๊กออกไปแล้วหรือยัง?
                     if (!cb.checked) {
-                        l.clearLayers(); // สั่งทำลายข้อมูลที่เพิ่งโหลดมาทิ้งทันที
+                        l.clearLayers(); 
                         map.removeLayer(l);
                         delete activeLayers[safeId];
-                        return; // ยกเลิกการวาดลงแผนที่
+                        return; 
                     }
 
                     const bounds = e.layer.getBounds();
@@ -668,7 +843,6 @@
 
             } else { 
                 if(activeLayers[safeId]) { 
-                    // 🧹 ท่าไม้ตายล้างบาง: ต้องสั่งเคลียร์ไส้ใน (clearLayers) ทิ้งก่อนเอาออกจากแผนที่เสมอ!
                     activeLayers[safeId].clearLayers(); 
                     map.removeLayer(activeLayers[safeId]); 
                     delete activeLayers[safeId]; 
@@ -763,12 +937,10 @@
             iAgencySel.appendChild(new Option(`สร.รว.${i}`, `สร.รว.${i}`));
         }
 
-        // ⏰ ระบบปลุกเซิร์ฟเวอร์หลังบ้าน (Ping) ทุก 30 นาที (1,800,000 มิลลิวินาที)
-        // เพื่อเลี้ยงเซิร์ฟเวอร์ฟรีบน Render ไม่ให้ Sleep
+        // ⏰ ปลุกเซิร์ฟเวอร์ทุก 30 นาที
         setInterval(function() {
             fetch(`${API}`).catch(() => {});
         }, 1800000);
-
     </script>
 </body>
 </html>
