@@ -148,15 +148,12 @@
 
     <div id="map"></div>
 
-    <!-- 📊 กล่องโชว์สถิติ (บรรทัดเดียว พื้นดำใส ขวาล่าง) -->
     <div id="web-stats-box">
         <div style="display: flex; align-items: center; gap: 8px;">
             <span style="color: #fff; font-family: 'Kanit', sans-serif;">👁️ เข้าชม:</span>
-            <!-- หากรูปเสีย จะซ่อนตัวเองอัตโนมัติ (onerror) ไม่ให้ไอคอนแตกกวนใจ -->
             <img src="https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https%3A%2F%2Fktmp-lab.github.io%2Fgis-pro-app%2F&count_bg=%2316A34A&title_bg=%231E293B&title=Hits&edge_flat=true" alt="Visitor Count" style="height: 18px;" onerror="this.style.display='none'"/>
         </div>
         
-        <!-- เส้นคั่นบางๆ -->
         <div style="width: 1px; height: 14px; background: rgba(0, 255, 204, 0.4);"></div>
         
         <div style="display: flex; align-items: center; gap: 8px;">
@@ -165,7 +162,6 @@
         </div>
     </div>
 
-    <!-- พิกัด UTM -->
     <div id="hud-box">UTM Zone --</div>
 
     <div id="top-bar" class="glass-panel">
@@ -627,17 +623,56 @@
             `).join('') : '<p style="text-align:center; color:#94a3b8; font-size:13px; margin-top:15px;">ไม่มีไฟล์ข้อมูลในเงื่อนไขที่เลือก</p>';
         }
 
+        // 🌟 อัปเกรดฟังก์ชัน toggleV: ใส่เกราะป้องกัน Error 404 และเคลียร์เส้นตกค้าง
         function toggleV(safeId, url, cb) {
             if(cb.checked) {
-                const l = L.kmzLayer(url).addTo(map); 
+                // ป้องกันการกดติ๊กเบิ้ลรัวๆ
+                if(activeLayers[safeId]) return;
+
+                const l = L.kmzLayer(url); 
                 activeLayers[safeId] = l; 
+                l.addTo(map);
+                
                 l.on('load', e => {
-                    map.fitBounds(e.layer.getBounds());
+                    // 🛡️ ดักจับเน็ตดีเลย์: เช็คว่าระหว่างกำลังโหลด นายช่างเผลอกดติ๊กออกไปแล้วหรือยัง?
+                    if (!cb.checked) {
+                        l.clearLayers(); // สั่งทำลายข้อมูลที่เพิ่งโหลดมาทิ้งทันที
+                        map.removeLayer(l);
+                        delete activeLayers[safeId];
+                        return; // ยกเลิกการวาดลงแผนที่
+                    }
+
+                    const bounds = e.layer.getBounds();
+                    if (bounds && bounds.isValid()) {
+                        map.fitBounds(bounds);
+                    } else {
+                        alert("⚠️ ไม่พบข้อมูลพิกัดในไฟล์เวกเตอร์นี้ครับ (ไฟล์อาจจะเสียหรือเขียนมาผิดมาตรฐาน)");
+                        cb.checked = false; 
+                        l.clearLayers();
+                        map.removeLayer(l); 
+                        delete activeLayers[safeId];
+                        return;
+                    }
+
                     let currentOpacity = document.getElementById('vector-opacity').value;
                     if(currentOpacity < 1) updateVectorOpacity(currentOpacity);
                 });
+
+                l.on('error', e => {
+                    alert("❌ โหลดไฟล์ไม่สำเร็จ! (Error 404) ลิงก์อาจจะเสีย หรือไฟล์ถูกลบไปจากระบบคลาวด์แล้วครับ");
+                    cb.checked = false; 
+                    l.clearLayers();
+                    map.removeLayer(l); 
+                    delete activeLayers[safeId];
+                });
+
             } else { 
-                if(activeLayers[safeId]) { map.removeLayer(activeLayers[safeId]); delete activeLayers[safeId]; } 
+                if(activeLayers[safeId]) { 
+                    // 🧹 ท่าไม้ตายล้างบาง: ต้องสั่งเคลียร์ไส้ใน (clearLayers) ทิ้งก่อนเอาออกจากแผนที่เสมอ!
+                    activeLayers[safeId].clearLayers(); 
+                    map.removeLayer(activeLayers[safeId]); 
+                    delete activeLayers[safeId]; 
+                } 
             }
         }
 
@@ -727,6 +762,13 @@
             aSel.appendChild(new Option(`สร.รว.${i}`, `สร.รว.${i}`));
             iAgencySel.appendChild(new Option(`สร.รว.${i}`, `สร.รว.${i}`));
         }
+
+        // ⏰ ระบบปลุกเซิร์ฟเวอร์หลังบ้าน (Ping) ทุก 30 นาที (1,800,000 มิลลิวินาที)
+        // เพื่อเลี้ยงเซิร์ฟเวอร์ฟรีบน Render ไม่ให้ Sleep
+        setInterval(function() {
+            fetch(`${API}`).catch(() => {});
+        }, 1800000);
+
     </script>
 </body>
 </html>
