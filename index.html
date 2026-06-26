@@ -181,23 +181,35 @@
         .tab-content.active { display: block; }
         #tab-stats.active { display: flex !important; flex-direction: column; padding: 0 15px 15px 15px; } 
         
-        .excel-table { width: 100%; border-collapse: collapse; font-size: 11.5px; }
-        .excel-table th { background-color: #0f172a; color: #94a3b8; padding: 10px 6px; text-align: center; white-space: nowrap; position: sticky; top: 0; border-bottom: 1px solid rgba(255,255,255,0.08); }
-        .excel-table td { padding: 10px 6px; border-bottom: 1px solid rgba(255,255,255,0.04); text-align: center; color: #cbd5e1; }
-        .excel-table tr:hover td { background: rgba(255,255,255,0.03); }
-        .excel-table td:nth-child(2) { text-align: left; font-weight: 400; color: #f1f5f9; } 
-        
+        /* 📉 ปรับขนาดตัวหนังสือในตารางงาน */
+        .excel-table { width: 100%; border-collapse: collapse; font-size: 12px; } /* บังคับที่ 12px */
+        .excel-table th { padding: 8px 4px; font-size: 12px; }
+        .excel-table td { padding: 8px 4px; font-size: 12px; }
+
+        /* 📁 ปรับขนาดตัวหนังสือในแผงไฟล์ (เวกเตอร์/โดรน) */
         .layer-item { 
             display: flex; 
             align-items: flex-start; 
-            gap: 12px; 
-            padding: 12px; 
+            gap: 10px; 
+            padding: 10px; 
             background: rgba(30, 41, 59, 0.4); 
             border-radius: 8px; 
-            margin-bottom: 8px; 
+            margin-bottom: 6px; 
             border: 1px solid rgba(255,255,255,0.04); 
-            transition: 0.2s; 
+            font-size: 12px; /* บังคับที่ 12px ให้เท่าตาราง */
         }
+        
+        /* สไตล์ชื่อไฟล์ในแผงไฟล์ */
+        .layer-item strong { 
+            font-size: 12px; /* ขนาดเท่าตาราง */
+            display: block; 
+            line-height: 1.3;
+        }
+        .layer-item small { 
+            font-size: 10px; /* ส่วนจังหวัดให้เล็กกว่านิดนึงเพื่อความสวยงาม */
+            color: #64748b;
+        }
+        
         .layer-item:hover { background: rgba(30, 41, 59, 0.6); border-color: rgba(56, 189, 248, 0.2); }
         .layer-item input[type="checkbox"] { width: 15px; height: 17px; accent-color: #2563eb; cursor: pointer; }
 
@@ -319,6 +331,7 @@
     <div id="loading-overlay">
         <div class="loader-container">
             <div class="logo-center">
+                <!-- 📸 เปลี่ยนเป็นรูปภาพจากลิงก์ที่ให้มา -->
                 <img src="https://pub-4961c816153f421dbb5a81bb6ac5d11c.r2.dev/images.jpg" alt="Logo">
             </div>
             <div class="spinning-border"></div>
@@ -330,20 +343,24 @@
 
     <div id="map"></div>
 
+    <!-- 📊 กล่องโชว์สถิติแนวราบสไตล์ Cyber Panel -->
     <div id="web-stats-box">
         <div style="display: flex; align-items: center; gap: 6px;">
             <span style="color: #94a3b8; font-family: 'Kanit', sans-serif;">👁️ เข้าชม:</span>
+            <!-- ✨ ระบบนับสถิติใหม่ เสถียรกว่าเดิม -->
             <img src="https://profile-counter.glitch.me/ktmp-lab-gis-app/count.svg" alt="Visitor Count" style="height: 18px;" />
         </div>
         
         <div style="width: 1px; height: 12px; background: rgba(0, 255, 204, 0.3);"></div>
         
         <div style="display: flex; align-items: center; gap: 6px;">
+            <!-- ✨ แก้ไขคำและให้นับจำนวนรวมไฟล์ (ไม่ใช่จำนวนงาน) -->
             <span style="color: #94a3b8; font-family: 'Kanit', sans-serif;">📂 รวมไฟล์ในระบบ:</span>
             <span id="total-upload-badge" style="font-weight: bold; font-size: 14px; color: #38bdf8;">0</span>
         </div>
     </div>
 
+    <!-- 📍 พิกัด HUD Box -->
     <div id="hud-box">UTM Zone --</div>
 
     <div id="top-bar" class="glass-panel">
@@ -423,9 +440,6 @@
                         <option value="2569" selected>2569</option>
                         <option value="2568">2568</option>
                         <option value="2567">2567</option>
-                        <option value="2566">2566</option>
-                        <option value="2565">2565</option>
-                        <option value="2564">2564</option>
                     </select>
                 </div>
             </div>
@@ -440,7 +454,7 @@
                 <div class="flex-col"><label>รหัสงาน</label><input type="text" class="form-input" id="i-job" placeholder="010" list="h-jobs" oninput="updateModalFilters()"></div>
             </div>
             
-            <div class="form-group"><label>ชื่องาน</label><input type="text" class="form-input" id="i-job-name" list="h-job-names" placeholder="ระบบจะช่วยเติมให้หากไม่มีข้อมูล"></div>
+            <div class="form-group"><label>ชื่องาน</label><input type="text" class="form-input" id="i-job-name" list="h-job-names" placeholder="ระบบจะช่วยเติมให้หากมีข้อมูล"></div>
             
             <div class="flex-row">
                 <div class="flex-col"><label>กม.ต้น</label><input type="number" class="form-input" id="i-km-start" placeholder="0.000" step="0.001"></div>
@@ -448,7 +462,7 @@
             </div>
             
             <div class="form-group">
-                <label>แนบไฟล์แผนที่ (KMZ / ภาพโดรน / DWG / EXCEL / TIFF / อื่นๆ)</label>
+                <label>แนบไฟล์แผนที่ (KMZ / ภาพโดรน)</label>
                 <input type="file" id="i-file" class="form-input" style="padding:5px; background: rgba(30,41,59,0.5);">
                 <button class="btn-save" id="btn-upload" style="background:#2563eb; box-shadow: 0 4px 12px rgba(37,99,235,0.3);" onclick="uploadFile()">☁️ อัปโหลดขึ้น R2 Cloud</button>
             </div>
@@ -725,6 +739,17 @@
             updateFileCounts(filtered);
         }
 
+        // 🛠️ ฟังก์ชันสร้าง Hash อย่างง่ายสำหรับ URL ยาวๆ
+        let simpleHash = (str) => {
+            let hash = 0;
+            for (let i = 0; i < str.length; i++) {
+                const char = str.charCodeAt(i);
+                hash = (hash << 5) - hash + char;
+                hash &= hash; // แปลงเป็น 32bit integer
+            }
+            return new Uint32Array([hash])[0].toString(36);
+        };
+
         function updateFileCounts(data) {
             let vMap = new Map(), dMap = new Map();
             
@@ -768,7 +793,8 @@
                     displayStr = namesArr.map(n => `▪️ ${n}`).join('<br>');
                 }
 
-                let uniqueSafeId = "L_" + btoa(encodeURIComponent(item.url)).replace(/[^a-zA-Z0-9]/g, '').substring(0, 30);
+                // 🛠️ ใช้ Hash function แทน btoa เพื่อรองรับ URL ยาวๆ
+                let uniqueSafeId = "L_" + simpleHash(item.url);
 
                 return {
                     url: item.url,
@@ -786,7 +812,6 @@
             renderFiles("list-vectors", vArr, 'v');
             renderFiles("list-drones", dArr, 'd');
 
-            // ✨ โค้ดใหม่: รวมจำนวนไฟล์ทั้งหมดอัปเดตลง Badge กล่องสถิติ
             let totalFiles = vArr.length + dArr.length;
             const totalBadge = document.getElementById("total-upload-badge");
             if(totalBadge) totalBadge.innerText = totalFiles;
@@ -795,10 +820,10 @@
         function renderFiles(id, files, mode) {
             document.getElementById(id).innerHTML = files.length ? files.map(f => `
                 <div class="layer-item">
-                    <input type="checkbox" id="cb_${f.safeId}" onchange="${mode==='v'?'toggleV':'toggleD'}('${f.safeId}', '${f.url}', this, '${f.prov}')">
+                    <input type="checkbox" id="cb_${f.safeId}" onchange="${mode==='v'?'toggleV':'toggleD'}('${f.safeId}', '${f.url.replace(/'/g, "\\'")}', this, '${f.prov}')">
                     <div style="flex:1;">
-                        <label for="cb_${f.safeId}" style="cursor:pointer; display:block;">
-                            <strong style="color:#fff;">${f.name}</strong><br><small style="color:#64748b;">${f.prov}</small>
+                        <label for="cb_${f.safeId}" style="cursor:pointer; display:block; line-height: 1.3;">
+                            <strong>${f.name}</strong><small>${f.prov}</small>
                         </label>
                     </div>
                 </div>
@@ -809,11 +834,16 @@
             if(cb.checked) {
                 if(activeLayers[safeId]) return;
 
+                // 🔍 Log URL ที่กำลังจะโหลด
+                console.log(`กำลังโหลด KMZ จาก URL: ${url}`);
+
                 const l = L.kmzLayer(url); 
                 activeLayers[safeId] = l; 
                 l.addTo(map);
                 
                 l.on('load', e => {
+                    // 🔍 Log ความสำเร็จ
+                    console.log(`โหลด KMZ สำเร็จ: ${url}`); 
                     if (!cb.checked) {
                         l.clearLayers(); 
                         map.removeLayer(l);
@@ -826,6 +856,8 @@
                         map.fitBounds(bounds);
                     } else {
                         alert("⚠️ ไม่พบข้อมูลพิกัดในไฟล์เวกเตอร์นี้ครับ (ไฟล์อาจจะเสียหรือเขียนมาผิดมาตรฐาน)");
+                        // 🔍 Log warning
+                        console.warn(`ไฟล์ KMZ โหลดได้ แต่ไม่มี bounds ที่ถูกต้อง: ${url}`); 
                         cb.checked = false; 
                         l.clearLayers();
                         map.removeLayer(l); 
@@ -838,6 +870,8 @@
                 });
 
                 l.on('error', e => {
+                    // 🔍 Log error แบบละเอียดลง Console
+                    console.error(`โหลด KMZ ไม่สำเร็จ: ${url}`, e); 
                     alert("❌ โหลดไฟล์ไม่สำเร็จ! (Error 404) ลิงก์อาจจะเสีย หรือไฟล์ถูกลบไปจากระบบคลาวด์แล้วครับ");
                     cb.checked = false; 
                     l.clearLayers();
@@ -856,6 +890,8 @@
 
         async function toggleD(safeId, url, cb, prov) {
             if(cb.checked) {
+                // 🔍 Log URL ที่กำลังจะโหลด (โดรน)
+                console.log(`กำลังโหลด Tiles จาก URL: ${url}`);
                 activeLayers[safeId] = L.tileLayer(url, { maxNativeZoom: 20, maxZoom: 22, zIndex: 100 }).addTo(map);
                 if(prov) {
                     const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=จังหวัด${prov.replace('จ.','')}`);
