@@ -20,7 +20,7 @@
         body, html { margin: 0; padding: 0; width: 100vw; height: 100vh; overflow: hidden; font-family: 'Kanit', sans-serif; background-color: #0b0f19; }
         #map { width: 100%; height: 100%; z-index: 1; }
         
-        /* 🌀 1. ระบบหน้าจอโหลดดิ้ง (Loading Overlay + รูปในวงกลม) */
+        /* 🌀 ระบบหน้าจอโหลดดิ้ง */
         #loading-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(11, 15, 25, 0.85); backdrop-filter: blur(8px); z-index: 99999; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.3s; opacity: 0; pointer-events: none; }
         #loading-overlay.show { opacity: 1; pointer-events: all; }
         .spinner-wrapper { position: relative; width: 100px; height: 100px; display: flex; align-items: center; justify-content: center; }
@@ -42,17 +42,17 @@
         select option { background: #0f172a; color: #f8fafc; }
         #search-box { flex: 1.6; background: rgba(15, 23, 42, 0.9); border: 1.5px solid #2563eb; color: #38bdf8; }
 
-        /* 🔘 ปุ่มคุมแผงซ้าย-ขวา */
+        /* 🔘 ปุ่มคุมแผงซ้าย-ขวา (เอาคำว่า ซ้าย-ขวา ออกแล้ว) */
         .hud-btn { position: absolute; z-index: 9997; padding: 10px 16px; background: #0f172a; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; font-family: 'Kanit'; cursor: pointer; font-weight: 600; color: #fff; box-shadow: 0 4px 12px rgba(0,0,0,0.4); transition: 0.3s; }
         .hud-btn:hover { background: #1e293b; }
         #btn-left { top: 80px; left: 15px; color: #38bdf8; }
         #btn-right { top: 130px; left: 15px; color: #10b981; }
 
-        /* 🗂️ 2. แผงด้านซ้าย (ค้นหา & เลือกไฟล์) */
+        /* 🗂️ แผงด้านซ้าย */
         #left-sidebar { position: absolute; top: 80px; left: 15px; width: 440px; bottom: 25px; display: flex; flex-direction: column; overflow: hidden; transition: transform 0.4s; }
         #left-sidebar.hidden { transform: translateX(-480px); }
         
-        /* 🛒 3. แผงด้านขวา (LAYER) */
+        /* 🛒 แผงด้านขวา */
         #right-sidebar { position: absolute; top: 80px; right: 15px; width: 380px; bottom: 25px; display: flex; flex-direction: column; overflow: hidden; transition: transform 0.4s; border: 1px solid rgba(16, 185, 129, 0.3); }
         #right-sidebar.hidden { transform: translateX(420px); }
 
@@ -75,7 +75,7 @@
         .btn-add-cart { background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 6px; cursor: pointer; font-family: 'Kanit'; font-weight: 600; transition: 0.2s; white-space: nowrap; }
         .btn-add-cart:hover { background: #10b981; color: #fff; transform: scale(1.02); }
         
-        /* 🎚️ 4. สไลเดอร์ส่วนตัวรายโปรเจกต์ */
+        /* 🎚️ สไลเดอร์ส่วนตัวรายโปรเจกต์ */
         .item-slider-box { margin-top: 8px; background: rgba(0,0,0,0.25); padding: 8px 12px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.05); }
         .item-slider-box span { display: flex; justify-content: space-between; margin-bottom: 4px; }
         input[type=range] { width: 100%; cursor: pointer; accent-color: #38bdf8; height: 4px; background: #334155; border-radius: 4px; outline: none; }
@@ -95,8 +95,8 @@
         <div class="loading-text" id="loading-msg">กำลังประมวลผลแผนที่...</div>
     </div>
 
-    <button id="btn-left" class="hud-btn" onclick="document.getElementById('left-sidebar').classList.toggle('hidden')">☰ คลังข้อมูล (ซ้าย)</button>
-    <button id="btn-right" class="hud-btn" onclick="document.getElementById('right-sidebar').classList.toggle('hidden')">🛒 แผง LAYER (ขวา)</button>
+    <button id="btn-left" class="hud-btn" onclick="document.getElementById('left-sidebar').classList.toggle('hidden')">☰ คลังข้อมูล</button>
+    <button id="btn-right" class="hud-btn" onclick="document.getElementById('right-sidebar').classList.toggle('hidden')">🛒 แผง LAYER</button>
 
     <div id="map"></div>
     <div id="hud-box">UTM Zone --</div>
@@ -161,11 +161,11 @@
                 หน้าต่างยังว่างเปล่า<br>คลิก "➕ ADD LAYER" จากแผงซ้ายได้เลยครับ
             </p>
         </div>
-    </div><script>
+    </div> <script>
         const API = "https://my-gis-backend.onrender.com";
         const map = L.map('map', { zoomControl: false }).setView([15.5, 100], 6);
         
-        // --- 🗺️ ตั้งค่าแผนที่ฐาน (Base Maps) ---
+        // --- 🗺️ ตั้งค่าแผนที่ฐาน ---
         const googleMaps = L.tileLayer('https://mt1.google.com/vt/lyrs=r&x={x}&y={y}&z={z}');
         const googleSatellite = L.tileLayer('https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}');
         const googleHybrid = L.tileLayer('https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}');
@@ -180,39 +180,32 @@
         }, null, { position: 'topright' }).addTo(map);
         L.control.polylineMeasure({ position: 'topright', unit: 'metres' }).addTo(map);
 
-        // --- 🌀 ฟังก์ชันหน้าจอ Loading ---
+        // --- 🌀 Loading ---
         const loadingBox = document.getElementById('loading-overlay');
         const loadingMsg = document.getElementById('loading-msg');
-        function showLoad(msg) { 
-            loadingMsg.innerText = msg || "กำลังประมวลผล..."; 
-            loadingBox.classList.add('show'); 
-        }
+        function showLoad(msg) { loadingMsg.innerText = msg || "กำลังประมวลผล..."; loadingBox.classList.add('show'); }
         function hideLoad() { loadingBox.classList.remove('show'); }
 
-        // --- 📍 แสดงพิกัด UTM ---
+        // --- 📍 แสดงพิกัด ---
         map.on('mousemove', e => {
             const z = Math.floor((e.latlng.lng + 180) / 6) + 1;
             const utm = proj4('+proj=longlat', `+proj=utm +zone=${z} +units=m`, [e.latlng.lng, e.latlng.lat]);
             document.getElementById('hud-box').innerHTML = `📍 Lat: ${e.latlng.lat.toFixed(5)}, Lon: ${e.latlng.lng.toFixed(5)}<br>🎯 UTM Zone ${z}: X=${utm[0].toFixed(2)}, Y=${utm[1].toFixed(2)}`;
         });
 
-        // --- ⚙️ ฟังก์ชัน UI แผงซ้าย (คลังข้อมูล) ---
         function openTab(e, id) {
             document.querySelectorAll('.tab-content, .tab-btn').forEach(el => el.classList.remove('active'));
             document.getElementById(id).classList.add('active'); 
             if(e) e.currentTarget.classList.add('active');
         }
 
-        // --- 💾 ฐานข้อมูล ---
         let memoryCache = {}; let allData = []; 
         const activeLayers = {}; const cartItems = new Map(); 
         const simpleHash = str => new Uint32Array([str.split('').reduce((h, c) => Math.imul(31, h) + c.charCodeAt(0) | 0, 0)])[0].toString(36);
 
-        // 🔄 โหลดข้อมูล สร.รว.
         async function loadDataByAgency(agency) {
             if(!agency) return filterAll();
             showLoad(`กำลังซิงค์ข้อมูล ${agency}...`); 
-            
             if (!memoryCache[agency]) {
                 try {
                     const res = await fetch(`${API}/api/projects/by-agency?agency=${agency}&_t=${Date.now()}`);
@@ -221,7 +214,6 @@
             }
             allData = memoryCache[agency] || [];
             updateProvinceDropdown(); filterAll();
-            
             setTimeout(hideLoad, 600); 
         }
 
@@ -236,21 +228,23 @@
         }
 
         function filterAll() {
-            const y = (document.getElementById("f-year").value || '').slice(-2);
+            let y_val = document.getElementById("f-year").value;
+            let a_val = document.getElementById("f-agency").value;
+            let y = y_val ? y_val.slice(-2) : 'XX';
+            let aNum = a_val ? a_val.replace('สร.รว.', '') : 'XX';
+            
             const pr = document.getElementById("f-prov").value;
             const pj = document.getElementById("f-proj").value;
             const k = document.getElementById("search-box").value.toLowerCase();
-            const aNum = (document.getElementById("f-agency").value || '').replace('สร.รว.', '');
 
             const filtered = allData.filter(d => {
                 const sid = `${aNum}-${y}-${d['รหัสโครงการ']}`;
                 return (!pr || d['จังหวัด']===pr) && (!pj || d['ชื่อโครงการ']===pj) && (!k || sid.includes(k) || (d['ชื่อโครงการ']||'').toLowerCase().includes(k) || (d['ชื่องาน']||'').toLowerCase().includes(k));
             });
 
-            // 🎯 แก้ไขส่วนแสดงผลตารางให้แสดง ID แบบเต็ม และดึง กม.ต้น/กม.ปลาย กลับมา
             document.getElementById("tbody-stats").innerHTML = filtered.map(d => {
                 let s = parseFloat(d['กม.ต้น'])||0, e = parseFloat(d['กม.ปลาย'])||0; 
-                let fullId = `สร.รว.${aNum}-${y}-${d['รหัสโครงการ']}-${d['รหัสงาน'] || '000'}`; // รวมรหัส
+                let fullId = `สร.รว.${aNum}-${y}-${d['รหัสโครงการ']}-${d['รหัสงาน'] || '000'}`;
                 
                 return `<tr>
                     <td>
@@ -269,17 +263,19 @@
 
         function updateFileCounts(data) {
             let vMap = new Map(), dMap = new Map();
+            let y_val = document.getElementById("f-year").value;
+            let a_val = document.getElementById("f-agency").value;
+            let y = y_val ? y_val.slice(-2) : 'XX';
+            let aNum = a_val ? a_val.replace('สร.รว.', '') : 'XX';
+
             data.forEach(p => {
                 (p.files || []).forEach(f => {
                     let url = f['ลิงก์จาก R2'], type = f['ประเภทไฟล์'], prov = f['จังหวัด']||p['จังหวัด']||'';
                     if(!url || url==="-") return;
                     
-                    // ดึง สร.รว. จากตารางหลัก
-                    let y = (document.getElementById("f-year").value || '').slice(-2);
-                    let aNum = (document.getElementById("f-agency").value || '').replace('สร.รว.', '');
                     let fullId = `สร.รว.${aNum}-${y}-${p['รหัสโครงการ']}-${f['รหัสงาน'] || '000'}`;
-                    
-                    let n = `<span style="color:#38bdf8; font-size:10px;">${fullId}</span><br>${f['ชื่องาน']||'ไม่ระบุ'}`;
+                    // 💡 แก้บัค: ใช้ตัวคั่น ||| แทนการใส่แท็ก HTML ป้องกันโค้ดพัง
+                    let n = `${fullId}|||${f['ชื่องาน']||'ไม่ระบุ'}`; 
                     
                     let target = type==='KMZ'||type==='KML' ? vMap : (type==='Drone' ? dMap : null);
                     if(target) { if(!target.has(url)) target.set(url, {url, names:new Set([n]), prov}); else target.get(url).names.add(n); }
@@ -292,19 +288,26 @@
             document.getElementById("v-count").innerText = `🗂️ KMZ (${vArr.length})`;
             document.getElementById("d-count").innerText = `🚁 โดรน (${dArr.length})`;
             
-            // 🎯 เลื่อนปุ่ม ➕ ADD LAYER มาไว้ข้างหน้า และจัดให้อยู่บรรทัดเดียวกัน
-            const renderFn = (id, files, mode) => document.getElementById(id).innerHTML = files.length ? files.map(f => `
+            const renderFn = (id, files, mode) => document.getElementById(id).innerHTML = files.length ? files.map(f => {
+                // แปลงตัวคั่นกลับเป็นโค้ดตกแต่ง (ปลอดภัย 100%)
+                let htmlName = f.name.split('<br>').map(item => {
+                    let p = item.split('|||');
+                    return `<span style="color:#38bdf8; font-size:10px;">${p[0]}</span><br>${p[1]||''}`;
+                }).join('<hr style="border-color:rgba(255,255,255,0.1); margin:4px 0;">');
+
+                return `
                 <div class="layer-item" style="display: flex; align-items: center; gap: 8px; padding: 10px 12px;">
                     <button class="btn-add-cart" onclick="addToCart('${f.safeId}', '${f.url.replace(/'/g, "\\'")}', '${f.name.replace(/'/g, "\\'")}', '${f.prov}', '${mode}')" style="padding: 5px 8px; font-size: 10px; flex-shrink: 0;">➕ ADD LAYER</button>
                     <div style="flex:1; line-height: 1.2; overflow: hidden;">
-                        <strong style="display:block; font-size:11px; color:#f8fafc; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${f.name}</strong>
+                        <strong style="display:block; font-size:11px; color:#f8fafc; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${htmlName}</strong>
                     </div>
-                </div>`).join('') : '<p style="text-align:center; color:#475569; margin-top:15px; font-size:12px;">ไม่มีไฟล์</p>';
+                </div>`;
+            }).join('') : '<p style="text-align:center; color:#475569; margin-top:15px; font-size:12px;">ไม่มีไฟล์</p>';
             
             renderFn("list-vectors", vArr, 'v'); renderFn("list-drones", dArr, 'd');
         }
 
-        // --- 🛒 3. ระบบแผง LAYER (ตะกร้าเปรียบเทียบ) ---
+        // --- 🛒 ระบบแผง LAYER ---
         function addToCart(safeId, url, name, prov, type) {
             if(cartItems.has(safeId)) {
                 document.getElementById('right-sidebar').classList.remove('hidden'); return;
@@ -313,7 +316,6 @@
             
             cartItems.set(safeId, { url, name, prov, type, checked: true, opacity: 1 });
             renderCartUI();
-            
             document.getElementById('right-sidebar').classList.remove('hidden'); 
             toggleLayer(safeId, url, true, type, prov);
         }
@@ -323,12 +325,17 @@
             let html = "";
             cartItems.forEach((f, safeId) => {
                 let icon = f.type === 'v' ? '🗂️' : '🚁';
+                let cartHtmlName = f.name.split('<br>').map(item => {
+                    let p = item.split('|||');
+                    return `<span style="color:#38bdf8; font-size:10px;">${p[0]}</span><br>${icon} ${p[1]||''}`;
+                }).join('<br>');
+
                 html += `
                     <div class="layer-item" style="border-left: 3px solid #10b981; padding: 10px; margin-bottom: 10px;">
                         <div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
                             <input type="checkbox" ${f.checked ? 'checked' : ''} onchange="toggleCartSwitch('${safeId}', this.checked)" style="width:14px; height:14px; accent-color:#10b981; cursor:pointer; flex-shrink: 0;">
                             <div style="flex:1; line-height: 1.2; overflow: hidden;">
-                                <strong style="color:#f8fafc; font-size:11px; display:block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${icon} ${f.name}</strong>
+                                <strong style="color:#f8fafc; font-size:11px; display:block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${cartHtmlName}</strong>
                             </div>
                             <button onclick="removeFromCart('${safeId}')" style="background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(248, 113, 113, 0.3); padding: 3px 6px; border-radius: 4px; cursor: pointer; font-size: 10px; flex-shrink: 0;">❌ ลบ</button>
                         </div>
@@ -363,8 +370,7 @@
                             if(sub.setStyle) sub.setStyle({ opacity: val, fillOpacity: val * 0.4 });
                             if(sub.setOpacity) sub.setOpacity(val);
                         });
-                    } 
-                    else if (f.type === 'd' && layer.setOpacity) {
+                    } else if (f.type === 'd' && layer.setOpacity) {
                         layer.setOpacity(val);
                     }
                 }
@@ -380,7 +386,6 @@
             }
         }
 
-        // --- 🗺️ ระบบวาดแผนที่และโชว์วงกลมโหลดดิ้ง ---
         async function toggleLayer(safeId, url, turnOn, type, prov) {
             if (turnOn && !activeLayers[safeId]) {
                 if (type === 'v') {
@@ -415,7 +420,6 @@
             }
         }
 
-        // --- 🚀 เริ่มต้นทำงาน ---
         const aSel = document.getElementById("f-agency"); 
         for(let i=1; i<=17; i++) aSel.appendChild(new Option(`สร.รว.${i}`, `สร.รว.${i}`));
     </script>
