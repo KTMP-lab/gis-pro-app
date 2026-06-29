@@ -34,32 +34,30 @@
         .glass-panel { background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; box-shadow: 0 10px 35px rgba(0,0,0,0.6); color: #f8fafc; z-index: 9997; }
         
         /* 📍 แถบค้นหาบนสุด */
-        #top-bar { position: absolute; top: 15px; left: 50%; transform: translateX(-50%); width: 70%; display: flex; gap: 8px; padding: 10px 16px; align-items: center; justify-content: center; }
-        .filter-select { flex: 1; padding: 10px 12px; background: rgba(30, 41, 59, 0.7); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; font-family: 'Kanit'; font-size: 13px; color: #f8fafc; outline: none; transition: 0.3s; }
+        #top-bar { position: absolute; top: 15px; left: 50%; transform: translateX(-50%); width: 70%; display: flex; gap: 8px; padding: 10px 16px; align-items: center; justify-content: center; z-index: 9998; }
+        .filter-select { flex: 1; padding: 10px 12px; background: rgba(30, 41, 59, 0.8); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; font-family: 'Kanit'; font-size: 13px; color: #f8fafc; outline: none; transition: 0.3s; }
         .filter-select:focus { border-color: #38bdf8; }
         select option { background: #0f172a; color: #f8fafc; }
-        #search-box { flex: 1.6; background: rgba(15, 23, 42, 0.9); border: 1.5px solid #2563eb; color: #38bdf8; }
+        #search-box { flex: 1.6; background: rgba(15, 23, 42, 0.95); border: 1.5px solid #2563eb; color: #38bdf8; }
 
-        /* 🔘 กลุ่มปุ่มควบคุม (ซ้าย-ขวา) จัดตำแหน่งหลบเครื่องมือแผนที่ */
+        /* 🔘 กลุ่มปุ่มควบคุม */
         .hud-btn { position: absolute; z-index: 9996; padding: 8px 14px; background: #0f172a; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; font-family: 'Kanit'; cursor: pointer; font-weight: 600; color: #fff; box-shadow: 0 4px 12px rgba(0,0,0,0.4); transition: 0.2s; font-size: 13px; }
         .hud-btn:hover { background: #1e293b; transform: translateY(-1px); }
         
         #btn-left { top: 80px; left: 15px; color: #38bdf8; }
-        
-        /* ฝั่งขวา กดต่ำลงมาเพื่อหลบ Leaflet Layer Control และปุ่มไม้บรรทัด */
-        #btn-upload { top: 110px; right: 15px; color: #fbbf24; border-color: rgba(251, 191, 36, 0.4); background: rgba(251, 191, 36, 0.1); }
-        #btn-right { top: 155px; right: 15px; color: #10b981; }
+        #btn-upload { top: 80px; left: 140px; color: #fbbf24; border-color: rgba(251, 191, 36, 0.4); background: rgba(251, 191, 36, 0.1); }
+        #btn-right { top: 80px; right: 15px; color: #10b981; }
 
-        /* 🗂️ แผงทำงาน ซ้าย-ขวา กว้าง 420px เท่ากันเป๊ะ */
-        #left-sidebar { position: absolute; top: 130px; left: 15px; width: 420px; bottom: 25px; display: flex; flex-direction: column; overflow: hidden; transition: transform 0.4s; }
-        #left-sidebar.hidden { transform: translateX(-450px); }
+        /* 🗂️ แผงทำงาน ซ้าย-ขวา (กว้าง 420px เท่ากัน) */
+        #left-sidebar { position: absolute; top: 130px; left: 15px; width: 420px; bottom: 25px; display: flex; flex-direction: column; overflow: hidden; transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+        #left-sidebar.hidden { transform: translateX(-480px); }
         
-        #right-sidebar { position: absolute; top: 205px; right: 15px; width: 420px; bottom: 25px; display: flex; flex-direction: column; overflow: hidden; transition: transform 0.4s; border: 1px solid rgba(16, 185, 129, 0.3); }
-        #right-sidebar.hidden { transform: translateX(450px); }
+        #right-sidebar { position: absolute; top: 130px; right: 15px; width: 420px; bottom: 25px; display: flex; flex-direction: column; overflow: hidden; transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); border: 1px solid rgba(16, 185, 129, 0.3); }
+        #right-sidebar.hidden { transform: translateX(480px); }
 
         .sidebar-header { padding: 12px 16px; background: rgba(15,23,42,0.9); color: #fff; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); }
         
-        /* แท็บคลังข้อมูลครบถ้วน */
+        /* แท็บคลังข้อมูล */
         .tab-header { display: flex; background-color: rgba(15, 23, 42, 0.6); padding: 4px; margin: 12px; border-radius: 8px; gap: 4px; }
         .tab-btn { flex: 1; padding: 6px; font-family: 'Kanit'; font-weight: 600; font-size: 11.5px; cursor: pointer; border: none; border-radius: 6px; color: #94a3b8; background: none; transition: 0.2s; }
         .tab-btn.active { color: #fff; background: #2563eb; }
@@ -70,20 +68,22 @@
         .excel-table { width: 100%; border-collapse: collapse; font-size: 11px; }
         .excel-table th { padding: 8px 4px; background-color: #0f172a; color: #94a3b8; position: sticky; top: 0; z-index: 2; white-space: nowrap; }
         .excel-table td { padding: 8px 4px; border-bottom: 1px solid rgba(255,255,255,0.04); color: #cbd5e1; }
-        .layer-item { background: rgba(30, 41, 59, 0.5); border-radius: 8px; margin-bottom: 8px; border: 1px solid rgba(255,255,255,0.06); transition: 0.2s; }
         
-        .btn-add-cart { background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 6px; cursor: pointer; font-family: 'Kanit'; font-weight: 600; transition: 0.2s; white-space: nowrap; }
-        .btn-add-cart:hover { background: #10b981; color: #fff; transform: scale(1.02); }
+        /* 📦 บีบขนาดกรอบเลเยอร์ให้ชิดกันเป็นพิเศษเพื่อจุ 4-5 ชิ้น */
+        .layer-item { background: rgba(30, 41, 59, 0.6); border-radius: 6px; margin-bottom: 4px; padding: 5px 8px; border: 1px solid rgba(255,255,255,0.05); transition: 0.2s; }
+        
+        /* ➕ ย่อขนาดปุ่มลงครึ่งหนึ่งตามสั่งเป๊ะๆ */
+        .btn-add-cart { background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 4px; cursor: pointer; font-family: 'Kanit'; font-weight: 600; transition: 0.2s; white-space: nowrap; padding: 2px 6px; font-size: 8.5px; }
+        .btn-add-cart:hover { background: #10b981; color: #fff; }
 
-        /* 🎚️ สไลเดอร์ความชัดแบบเส้นบาง (Slim Line) ไม่มีข้อความ */
-        input[type=range].slim-slider { -webkit-appearance: none; width: 100%; height: 3px; background: #334155; border-radius: 3px; outline: none; margin-top: 6px; opacity: 0.8; transition: opacity .2s; }
-        input[type=range].slim-slider:hover { opacity: 1; }
-        input[type=range].slim-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 12px; height: 12px; border-radius: 50%; background: #10b981; cursor: pointer; }
+        /* 🎚️ เพิ่มสีทึบของเส้นสไลเดอร์เวลาเลื่อนปรับความชัด */
+        input[type=range].slim-slider { -webkit-appearance: none; width: 100%; height: 3px; background: #475569; border-radius: 3px; outline: none; margin-top: 3px; }
+        input[type=range].slim-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 10px; height: 10px; border-radius: 50%; background: #10b981; cursor: pointer; box-shadow: 0 0 5px rgba(16, 185, 129, 0.8); }
 
-        /* 📍 เครื่องมือแผนที่ ย่อส่วนและจัดตำแหน่ง */
-        .leaflet-top.leaflet-right { top: 15px !important; right: 15px !important; }
+        /* 📍 เครื่องมือแผนที่ */
+        .leaflet-top.leaflet-right { top: 120px !important; right: 15px !important; }
         .leaflet-control-layers { background: rgba(15, 23, 42, 0.9) !important; color: #fff !important; border: 1px solid rgba(255,255,255,0.1) !important; font-family: 'Kanit'; font-size: 12px; }
-        .leaflet-control-polyline-measure { transform: scale(0.85); transform-origin: top right; } /* ย่อปุ่มไม้บรรทัดลง */
+        .leaflet-control-polyline-measure { transform: scale(0.85); transform-origin: top right; }
         #hud-box { position: absolute; bottom: 20px; right: 15px; background: rgba(11, 15, 25, 0.85); backdrop-filter: blur(10px); color: #00FFCC; padding: 10px 18px; border-radius: 8px; font-family: monospace; font-size: 12px; z-index: 9996; border: 1px solid rgba(0, 255, 204, 0.3); }
 
         /* 📤 หน้าต่างป๊อปอัพอัปโหลดข้อมูล (พื้นขาว, ตัวเล็กกะทัดรัด) */
@@ -96,11 +96,27 @@
         .form-control:focus { border-color:#2563eb; background:#fff; box-shadow: 0 0 0 2px rgba(37,99,235,0.2); }
         .btn-submit { width:100%; padding:10px; background:#2563eb; color:#fff; border:none; border-radius:4px; font-family:'Kanit'; font-weight:600; cursor:pointer; font-size:12.5px; margin-top:5px; }
         .btn-submit:hover { background:#1d4ed8; }
+
+        /* 📱 จัดการ Responsive สำหรับมือถือ */
+        @media (max-width: 768px) {
+            #top-bar { width: 95%; top: 10px; flex-wrap: wrap; padding: 8px; gap: 4px; }
+            .filter-select { flex: 1 1 45%; font-size: 11px; padding: 6px; }
+            #search-box { flex: 1 1 100%; margin-top: 2px; }
+            .hud-btn { top: 105px !important; padding: 6px 10px; font-size: 11px; }
+            #btn-left { left: 10px !important; }
+            #btn-upload { left: 105px !important; }
+            #btn-right { right: 10px !important; }
+            #left-sidebar, #right-sidebar { width: 94%; left: 3%; right: 3%; top: 145px; bottom: 20px; }
+            #left-sidebar.hidden { transform: translateX(-110vw); }
+            #right-sidebar.hidden { transform: translateX(110vw); }
+            .leaflet-top.leaflet-right { top: 140px !important; right: 10px !important; }
+            .modal-box { width: 90%; padding: 15px; }
+            #hud-box { bottom: 10px; right: 10px; font-size: 10px; padding: 6px 10px; }
+        }
     </style>
 </head>
 <body>
 
-    <!-- 🌀 โหลดดิ้ง -->
     <div id="loading-overlay">
         <div class="spinner-wrapper">
             <div class="spinner-ring"></div>
@@ -109,15 +125,13 @@
         <div class="loading-text" id="loading-msg">กำลังประมวลผลแผนที่...</div>
     </div>
 
-    <!-- 🔘 ปุ่มควบคุมซ้าย-ขวา -->
-    <button id="btn-left" class="hud-btn" onclick="document.getElementById('left-sidebar').classList.toggle('hidden')">☰ คลังข้อมูล</button>
+    <button id="btn-left" class="hud-btn" onclick="toggleSidebar('left')">☰ คลังข้อมูล</button>
     <button id="btn-upload" class="hud-btn" onclick="document.getElementById('upload-modal').classList.add('show')">📤 อัปโหลดข้อมูล</button>
-    <button id="btn-right" class="hud-btn" onclick="document.getElementById('right-sidebar').classList.toggle('hidden')">LAYER</button>
+    <button id="btn-right" class="hud-btn" onclick="toggleSidebar('right')">LAYER</button>
 
     <div id="map"></div>
     <div id="hud-box">UTM Zone --</div>
 
-    <!-- แถบค้นหา -->
     <div id="top-bar" class="glass-panel">
         <select class="filter-select" id="f-agency" onchange="loadDataByAgency(this.value);">
             <option value="" disabled selected hidden>-- 1. สร.รว. --</option>
@@ -137,14 +151,12 @@
         <input type="text" class="filter-select" id="search-box" placeholder="🔍 ค้นหารหัส หรือชื่อโครงการ..." onkeyup="filterAll()">
     </div>
 
-    <!-- 🗂️ แผงซ้าย (คลังข้อมูล) เปิดค้างไว้ (ไม่มี hidden) -->
     <div id="left-sidebar" class="glass-panel">
         <div class="sidebar-header">
             <span style="font-weight:600; color: #38bdf8; font-size:14px;">📂 คลังข้อมูล</span>
-            <button onclick="document.getElementById('left-sidebar').classList.add('hidden')" style="background:none; border:none; color:#64748b; cursor:pointer; font-family:'Kanit';">❌</button>
+            <button onclick="toggleSidebar('left')" style="background:none; border:none; color:#64748b; cursor:pointer; font-family:'Kanit';">❌</button>
         </div>
         
-        <!-- แท็บข้อมูลครบถ้วน -->
         <div class="tab-header">
             <button class="tab-btn active" onclick="openTab(event, 'tab-stats')">📊 งาน</button>
             <button class="tab-btn" id="v-count" onclick="openTab(event, 'tab-layers')">🗂️ KMZ (0)</button>
@@ -170,20 +182,18 @@
         <div id="tab-drones" class="tab-content"><div id="list-drones"></div></div>
     </div>
 
-    <!-- 🛒 แผงขวา (LAYER) เปิดค้างไว้ (ไม่มี hidden) กว้างเท่ากัน -->
     <div id="right-sidebar" class="glass-panel">
         <div class="sidebar-header" style="background: rgba(16, 185, 129, 0.15); border-bottom: 1px solid rgba(16,185,129,0.3);">
             <span id="c-count" style="font-weight:600; color: #10b981; font-size: 14px;">LAYER (0/10)</span>
-            <button onclick="document.getElementById('right-sidebar').classList.add('hidden')" style="background:none; border:none; color:#10b981; cursor:pointer; font-family:'Kanit'; font-weight:600;">❌</button>
+            <button onclick="toggleSidebar('right')" style="background:none; border:none; color:#10b981; cursor:pointer; font-family:'Kanit'; font-weight:600;">❌</button>
         </div>
-        <div style="padding: 15px; flex: 1; overflow-y: auto;" id="list-cart">
+        <div style="padding: 10px 15px; flex: 1; overflow-y: auto;" id="list-cart">
             <p style="text-align:center; color:#475569; font-size:12px; margin-top:20px;">
-                ไม่มีเลเยอร์<br>คลิก "➕ ADD LAYER" จากแผงคลังข้อมูล
+                ไม่มีเลเยอร์<br>คลิก "+ ADD LAYER" จากแผงคลังข้อมูล
             </p>
         </div>
     </div>
 
-    <!-- 📤 ฟอร์มอัปโหลดข้อมูล (พื้นหลังขาว, ฟอนต์เล็กกะทัดรัด, ข้อมูลครบ 100%) -->
     <div id="upload-modal" class="modal-overlay">
         <div class="modal-box">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; border-bottom:1px solid #e2e8f0; padding-bottom:10px;">
@@ -257,7 +267,7 @@
             "⛰️ ภูมิประเทศ": googleTerrain
         }, null, { position: 'topright' }).addTo(map);
         
-        // 📏 ปุ่มไม้บรรทัดวัดระยะ (ปรับให้เล็กลงตามสั่งผ่าน CSS สเกล)
+        // 📏 ปุ่มไม้บรรทัดวัดระยะขนาดกะทัดรัด
         L.control.polylineMeasure({ position: 'topright', unit: 'metres' }).addTo(map);
 
         // --- 🌀 ระบบหน้าจอ Loading ---
@@ -273,7 +283,24 @@
             document.getElementById('hud-box').innerHTML = `📍 Lat: ${e.latlng.lat.toFixed(5)}, Lon: ${e.latlng.lng.toFixed(5)}<br>🎯 UTM Zone ${z}: X=${utm[0].toFixed(2)}, Y=${utm[1].toFixed(2)}`;
         });
 
-        // --- ⚙️ ฟังก์ชันควบคุม UI แท็บแผงข้อมูลซ้าย ---
+        // --- ⚙️ ฟังก์ชันควบคุม UI แผงซ้าย-ขวา รองรับระบบมือถือ ---
+        function toggleSidebar(side) {
+            if (window.innerWidth <= 768) {
+                // บนมือถือ ถ้าเปิดฝั่งหนึ่ง อีกฝั่งต้องปิดโดยอัตโนมัติเพื่อไม่ให้บังกัน
+                if (side === 'left') {
+                    document.getElementById('left-sidebar').classList.toggle('hidden');
+                    document.getElementById('right-sidebar').classList.add('hidden');
+                } else {
+                    document.getElementById('right-sidebar').classList.toggle('hidden');
+                    document.getElementById('left-sidebar').classList.add('hidden');
+                }
+            } else {
+                // บนคอมพิวเตอร์ เปิด-ปิดแยกกันอิสระตามปกติ
+                if (side === 'left') document.getElementById('left-sidebar').classList.toggle('hidden');
+                if (side === 'right') document.getElementById('right-sidebar').classList.toggle('hidden');
+            }
+        }
+
         function openTab(e, id) {
             document.querySelectorAll('#left-sidebar .tab-content, #left-sidebar .tab-btn').forEach(el => el.classList.remove('active'));
             document.getElementById(id).classList.add('active'); 
@@ -285,7 +312,7 @@
         const activeLayers = {}; const cartItems = new Map(); 
         const simpleHash = str => new Uint32Array([str.split('').reduce((h, c) => Math.imul(31, h) + c.charCodeAt(0) | 0, 0)])[0].toString(36);
 
-        // --- 🔄 1. ดึงข้อมูลจากเซิร์ฟเวอร์หลัก ---
+        // --- 🔄 1. ดึงข้อมูลโครงการแยกตาม สร.รว. ---
         async function loadDataByAgency(agency) {
             if(!agency) return filterAll();
             showLoad(`กำลังซิงค์ข้อมูล ${agency}...`); 
@@ -310,7 +337,7 @@
             if(prov) [...new Set(allData.filter(d => d['จังหวัด'] === prov).map(d => d['ชื่อโครงการ']))].filter(Boolean).sort().forEach(p => pSel.appendChild(new Option(p, p)));
         }
 
-        // --- 🔍 2. การกรองตารางข้อมูล (แสดงรหัสเต็มกม.ต้น/ปลาย ครบถ้วน) ---
+        // --- 🔍 2. ค้นหาและคำนวณระยะทางในตารางหลัก ---
         function filterAll() {
             let y_val = document.getElementById("f-year").value;
             let a_val = document.getElementById("f-agency").value;
@@ -345,7 +372,7 @@
             updateFileCounts(filtered);
         }
 
-        // --- 🗂️ 3. จัดการรายการไฟล์แผนที่ในแท็บย่อย ---
+        // --- 🗂️ 3. จัดระเบียบการแสดงรายการไฟล์ KMZ และโดรน ---
         function updateFileCounts(data) {
             let vMap = new Map(), dMap = new Map();
             let y_val = document.getElementById("f-year").value;
@@ -372,34 +399,37 @@
             document.getElementById("v-count").innerText = `🗂️ KMZ (${vArr.length})`;
             document.getElementById("d-count").innerText = `🚁 โดรน (${dArr.length})`;
             
+            // เรนเดอร์รายการแบบชิดกระชับ พร้อมปุ่มย่อขนาดลงครึ่งหนึ่งตามสั่ง และระบบเฟดเอาท์
             const renderFn = (id, files, mode) => document.getElementById(id).innerHTML = files.length ? files.map(f => {
                 let htmlName = f.name.split('<br>').map(item => {
                     let p = item.split('|||');
-                    return `<span style="color:#38bdf8; font-size:10px;">${p[0]}</span><br>${p[1]||''}`;
-                }).join('<hr style="border-color:rgba(255,255,255,0.1); margin:4px 0;">');
+                    return `<span style="color:#38bdf8; font-size:10px; font-weight:600;">${p[0]}</span><br>${p[1]||''}`;
+                }).join('<hr style="border-color:rgba(255,255,255,0.05); margin:2px 0;">');
 
                 return `
-                <div class="layer-item" style="display: flex; align-items: center; gap: 8px; padding: 8px 12px;">
-                    <button class="btn-add-cart" onclick="addToCart('${f.safeId}', '${f.url.replace(/'/g, "\\'")}', '${f.name.replace(/'/g, "\\'")}', '${f.prov}', '${mode}')" style="padding: 4px 8px; font-size: 10.5px; flex-shrink: 0;">➕ ADD LAYER</button>
-                    <div style="flex:1; line-height: 1.2; overflow: hidden;">
-                        <strong style="display:block; font-size:11.5px; color:#f8fafc; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${htmlName}</strong>
+                <div class="layer-item" style="display: flex; align-items: center; gap: 6px;">
+                    <button class="btn-add-cart" onclick="addToCart('${f.safeId}', '${f.url.replace(/'/g, "\\'")}', '${f.name.replace(/'/g, "\\'")}', '${f.prov}', '${mode}')">➕ ADD LAYER</button>
+                    <div style="flex:1; line-height: 1.2; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;">
+                        <strong style="font-size:11px; color:#f8fafc;">${htmlName}</strong>
                     </div>
                 </div>`;
-            }).join('') : '<p style="text-align:center; color:#475569; margin-top:15px; font-size:11px;">ไม่มีไฟล์ข้อมูลในหมวดนี้</p>';
+            }).join('') : '<p style="text-align:center; color:#475569; margin-top:15px; font-size:11px;">ไม่มีไฟล์ข้อมูล</p>';
             
             renderFn("list-vectors", vArr, 'v'); renderFn("list-drones", dArr, 'd');
         }
 
-        // --- 🛒 4. ระบบการคุมแผง LAYER (ตะกร้าเปรียบเทียบ) ---
+        // --- 🛒 4. ระบบควบคุม LAYER (ตะกร้าเปรียบเทียบ ย่อสัดส่วนชิดติดกัน บรรจุได้เยอะ) ---
         function addToCart(safeId, url, name, prov, type) {
             if(cartItems.has(safeId)) {
                 document.getElementById('right-sidebar').classList.remove('hidden'); return;
             }
-            if(cartItems.size >= 10) return alert("🛑 หน้าต่าง LAYER เต็มแล้ว (เปิดได้สูงสุด 10 ไฟล์พร้อมกัน)");
+            if(cartItems.size >= 10) return alert("🛑 หน้าต่าง LAYER เต็มแล้ว (เปิดได้สูงสุด 10 ชั้นข้อมูลพร้อมกัน)");
             
             cartItems.set(safeId, { url, name, prov, type, checked: true, opacity: 1 });
             renderCartUI();
-            document.getElementById('right-sidebar').classList.remove('hidden'); 
+            
+            // ถ้าเปิดบนคอมให้แสดงแผงขวาเลย ถ้าบนมือถือจะรอให้ User กดสลับเองเพื่อไม่ให้บังจอ
+            if (window.innerWidth > 768) document.getElementById('right-sidebar').classList.remove('hidden'); 
             toggleLayer(safeId, url, true, type, prov);
         }
 
@@ -410,25 +440,25 @@
                 let icon = f.type === 'v' ? '🗂️' : '🚁';
                 let cartHtmlName = f.name.split('<br>').map(item => {
                     let p = item.split('|||');
-                    return `<span style="color:#38bdf8; font-size:10px;">${p[0]}</span><br>${icon} ${p[1]||''}`;
+                    return `<span style="color:#38bdf8; font-size:9.5px; font-weight:600;">${p[0]}</span><br>${icon} ${p[1]||''}`;
                 }).join('<br>');
 
+                // กรอบเลเยอร์บีบขนาดชิดกันพิเศษ ตัดข้อความ Opacity ทิ้ง เหลือแค่แถบสไลเดอร์สีทึบ
                 html += `
-                    <div class="layer-item" style="border-left: 3px solid #10b981; padding: 10px; margin-bottom: 8px;">
-                        <div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
-                            <input type="checkbox" ${f.checked ? 'checked' : ''} onchange="toggleCartSwitch('${safeId}', this.checked)" style="width:14px; height:14px; accent-color:#10b981; cursor:pointer; flex-shrink: 0;">
-                            <div style="flex:1; line-height: 1.2; overflow: hidden;">
-                                <strong style="color:#f8fafc; font-size:11px; display:block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${cartHtmlName}</strong>
+                    <div class="layer-item" style="border-left: 3px solid #10b981; margin-bottom: 4px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; gap:6px;">
+                            <input type="checkbox" ${f.checked ? 'checked' : ''} onchange="toggleCartSwitch('${safeId}', this.checked)" style="width:13px; height:13px; accent-color:#10b981; cursor:pointer; flex-shrink: 0;">
+                            <div style="flex:1; line-height: 1.1; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;">
+                                <strong style="color:#f8fafc; font-size:10.5px;">${cartHtmlName}</strong>
                             </div>
-                            <button onclick="removeFromCart('${safeId}')" style="background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(248, 113, 113, 0.3); padding: 2px 6px; border-radius: 4px; cursor: pointer; font-size: 10px; flex-shrink: 0;">❌ ลบ</button>
+                            <button onclick="removeFromCart('${safeId}')" style="background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(248, 113, 113, 0.2); padding: 1px 4px; border-radius: 3px; cursor: pointer; font-size: 9px; flex-shrink: 0;">❌</button>
                         </div>
-                        
-                        <div class="item-slider-box" style="${!f.checked ? 'opacity: 0.2; pointer-events:none;' : ''}">
+                        <div class="item-slider-box" style="padding: 0; margin-top: 2px; background:none; border:none; ${!f.checked ? 'opacity: 0.1; pointer-events:none;' : ''}">
                             <input type="range" class="slim-slider" min="0" max="1" step="0.05" value="${f.opacity}" oninput="changeOpacity('${safeId}', this.value)">
                         </div>
                     </div>`;
             });
-            document.getElementById('list-cart').innerHTML = html || '<p style="text-align:center; color:#475569; margin-top:20px; font-size:12px;">หน้าต่างยังว่างเปล่า<br>คลิก "➕ ADD LAYER" จากแผงซ้ายได้เลยครับ</p>';
+            document.getElementById('list-cart').innerHTML = html || '<p style="text-align:center; color:#475569; margin-top:20px; font-size:11px;">ไม่มีชั้นข้อมูลที่เปิดอยู่</p>';
         }
 
         function toggleCartSwitch(safeId, isChecked) {
@@ -467,11 +497,11 @@
             }
         }
 
-        // --- 🗺️ 5. ระบบการเรนเดอร์ชั้นข้อมูลแผนที่ (Leaflet Render Core) ---
+        // --- 🗺️ 5. ระบบเรนเดอร์แผนที่ภูมิสารสนเทศ ---
         async function toggleLayer(safeId, url, turnOn, type, prov) {
             if (turnOn && !activeLayers[safeId]) {
                 if (type === 'v') {
-                    showLoad("กำลังดึงพิกัดแผนที่ KMZ... 🗺️"); 
+                    showLoad("กำลังวาดโครงข่ายแนวคลอง KMZ... 🗺️"); 
                     const l = L.kmzLayer(url); 
                     activeLayers[safeId] = l;
                     l.on('load', e => { 
@@ -483,7 +513,7 @@
                     l.on('error', () => { hideLoad(); alert("❌ โหลดไฟล์ KMZ ไม่สำเร็จ"); removeFromCart(safeId); });
                     l.addTo(map);
                 } else {
-                    showLoad("กำลังดาวน์โหลดภาพโดรน... 🚁"); 
+                    showLoad("กำลังดาวน์โหลดและจัดวางภาพโดรน... 🚁"); 
                     activeLayers[safeId] = L.tileLayer(url, { maxNativeZoom: 20, maxZoom: 22, zIndex: 100 }).addTo(map);
                     changeOpacity(safeId, cartItems.get(safeId).opacity);
                     
@@ -502,7 +532,7 @@
             }
         }
 
-        // --- 📤 6. ระบบรับข้อมูลฟอร์มอัปโหลด ซิงค์สารสนเทศหลังบ้าน (ครบถ้วน 100%) ---
+        // --- 📤 6. ระบบอัปโหลดและซิงค์ข้อมูลเข้า Cloud สารสนเทศกลาง (สมบูรณ์ 100%) ---
         async function uploadFile(e) {
             e.preventDefault();
             
@@ -520,7 +550,7 @@
                 fileUrl: document.getElementById('up-file-url').value
             };
 
-            showLoad("กำลังซิงค์ส่งข้อมูลเข้าสู่ฐานข้อมูลกลาง... 💾");
+            showLoad("กำลังบันทึกและซิงค์แฟ้มข้อมูลโครงการ... 💾");
 
             try {
                 const response = await fetch(`${API}/api/projects`, {
@@ -532,7 +562,7 @@
                 hideLoad();
                 
                 if(response.ok) {
-                    alert("✅ บันทึกข้อมูลและจัดเก็บไฟล์สำเร็จเรียบร้อยครับ!");
+                    alert("✅ ซิงค์พิกัดและบันทึกข้อมูลโครงการเข้าสู่ฐานข้อมูลส่วนกลางสำเร็จเรียบร้อยครับบอส!");
                     document.getElementById('upload-modal').classList.remove('show');
                     document.getElementById('upload-form').reset();
                     
@@ -543,21 +573,27 @@
                     }
                 } else {
                     const err = await response.json();
-                    alert(`❌ ระบบปฏิเสธการบันทึก: ${err.message || 'เกิดข้อผิดพลาดในการประมวลผลเครือข่าย'}`);
+                    alert(`❌ ระบบไม่สามารถบันทึกได้: ${err.message || 'เกิดข้อผิดพลาดในการประมวลผล'}`);
                 }
             } catch (error) {
                 hideLoad();
-                alert("❌ เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์ กรุณาตรวจสอบสถานะเน็ตเวิร์กครับ");
+                alert("❌ เครือข่ายขัดข้อง ไม่สามารถติดต่อเซิร์ฟเวอร์หลักหลังบ้านได้");
                 console.error(error);
             }
         }
 
-        // --- 🚀 7. เริ่มต้นการทำงานระบบแผงควบคุมหลัก ---
+        // --- 🚀 7. เริ่มต้นตั้งค่าระบบแผงหน้าต่างเมื่อเปิดเว็บครั้งแรก ---
         const aSel = document.getElementById("f-agency"); 
         const upAgencySel = document.getElementById("up-agency");
         for(let i=1; i<=17; i++) {
             aSel.appendChild(new Option(`สร.รว.${i}`, `สร.รว.${i}`));
             upAgencySel.appendChild(new Option(`สร.รว.${i}`, `สร.รว.${i}`));
+        }
+
+        // ตรวจสอบขนาดหน้าต่างเปิดเว็บ: หากเป็นมือถือจะซ่อนแผงไว้ก่อนเพื่อให้เห็นแผนที่ชัดเจน ป้องกันปัญหาจอมืดซ้อนทับกันครับ
+        if (window.innerWidth <= 768) {
+            document.getElementById('left-sidebar').classList.add('hidden');
+            document.getElementById('right-sidebar').classList.add('hidden');
         }
     </script>
 </body>
