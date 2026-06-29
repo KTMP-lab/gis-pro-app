@@ -37,7 +37,7 @@
         #top-bar { position: absolute; top: 15px; left: 50%; transform: translateX(-50%); width: 75%; display: flex; gap: 8px; padding: 10px 16px; align-items: center; justify-content: center; z-index: 9999; transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); box-sizing: border-box; } 
         #top-bar.collapsed { transform: translate(-50%, -100%); }
         
-        /* ปุ่มสามเหลี่ยมสำหรับพับเก็บแถบค้นหา */
+        /* ปุ่มสามเหลี่ยมพับเก็บ (ลบตัวหนังสือออกแล้ว) */
         #toggle-topbar-btn { position: absolute; bottom: -24px; left: 50%; transform: translateX(-50%); width: 40px; height: 24px; background: rgba(37, 99, 235, 0.85); border: none; border-radius: 0 0 12px 12px; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 11px; box-shadow: 0 4px 8px rgba(0,0,0,0.4); transition: background 0.3s; z-index: -1; }
         #toggle-topbar-btn:hover { background: #1d4ed8; }
 
@@ -46,22 +46,17 @@
         select option { background: #0f172a; color: #f8fafc; }
         #search-box { flex: 1.6; background: rgba(15, 23, 42, 0.95); border: 1.5px solid #2563eb; color: #38bdf8; }
 
-        /* 🔘 กลุ่มปุ่มควบคุม */
+        /* 🔘 กลุ่มปุ่มควบคุม (ย้ายปุ่มอัปโหลดเข้าไปในแผงซ้ายแล้ว เหลือแค่ซ้าย-ขวา) */
         .hud-btn { position: absolute; z-index: 9998; padding: 8px 14px; background: #0f172a; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; font-family: 'Kanit'; cursor: pointer; font-weight: 600; color: #fff; box-shadow: 0 4px 12px rgba(0,0,0,0.4); transition: top 0.4s cubic-bezier(0.4, 0, 0.2, 1), background 0.2s; font-size: 13px; } 
         .hud-btn:hover { background: #1e293b; }
         
         #btn-left { top: 80px; left: 15px; color: #38bdf8; }
         #btn-right { top: 80px; right: 15px; color: #10b981; }
-        
-        /* 💡 ปุ่มอัปโหลดถูกย้ายมาอยู่ด้านล่างซ้าย (ใต้แผงคลังข้อมูล) ลอยเด่นบนแผนที่ */
-        #btn-upload { top: auto !important; bottom: 25px !important; left: 15px !important; width: 420px; text-align: center; color: #fbbf24; border-color: rgba(251, 191, 36, 0.4); background: rgba(15, 23, 42, 0.95); box-sizing: border-box; }
 
         body.top-collapsed .hud-btn { top: 20px !important; }
-        body.top-collapsed #btn-upload { top: auto !important; bottom: 25px !important; } /* ป้องกันปุ่มอัปโหลดเด้งขึ้นบน */
 
         /* 🗂️ แผงทำงาน ซ้าย-ขวา */
-        /* 💡 แผงซ้ายลดความสูงลงมา (bottom: 75px) เพื่อหลบพื้นที่ให้ปุ่มอัปโหลด */
-        #left-sidebar { position: absolute; top: 130px; left: 15px; width: 420px; bottom: 75px; display: flex; flex-direction: column; overflow: hidden; transition: top 0.4s, transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); z-index: 9997; } 
+        #left-sidebar { position: absolute; top: 130px; left: 15px; width: 420px; bottom: 25px; display: flex; flex-direction: column; overflow: hidden; transition: top 0.4s, transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); z-index: 9997; } 
         #left-sidebar.hidden { transform: translateX(-480px); }
         
         #right-sidebar { position: absolute; top: 130px; right: 15px; width: 420px; bottom: 25px; display: flex; flex-direction: column; overflow: hidden; transition: top 0.4s, transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); border: 1px solid rgba(16, 185, 129, 0.3); z-index: 9997; } 
@@ -72,25 +67,24 @@
         .sidebar-header { padding: 12px 16px; background: rgba(15,23,42,0.9); color: #fff; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); }
         
         /* แท็บคลังข้อมูล */
-        .tab-header { display: flex; background-color: rgba(15, 23, 42, 0.6); padding: 4px; margin: 12px; border-radius: 8px; gap: 4px; }
+        .tab-header { display: flex; background-color: rgba(15, 23, 42, 0.6); padding: 4px; margin: 12px; border-radius: 8px; gap: 4px; flex-shrink: 0; }
         .tab-btn { flex: 1; padding: 6px; font-family: 'Kanit'; font-weight: 600; font-size: 11.5px; cursor: pointer; border: none; border-radius: 6px; color: #94a3b8; background: none; transition: 0.2s; }
         .tab-btn.active { color: #fff; background: #2563eb; }
         .tab-content { display: none; padding: 0 15px 15px 15px; overflow-y: auto; flex: 1; }
         .tab-content.active { display: block; }
         #tab-stats.active { display: flex !important; flex-direction: column; } 
 
+        /* 💡 ปุ่มอัปโหลดที่ย้ายมาฝังในแผงซ้าย (อยู่ล่างสุด) */
+        .inner-upload-btn { background: rgba(251, 191, 36, 0.1); border: 1px solid rgba(251, 191, 36, 0.4); color: #fbbf24; padding: 12px; margin: 12px 15px 15px 15px; border-radius: 8px; font-family: 'Kanit'; font-weight: 600; font-size: 13px; cursor: pointer; text-align: center; transition: 0.2s; flex-shrink: 0; }
+        .inner-upload-btn:hover { background: rgba(251, 191, 36, 0.2); }
+
         .excel-table { width: 100%; border-collapse: collapse; font-size: 11px; }
         .excel-table th { padding: 8px 4px; background-color: #0f172a; color: #94a3b8; position: sticky; top: 0; z-index: 2; white-space: nowrap; }
         .excel-table td { padding: 8px 4px; border-bottom: 1px solid rgba(255,255,255,0.04); color: #cbd5e1; }
         
-        /* 📦 กรอบเลเยอร์ */
         .layer-item { background: rgba(30, 41, 59, 0.6); border-radius: 6px; margin-bottom: 4px; padding: 5px 8px; border: 1px solid rgba(255,255,255,0.05); transition: 0.2s; }
-        
-        /* ➕ ย่อปุ่ม ADD LAYER */
         .btn-add-cart { background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 4px; cursor: pointer; font-family: 'Kanit'; font-weight: 600; transition: 0.2s; white-space: nowrap; padding: 2px 6px; font-size: 8.5px; }
         .btn-add-cart:hover { background: #10b981; color: #fff; }
-
-        /* 🎚️ สไลเดอร์ */
         input[type=range].slim-slider { -webkit-appearance: none; width: 100%; height: 3px; background: #475569; border-radius: 3px; outline: none; margin-top: 3px; }
         input[type=range].slim-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 10px; height: 10px; border-radius: 50%; background: #10b981; cursor: pointer; box-shadow: 0 0 5px rgba(16, 185, 129, 0.8); }
 
@@ -111,7 +105,7 @@
         .form-control:focus { border-color:#2563eb; background:#fff; box-shadow: 0 0 0 2px rgba(37,99,235,0.2); }
         .btn-submit { width:100%; padding:10px; background:#2563eb; color:#fff; border:none; border-radius:4px; font-family:'Kanit'; font-weight:600; cursor:pointer; font-size:12.5px; margin-top:5px; }
 
-        /* 📱📱📱 การจัดการ Responsive สำหรับมือถือ (หน้าจอเล็กกว่า 768px) 📱📱📱 */
+        /* 📱 จัดการ Responsive สำหรับมือถือ */
         @media (max-width: 768px) {
             #top-bar { width: 95%; top: 10px; flex-wrap: wrap; padding: 10px 8px; gap: 6px; }
             #top-bar.collapsed { transform: translate(-50%, -100%); }
@@ -123,26 +117,17 @@
             .hud-btn { top: 135px !important; padding: 8px 10px; font-size: 11px; }
             #btn-left { left: 10px !important; }
             #btn-right { right: 10px !important; }
-            
-            /* ปุ่มอัปโหลดบนมือถือก็อยู่ข้างล่างสุดเช่นกัน */
-            #btn-upload { left: 2% !important; bottom: 15px !important; width: 96% !important; transform: none !important; }
-            body.top-collapsed #btn-upload { bottom: 15px !important; top: auto !important; }
-
-            /* ย้าย UI ขึ้นบนเมื่อกดพับแถบค้นหาบนมือถือ */
             body.top-collapsed .hud-btn { top: 20px !important; }
 
-            /* แผงซ้ายขวาบนมือถือ หลบลงมาต่ำพอที่จะไม่ทับปุ่ม */
-            #left-sidebar { width: 96%; left: 2%; right: 2%; top: 185px; bottom: 65px; } /* หลบปุ่มอัปโหลดด้านล่าง */
-            #right-sidebar { width: 96%; left: 2%; right: 2%; top: 185px; bottom: 15px; }
-            body.top-collapsed #left-sidebar { top: 70px !important; bottom: 65px !important; }
-            body.top-collapsed #right-sidebar { top: 70px !important; bottom: 15px !important; }
+            /* แผงซ้ายขวาบนมือถือ ยืดลงสุดขอบล่างได้เต็มที่เพราะปุ่มอัปโหลดถูกเก็บเข้าไปแล้ว */
+            #left-sidebar, #right-sidebar { width: 96%; left: 2%; right: 2%; top: 185px; bottom: 15px; } 
+            body.top-collapsed #left-sidebar, body.top-collapsed #right-sidebar { top: 70px !important; bottom: 15px !important; }
             
             #left-sidebar.hidden { transform: translateX(-110vw); }
             #right-sidebar.hidden { transform: translateX(110vw); }
 
             .leaflet-top.leaflet-right { top: 185px !important; right: 10px !important; }
             body.top-collapsed .leaflet-top.leaflet-right { top: 70px !important; }
-
             .modal-box { width: 92%; padding: 15px; }
             #hud-box { bottom: 10px; right: 10px; font-size: 10px; padding: 6px 10px; }
         }
@@ -150,24 +135,20 @@
 </head>
 <body class="">
 
-    <!-- 🌀 โหลดดิ้ง -->
     <div id="loading-overlay">
         <div class="spinner-wrapper">
             <div class="spinner-ring"></div>
             <img src="https://pub-4961c816153f421dbb5a81bb6ac5d11c.r2.dev/images.jpg" class="spinner-img" alt="Loading">
         </div>
-        <div class="loading-text" id="loading-msg">กำลังประมวลผลแผนที่...</div>
+        <div class="loading-text" id="loading-msg">กำลังประมวลผล...</div>
     </div>
 
-    <!-- 🔘 ปุ่มควบคุมซ้าย-ขวา-ล่าง -->
     <button id="btn-left" class="hud-btn" onclick="toggleSidebar('left')">☰ คลังข้อมูล</button>
     <button id="btn-right" class="hud-btn" onclick="toggleSidebar('right')">🛒 LAYER</button>
-    <button id="btn-upload" class="hud-btn" onclick="document.getElementById('upload-modal').classList.add('show')">📤 อัปโหลดข้อมูล</button>
 
     <div id="map"></div>
     <div id="hud-box">UTM Zone --</div>
 
-    <!-- แถบค้นหา และปุ่มสามเหลี่ยม -->
     <div id="top-bar" class="glass-panel">
         <select class="filter-select" id="f-agency" onchange="loadDataByAgency(this.value);">
             <option value="" disabled selected hidden>-- 1. สร.รว. --</option>
@@ -185,12 +166,9 @@
             <option value="" disabled selected hidden>-- 4. โครงการ --</option>
         </select>
         <input type="text" class="filter-select" id="search-box" placeholder="🔍 ค้นหารหัส หรือชื่อโครงการ..." onkeyup="filterAll()">
-        
-        <!-- 🔼 ปุ่มสามเหลี่ยมสำหรับพับเก็บแถบค้นหา (เอาข้อความออกแล้ว) -->
         <button id="toggle-topbar-btn" onclick="toggleTopBar()">▲</button>
     </div>
 
-    <!-- 🗂️ แผงซ้าย (คลังข้อมูล) เปิดคาไว้ตั้งแต่ต้น -->
     <div id="left-sidebar" class="glass-panel">
         <div class="sidebar-header">
             <span style="font-weight:600; color: #38bdf8; font-size:14px;">📂 คลังข้อมูล</span>
@@ -218,9 +196,10 @@
         </div>
         <div id="tab-layers" class="tab-content"><div id="list-vectors"></div></div>
         <div id="tab-drones" class="tab-content"><div id="list-drones"></div></div>
+        
+        <button class="inner-upload-btn" onclick="document.getElementById('upload-modal').classList.add('show')">📤 อัปโหลดและนำเข้าข้อมูลระบบ</button>
     </div>
 
-    <!-- 🛒 แผงขวา (LAYER) (ซ่อนไว้ก่อนบนมือถือ แต่บนคอมจะเปิดไว้) -->
     <div id="right-sidebar" class="glass-panel hidden">
         <div class="sidebar-header" style="background: rgba(16, 185, 129, 0.15); border-bottom: 1px solid rgba(16,185,129,0.3);">
             <span id="c-count" style="font-weight:600; color: #10b981; font-size: 14px;">LAYER (0/10)</span>
@@ -233,7 +212,6 @@
         </div>
     </div>
 
-    <!-- 📤 ฟอร์มอัปโหลดข้อมูล -->
     <div id="upload-modal" class="modal-overlay">
         <div class="modal-box">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; border-bottom:1px solid #e2e8f0; padding-bottom:10px;">
@@ -241,12 +219,29 @@
                 <button onclick="document.getElementById('upload-modal').classList.remove('show')" style="background:none; border:none; color:#94a3b8; cursor:pointer; font-size:14px;">❌</button>
             </div>
             <form id="upload-form" onsubmit="uploadFile(event)">
-                <div class="form-group"><label>1. หน่วยงาน (สร.รว.)</label><select class="form-control" id="up-agency" required><option value="" disabled selected>-- เลือก สร.รว. --</option></select></div>
+                <div class="form-group">
+                    <label>1. หน่วยงาน (สร.รว.) *ระบบจะดึงข้อมูลมาให้กรองอัตโนมัติ</label>
+                    <select class="form-control" id="up-agency" required onchange="loadUploadAgencyData(this.value)"><option value="" disabled selected>-- เลือก สร.รว. --</option></select>
+                </div>
                 <div class="form-group"><label>2. ปีงบประมาณ พ.ศ.</label><input type="number" class="form-control" id="up-year" placeholder="เช่น 2567" required min="2500" max="2600"></div>
                 <div class="form-group"><label>3. รหัสโครงการ (3 หลัก) และ รหัสงานย่อย (3 หลัก)</label><div style="display:flex; gap:8px;"><input type="text" class="form-control" id="up-proj-id" placeholder="โครงการ (101)" maxlength="3" required><input type="text" class="form-control" id="up-job-id" placeholder="งานย่อย (001)" maxlength="3" required></div></div>
-                <div class="form-group"><label>4. ข้อมูลพื้นที่ (จังหวัด)</label><input type="text" class="form-control" id="up-prov" placeholder="เช่น เพชรบูรณ์" required></div>
-                <div class="form-group"><label>5. ชื่อโครงการหลัก</label><input type="text" class="form-control" id="up-proj-name" placeholder="ระบุชื่อโครงการหลัก" required></div>
-                <div class="form-group"><label>6. ชื่องานย่อย / ชื่อสายทาง / ชื่อคลอง</label><input type="text" class="form-control" id="up-job-name" placeholder="ระบุชื่องานย่อย" required></div>
+                
+                <div class="form-group">
+                    <label>4. ข้อมูลพื้นที่ (จังหวัด)</label>
+                    <input type="text" class="form-control" id="up-prov" list="dl-prov" placeholder="เลือกจังหวัดหรือพิมพ์ใหม่" oninput="updateUploadDatalists()" required>
+                    <datalist id="dl-prov"></datalist>
+                </div>
+                <div class="form-group">
+                    <label>5. ชื่อโครงการหลัก</label>
+                    <input type="text" class="form-control" id="up-proj-name" list="dl-proj" placeholder="เลือกโครงการหรือพิมพ์ใหม่" oninput="updateUploadDatalists()" required>
+                    <datalist id="dl-proj"></datalist>
+                </div>
+                <div class="form-group">
+                    <label>6. ชื่องานย่อย / ชื่อสายทาง / ชื่อคลอง</label>
+                    <input type="text" class="form-control" id="up-job-name" list="dl-job" placeholder="เลือกชื่องานหรือพิมพ์ใหม่" required>
+                    <datalist id="dl-job"></datalist>
+                </div>
+
                 <div class="form-group"><label>7. ระยะทาง (กม.ต้น - กม.ปลาย)</label><div style="display:flex; gap:8px;"><input type="number" step="0.001" class="form-control" id="up-km-start" placeholder="กม.ต้น" required><input type="number" step="0.001" class="form-control" id="up-km-end" placeholder="กม.ปลาย" required></div></div>
                 <div class="form-group"><label>8. ประเภทไฟล์</label><select class="form-control" id="up-file-type" required><option value="KMZ">🗂️ เวกเตอร์ (KMZ/KML)</option><option value="Drone">🚁 แผนที่โดรน (XYZ/Drone)</option></select></div>
                 <div class="form-group"><label>9. ลิงก์ที่อยู่ไฟล์จาก R2</label><input type="url" class="form-control" id="up-file-url" placeholder="https://pub-..." required></div>
@@ -255,16 +250,13 @@
         </div>
     </div>
 
-    <!-- 📥 ป๊อปอัพคลังโครงการ (ดาวน์โหลดไฟล์) ซ่อนไว้รอการกดเรียก -->
     <div id="download-modal" class="modal-overlay">
         <div class="modal-box" style="width:380px;">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; border-bottom:1px solid #e2e8f0; padding-bottom:10px;">
                 <span style="font-weight:600; color:#2563eb; font-size:14px;">📥 คลังโครงการ (ดาวน์โหลดไฟล์)</span>
                 <button onclick="document.getElementById('download-modal').classList.remove('show')" style="background:none; border:none; color:#94a3b8; cursor:pointer; font-size:14px;">❌</button>
             </div>
-            <div id="download-list" style="max-height: 250px; overflow-y: auto;">
-                <!-- JS จะดึงรายชื่อไฟล์มาแทรกตรงนี้ -->
-            </div>
+            <div id="download-list" style="max-height: 250px; overflow-y: auto;"></div>
         </div>
     </div> <script>
         const API = "https://my-gis-backend.onrender.com";
@@ -300,7 +292,7 @@
             document.getElementById('hud-box').innerHTML = `📍 Lat: ${e.latlng.lat.toFixed(5)}, Lon: ${e.latlng.lng.toFixed(5)}<br>🎯 UTM Zone ${z}: X=${utm[0].toFixed(2)}, Y=${utm[1].toFixed(2)}`;
         });
 
-        // --- 🔼 ฟังก์ชันยืด/หดแถบค้นหาบนสุด ---
+        // --- 🔼 ฟังก์ชันยืด/หดแถบค้นหาบนสุด (ปรับเหลือแค่สามเหลี่ยม ▲ / ▼ คลีนๆ) ---
         function toggleTopBar() {
             const topBar = document.getElementById('top-bar');
             const btn = document.getElementById('toggle-topbar-btn');
@@ -315,7 +307,7 @@
             }
         }
 
-        // --- ⚙️ ฟังก์ชันควบคุม UI แผงซ้าย-ขวา รองรับมือถือแบบ 100% ---
+        // --- ⚙️ ฟังก์ชันควบคุม UI แผงซ้าย-ขวา รองรับระบบมือถือ ---
         function toggleSidebar(side) {
             if (window.innerWidth <= 768) {
                 if (side === 'left') {
@@ -340,9 +332,12 @@
         // --- 💾 ฐานข้อมูลและตัวแปรระบบ ---
         let memoryCache = {}; let allData = []; 
         const activeLayers = {}; const cartItems = new Map(); 
+        
+        // ฟังก์ชันช่วยเคลียร์ข้อความตัดเว้นวรรคออกทั้งหมดเพื่อใช้ค้นหา
+        const cleanStr = str => (str || '').toString().toLowerCase().replace(/\s+/g, '');
         const simpleHash = str => new Uint32Array([str.split('').reduce((h, c) => Math.imul(31, h) + c.charCodeAt(0) | 0, 0)])[0].toString(36);
 
-        // --- 🔄 1. ดึงข้อมูลโครงการ ---
+        // --- 🔄 1. ดึงข้อมูลโครงการหลัก ---
         async function loadDataByAgency(agency) {
             if(!agency) return filterAll();
             showLoad(`กำลังซิงค์ข้อมูล ${agency}...`); 
@@ -367,7 +362,7 @@
             if(prov) [...new Set(allData.filter(d => d['จังหวัด'] === prov).map(d => d['ชื่อโครงการ']))].filter(Boolean).sort().forEach(p => pSel.appendChild(new Option(p, p)));
         }
 
-        // --- 🔍 2. กรองและแสดงผลตาราง (พร้อมปุ่มคลังโครงการ) ---
+        // --- 🔍 2. กรองข้อมูลตารางหลัก (💡 อัปเกรดระบบตรวจจับคำค้นหาข้ามการเว้นวรรค) ---
         function filterAll() {
             let y_val = document.getElementById("f-year").value;
             let a_val = document.getElementById("f-agency").value;
@@ -376,18 +371,24 @@
             
             const pr = document.getElementById("f-prov").value;
             const pj = document.getElementById("f-proj").value;
-            const k = document.getElementById("search-box").value.toLowerCase();
+            
+            // ดึงคำค้นหาลบช่องว่างออก
+            const kClean = cleanStr(document.getElementById("search-box").value);
 
             const filtered = allData.filter(d => {
-                const sid = `${aNum}-${y}-${d['รหัสโครงการ']}`;
-                return (!pr || d['จังหวัด']===pr) && (!pj || d['ชื่อโครงการ']===pj) && (!k || sid.includes(k) || (d['ชื่อโครงการ']||'').toLowerCase().includes(k) || (d['ชื่องาน']||'').toLowerCase().includes(k));
+                const sidClean = cleanStr(`${aNum}-${y}-${d['รหัสโครงการ']}`);
+                const projClean = cleanStr(d['ชื่อโครงการ']);
+                const jobClean = cleanStr(d['ชื่องาน']);
+                
+                return (!pr || d['จังหวัด']===pr) && 
+                       (!pj || d['ชื่อโครงการ']===pj) && 
+                       (!kClean || sidClean.includes(kClean) || projClean.includes(kClean) || jobClean.includes(kClean));
             });
 
             document.getElementById("tbody-stats").innerHTML = filtered.map(d => {
                 let s = parseFloat(d['กม.ต้น'])||0, e = parseFloat(d['กม.ปลาย'])||0; 
                 let fullId = `สร.รว.${aNum}-${y}-${d['รหัสโครงการ']}-${d['รหัสงาน'] || '000'}`;
                 
-                // 💡 สร้างปุ่มเปิดคลังโครงการ วางบรรทัดที่ 3 ใต้ชื่อคลอง
                 let downloadBtn = `<button onclick="openDownloadModal('${d['รหัสโครงการ']}', '${d['รหัสงาน']}')" style="background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); padding: 2px 8px; border-radius: 4px; font-size: 9.5px; margin-top: 4px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; transition: 0.2s;"><span style="font-size:11px;">📥</span> คลังโครงการ</button>`;
 
                 return `<tr>
@@ -406,9 +407,8 @@
             updateFileCounts(filtered);
         }
 
-        // --- 📥 ฟังก์ชันเปิดหน้าต่างดาวน์โหลดไฟล์ ---
+        // --- 📥 3. ฟังก์ชันเปิดหน้าต่างคลังโครงการแสดงรายการดาวน์โหลดไฟล์ ---
         window.openDownloadModal = function(projId, jobId) {
-            // ค้นหาข้อมูลโครงการจาก allData โดยใช้รหัสโครงการและรหัสงาน
             let project = allData.find(d => d['รหัสโครงการ'] == projId && (d['รหัสงาน'] == jobId || (!d['รหัสงาน'] && !jobId)));
             let html = "";
             
@@ -438,7 +438,7 @@
             document.getElementById('download-modal').classList.add('show');
         };
 
-        // --- 🗂️ 3. อัปเดตรายการไฟล์ (KMZ / Drone) ---
+        // --- 🗂️ 4. ระบบคัดกรองแท็บไฟล์แผนที่ย่อย ---
         function updateFileCounts(data) {
             let vMap = new Map(), dMap = new Map();
             let y_val = document.getElementById("f-year").value;
@@ -483,7 +483,7 @@
             renderFn("list-vectors", vArr, 'v'); renderFn("list-drones", dArr, 'd');
         }
 
-        // --- 🛒 4. ระบบจัดการ LAYER ---
+        // --- 🛒 5. ระบบจัดการแผง LAYER เปรียบเทียบ ---
         function addToCart(safeId, url, name, prov, type) {
             if(cartItems.has(safeId)) {
                 if (window.innerWidth <= 768) document.getElementById('left-sidebar').classList.add('hidden');
@@ -563,7 +563,7 @@
             }
         }
 
-        // --- 🗺️ 5. ระบบเรนเดอร์แผนที่ ---
+        // --- 🗺️ 6. ระบบเรนเดอร์ GIS บน Leaflet ---
         async function toggleLayer(safeId, url, turnOn, type, prov) {
             if (turnOn && !activeLayers[safeId]) {
                 if (type === 'v') {
@@ -598,34 +598,74 @@
             }
         }
 
-        // --- 📤 6. ระบบอัปโหลดเข้าฐานข้อมูล ---
+        // --- 📤 7. 🔥 ระบบประมวลผลฟอร์มอัปโหลดข้อมูล (อ้างอิงฐานข้อมูลกรองคำออโต้ + วงล้อโหลดบอส) ---
+        async function loadUploadAgencyData(agency) {
+            if(!agency) return;
+            showLoad(`กำลังดึงตัวเลือกสำหรับฟอร์ม ${agency}... 🔄`);
+            if (!memoryCache[agency]) {
+                try {
+                    const res = await fetch(`${API}/api/projects/by-agency?agency=${agency}&_t=${Date.now()}`);
+                    memoryCache[agency] = await res.json();
+                } catch(e) { console.error(e); }
+            }
+            updateUploadDatalists(agency);
+            hideLoad();
+        }
+
+        function updateUploadDatalists(agencyName) {
+            const currentAgency = agencyName || document.getElementById('up-agency').value;
+            const data = memoryCache[currentAgency] || [];
+            
+            const provInput = document.getElementById('up-prov').value;
+            const projInput = document.getElementById('up-proj-name').value;
+
+            // กรองทำดรอปดาวน์จังหวัด
+            const provs = [...new Set(data.map(d => d['จังหวัด']))].filter(Boolean).sort();
+            document.getElementById('dl-prov').innerHTML = provs.map(p => `<option value="${p}">`).join('');
+
+            // กรองทำดรอปดาวน์โครงการออโต้
+            const filteredByProv = data.filter(d => !provInput || d['จังหวัด'] === provInput);
+            const projs = [...new Set(filteredByProv.map(d => d['ชื่อโครงการ']))].filter(Boolean).sort();
+            document.getElementById('dl-proj').innerHTML = projs.map(p => `<option value="${p}">`).join('');
+
+            // กรองทำดรอปดาวน์สายคลอง/งานย่อยออโต้
+            const filteredByProj = filteredByProv.filter(d => !projInput || d['ชื่อโครงการ'] === projInput);
+            const jobs = [...new Set(filteredByProj.map(d => d['ชื่องาน']))].filter(Boolean).sort();
+            document.getElementById('dl-job').innerHTML = jobs.map(j => (j && j !== 'undefined') ? `<option value="${j}">` : '').join('');
+        }
+
         async function uploadFile(e) {
             e.preventDefault();
+            
+            // 💡 อัปเกรดความปลอดภัยแปลงเป็นตัวเลข Decimal/Integer แท้ๆ ก่อนส่งไป Google Sheets
             const payload = {
                 agency: document.getElementById('up-agency').value,
-                year: document.getElementById('up-year').value,
+                year: parseInt(document.getElementById('up-year').value) || 0,
                 projId: document.getElementById('up-proj-id').value,
                 jobId: document.getElementById('up-job-id').value,
                 prov: document.getElementById('up-prov').value,
                 projName: document.getElementById('up-proj-name').value,
                 jobName: document.getElementById('up-job-name').value,
-                kmStart: document.getElementById('up-km-start').value,
-                kmEnd: document.getElementById('up-km-end').value,
+                kmStart: parseFloat(document.getElementById('up-km-start').value) || 0,
+                kmEnd: parseFloat(document.getElementById('up-km-end').value) || 0,
                 fileType: document.getElementById('up-file-type').value,
                 fileUrl: document.getElementById('up-file-url').value
             };
 
-            showLoad("กำลังซิงค์ส่งข้อมูลเข้าสู่ฐานข้อมูลกลาง... 💾");
+            // 🔥 ดึงวงล้อรูปบอสขึ้นมาแสดงตอนส่งข้อมูลตามสั่งเป๊ะๆ
+            showLoad("กำลังซิงค์และบันทึกข้อมูลโครงการเข้าสู่เซิร์ฟเวอร์... 💾");
+
             try {
                 const response = await fetch(`${API}/api/projects`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 });
+
                 hideLoad();
                 
                 if(response.ok) {
-                    alert("✅ บันทึกข้อมูลสำเร็จเรียบร้อยครับ!");
+                    alert("✅ นำเข้าข้อมูลระบบสารสนเทศกลางสำเร็จเรียบร้อยครับบอส!");
                     document.getElementById('upload-modal').classList.remove('show');
                     document.getElementById('upload-form').reset();
                     
@@ -636,15 +676,15 @@
                     }
                 } else {
                     const err = await response.json();
-                    alert(`❌ ระบบไม่สามารถบันทึกได้: ${err.message || 'เกิดข้อผิดพลาด'}`);
+                    alert(`❌ บันทึกไม่สำเร็จ: ${err.message || 'เกิดข้อผิดพลาดจากเครือข่าย'}`);
                 }
             } catch (error) {
                 hideLoad();
-                alert("❌ เครือข่ายขัดข้อง ไม่สามารถติดต่อเซิร์ฟเวอร์หลังบ้านได้");
+                alert("❌ การซิงค์ล้มเหลว ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์หลักได้");
             }
         }
 
-        // --- 🚀 7. เริ่มต้นการทำงาน (Responsive Init) ---
+        // --- 🚀 8. โหลดสารสนเทศตั้งต้นเมื่อเปิดจอ ---
         const aSel = document.getElementById("f-agency"); 
         const upAgencySel = document.getElementById("up-agency");
         for(let i=1; i<=17; i++) {
