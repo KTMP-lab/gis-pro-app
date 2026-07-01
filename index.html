@@ -697,17 +697,15 @@
             }
         }
 
-       // --- 🌐 ระบบดึงแผนที่ระวางที่ดินระดับประเทศ (WMS) ---
+      // --- 🌐 8. ระบบดึงแผนที่ระวางที่ดินระดับประเทศ (WMS) ---
         const wmsLandLayer = L.tileLayer.wms('https://ms.longdo.com/mapproxy/service', {
-            // 🚨 บอสต้องไปดูชื่อ Layer จากหน้า GetCapabilities ของ Longdo มาใส่นะครับ (ห้ามใส่ภาษาไทย)
-            // ตัวอย่างเช่น อาจจะชื่อ 'dol_parcel', 'land_boundary', หรือ 'parcel'
-            layers: 'http://ms.longdo.com/mapproxy/service?REQUEST=GetCapabilities&', 
-            format: 'Longdo Map MapProxy',
+            layers: 'dol_hd', // 🎯 เจอตัวแล้ว! เลเยอร์ระวางที่ดินกรมที่ดิน (Longdo HD)
+            format: 'image/png',
             transparent: true,
             maxZoom: 22,
-            opacity: 0.7
+            opacity: 0.7,
+            zIndex: 1000 // 🌟 ดันชั้นข้อมูลนี้ให้อยู่บนสุด ป้องกันแผนที่ดาวเทียมทับ
         });
-
         function toggleWMS(isChecked) {
             if(isChecked) {
                 showLoad("กำลังดึงระวางที่ดินระดับประเทศ... 🗺️");
