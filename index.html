@@ -697,11 +697,12 @@
             }
         }
 
-        // --- 🌐 8. ระบบดึงแผนที่ระวางที่ดินระดับประเทศ (WMS) ---
-        const wmsLandLayer = L.tileLayer.wms('http://ms.longdo.com/mapproxy/service', {
-            // 🚨 คำเตือน: บอสนำชื่อ Layer จาก GetCapabilities มาใส่แทน 'ใส่ชื่อเลเยอร์ตรงนี้' ได้เลยครับ
-            layers: 'ใส่ชื่อเลเยอร์ตรงนี้', 
-            format: 'image/png',
+       // --- 🌐 ระบบดึงแผนที่ระวางที่ดินระดับประเทศ (WMS) ---
+        const wmsLandLayer = L.tileLayer.wms('https://ms.longdo.com/mapproxy/service', {
+            // 🚨 บอสต้องไปดูชื่อ Layer จากหน้า GetCapabilities ของ Longdo มาใส่นะครับ (ห้ามใส่ภาษาไทย)
+            // ตัวอย่างเช่น อาจจะชื่อ 'dol_parcel', 'land_boundary', หรือ 'parcel'
+            layers: 'http://ms.longdo.com/mapproxy/service?REQUEST=GetCapabilities&', 
+            format: 'Longdo Map MapProxy',
             transparent: true,
             maxZoom: 22,
             opacity: 0.7
