@@ -37,7 +37,6 @@
         #top-bar { position: absolute; top: 15px; left: 50%; transform: translateX(-50%); width: 75%; display: flex; gap: 8px; padding: 10px 16px; align-items: center; justify-content: center; z-index: 9999; transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); box-sizing: border-box; } 
         #top-bar.collapsed { transform: translate(-50%, -100%); }
         
-        /* ปุ่มสามเหลี่ยมพับเก็บ (ลบตัวหนังสือออกแล้ว) */
         #toggle-topbar-btn { position: absolute; bottom: -24px; left: 50%; transform: translateX(-50%); width: 40px; height: 24px; background: rgba(37, 99, 235, 0.85); border: none; border-radius: 0 0 12px 12px; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 11px; box-shadow: 0 4px 8px rgba(0,0,0,0.4); transition: background 0.3s; z-index: -1; }
         #toggle-topbar-btn:hover { background: #1d4ed8; }
 
@@ -46,7 +45,7 @@
         select option { background: #0f172a; color: #f8fafc; }
         #search-box { flex: 1.6; background: rgba(15, 23, 42, 0.95); border: 1.5px solid #2563eb; color: #38bdf8; }
 
-        /* 🔘 กลุ่มปุ่มควบคุม (ย้ายปุ่มอัปโหลดเข้าไปในแผงซ้ายแล้ว เหลือแค่ซ้าย-ขวา) */
+        /* 🔘 กลุ่มปุ่มควบคุม (ซ้าย-ขวา) */
         .hud-btn { position: absolute; z-index: 9998; padding: 8px 14px; background: #0f172a; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; font-family: 'Kanit'; cursor: pointer; font-weight: 600; color: #fff; box-shadow: 0 4px 12px rgba(0,0,0,0.4); transition: top 0.4s cubic-bezier(0.4, 0, 0.2, 1), background 0.2s; font-size: 13px; } 
         .hud-btn:hover { background: #1e293b; }
         
@@ -74,7 +73,7 @@
         .tab-content.active { display: block; }
         #tab-stats.active { display: flex !important; flex-direction: column; } 
 
-        /* 💡 ปุ่มอัปโหลดที่ย้ายมาฝังในแผงซ้าย (อยู่ล่างสุด) */
+        /* 💡 ปุ่มอัปโหลดฝังแผงซ้าย */
         .inner-upload-btn { background: rgba(251, 191, 36, 0.1); border: 1px solid rgba(251, 191, 36, 0.4); color: #fbbf24; padding: 12px; margin: 12px 15px 15px 15px; border-radius: 8px; font-family: 'Kanit'; font-weight: 600; font-size: 13px; cursor: pointer; text-align: center; transition: 0.2s; flex-shrink: 0; }
         .inner-upload-btn:hover { background: rgba(251, 191, 36, 0.2); }
 
@@ -119,7 +118,6 @@
             #btn-right { right: 10px !important; }
             body.top-collapsed .hud-btn { top: 20px !important; }
 
-            /* แผงซ้ายขวาบนมือถือ ยืดลงสุดขอบล่างได้เต็มที่เพราะปุ่มอัปโหลดถูกเก็บเข้าไปแล้ว */
             #left-sidebar, #right-sidebar { width: 96%; left: 2%; right: 2%; top: 185px; bottom: 15px; } 
             body.top-collapsed #left-sidebar, body.top-collapsed #right-sidebar { top: 70px !important; bottom: 15px !important; }
             
@@ -135,20 +133,24 @@
 </head>
 <body class="">
 
+    <!-- 🌀 โหลดดิ้ง -->
     <div id="loading-overlay">
         <div class="spinner-wrapper">
             <div class="spinner-ring"></div>
+            <!-- ดึงรูปบอสจากระบบจัดเก็บคลาวด์ R2 -->
             <img src="https://pub-4961c816153f421dbb5a81bb6ac5d11c.r2.dev/images.jpg" class="spinner-img" alt="Loading">
         </div>
         <div class="loading-text" id="loading-msg">กำลังประมวลผล...</div>
     </div>
 
+    <!-- 🔘 ปุ่มควบคุมซ้าย-ขวา -->
     <button id="btn-left" class="hud-btn" onclick="toggleSidebar('left')">☰ คลังข้อมูล</button>
     <button id="btn-right" class="hud-btn" onclick="toggleSidebar('right')">🛒 LAYER</button>
 
     <div id="map"></div>
     <div id="hud-box">UTM Zone --</div>
 
+    <!-- แถบค้นหา และปุ่มสามเหลี่ยม -->
     <div id="top-bar" class="glass-panel">
         <select class="filter-select" id="f-agency" onchange="loadDataByAgency(this.value);">
             <option value="" disabled selected hidden>-- 1. สร.รว. --</option>
@@ -169,6 +171,7 @@
         <button id="toggle-topbar-btn" onclick="toggleTopBar()">▲</button>
     </div>
 
+    <!-- 🗂️ แผงซ้าย (คลังข้อมูล) -->
     <div id="left-sidebar" class="glass-panel">
         <div class="sidebar-header">
             <span style="font-weight:600; color: #38bdf8; font-size:14px;">📂 คลังข้อมูล</span>
@@ -197,14 +200,32 @@
         <div id="tab-layers" class="tab-content"><div id="list-vectors"></div></div>
         <div id="tab-drones" class="tab-content"><div id="list-drones"></div></div>
         
+        <!-- 💡 ปุ่มอัปโหลดที่ย้ายมาฝังในแผงซ้าย -->
         <button class="inner-upload-btn" onclick="document.getElementById('upload-modal').classList.add('show')">📤 อัปโหลดและนำเข้าข้อมูลระบบ</button>
     </div>
 
+    <!-- 🛒 แผงขวา (LAYER + WMS) -->
     <div id="right-sidebar" class="glass-panel hidden">
         <div class="sidebar-header" style="background: rgba(16, 185, 129, 0.15); border-bottom: 1px solid rgba(16,185,129,0.3);">
             <span id="c-count" style="font-weight:600; color: #10b981; font-size: 14px;">LAYER (0/10)</span>
             <button onclick="toggleSidebar('right')" style="background:none; border:none; color:#10b981; cursor:pointer; font-family:'Kanit'; font-weight:600;">❌</button>
         </div>
+        
+        <!-- 🗺️ สวิตช์พิเศษ: WMS ระดับประเทศ (ฝังถาวรด้านบนสุดของแผง LAYER) -->
+        <div style="padding: 10px 15px 0 15px; border-bottom: 1px solid rgba(255,255,255,0.05);">
+            <div class="layer-item" style="border-left: 3px solid #f59e0b; margin-bottom: 10px; background: rgba(245, 158, 11, 0.1);">
+                <div style="display:flex; justify-content:space-between; align-items:center; gap:6px;">
+                    <input type="checkbox" id="wms-land-toggle" onchange="toggleWMS(this.checked)" style="width:13px; height:13px; accent-color:#f59e0b; cursor:pointer; flex-shrink: 0;">
+                    <div style="flex:1; line-height: 1.1;">
+                        <strong style="color:#fbbf24; font-size:11px;">🗺️ แนวเขตที่ดิน (WMS Longdo)</strong>
+                    </div>
+                </div>
+                <div class="item-slider-box" style="padding: 0; margin-top: 4px; background:none; border:none;">
+                    <input type="range" class="slim-slider" min="0" max="1" step="0.05" value="0.7" oninput="changeWMSOpacity(this.value)">
+                </div>
+            </div>
+        </div>
+
         <div style="padding: 10px 15px; flex: 1; overflow-y: auto;" id="list-cart">
             <p style="text-align:center; color:#475569; font-size:12px; margin-top:20px;">
                 ไม่มีเลเยอร์<br>คลิก "➕ ADD LAYER" จากแผงคลังข้อมูล
@@ -212,6 +233,7 @@
         </div>
     </div>
 
+    <!-- 📤 ฟอร์มอัปโหลดข้อมูล (Auto-Complete Datalist) -->
     <div id="upload-modal" class="modal-overlay">
         <div class="modal-box">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; border-bottom:1px solid #e2e8f0; padding-bottom:10px;">
@@ -250,6 +272,7 @@
         </div>
     </div>
 
+    <!-- 📥 ป๊อปอัพคลังโครงการ (Download Modal) -->
     <div id="download-modal" class="modal-overlay">
         <div class="modal-box" style="width:380px;">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; border-bottom:1px solid #e2e8f0; padding-bottom:10px;">
@@ -292,22 +315,17 @@
             document.getElementById('hud-box').innerHTML = `📍 Lat: ${e.latlng.lat.toFixed(5)}, Lon: ${e.latlng.lng.toFixed(5)}<br>🎯 UTM Zone ${z}: X=${utm[0].toFixed(2)}, Y=${utm[1].toFixed(2)}`;
         });
 
-        // --- 🔼 ฟังก์ชันยืด/หดแถบค้นหาบนสุด (ปรับเหลือแค่สามเหลี่ยม ▲ / ▼ คลีนๆ) ---
+        // --- 🔼 ฟังก์ชันยืด/หดแถบค้นหาบนสุด ---
         function toggleTopBar() {
             const topBar = document.getElementById('top-bar');
             const btn = document.getElementById('toggle-topbar-btn');
             
             topBar.classList.toggle('collapsed');
             document.body.classList.toggle('top-collapsed');
-            
-            if (topBar.classList.contains('collapsed')) {
-                btn.innerHTML = "▼";
-            } else {
-                btn.innerHTML = "▲";
-            }
+            btn.innerHTML = topBar.classList.contains('collapsed') ? "▼" : "▲";
         }
 
-        // --- ⚙️ ฟังก์ชันควบคุม UI แผงซ้าย-ขวา รองรับระบบมือถือ ---
+        // --- ⚙️ ฟังก์ชันควบคุม UI แผงซ้าย-ขวา ---
         function toggleSidebar(side) {
             if (window.innerWidth <= 768) {
                 if (side === 'left') {
@@ -329,11 +347,11 @@
             if(e) e.currentTarget.classList.add('active');
         }
 
-        // --- 💾 ฐานข้อมูลและตัวแปรระบบ ---
+        // --- 💾 ฐานข้อมูลและสมองกล ---
         let memoryCache = {}; let allData = []; 
         const activeLayers = {}; const cartItems = new Map(); 
         
-        // ฟังก์ชันช่วยเคลียร์ข้อความตัดเว้นวรรคออกทั้งหมดเพื่อใช้ค้นหา
+        // สมองกลจัดการลบเว้นวรรค (Space Ignore) เพื่อการค้นหา
         const cleanStr = str => (str || '').toString().toLowerCase().replace(/\s+/g, '');
         const simpleHash = str => new Uint32Array([str.split('').reduce((h, c) => Math.imul(31, h) + c.charCodeAt(0) | 0, 0)])[0].toString(36);
 
@@ -362,7 +380,7 @@
             if(prov) [...new Set(allData.filter(d => d['จังหวัด'] === prov).map(d => d['ชื่อโครงการ']))].filter(Boolean).sort().forEach(p => pSel.appendChild(new Option(p, p)));
         }
 
-        // --- 🔍 2. กรองข้อมูลตารางหลัก (💡 อัปเกรดระบบตรวจจับคำค้นหาข้ามการเว้นวรรค) ---
+        // --- 🔍 2. กรองข้อมูลตารางหลัก (Space-Ignored Search) ---
         function filterAll() {
             let y_val = document.getElementById("f-year").value;
             let a_val = document.getElementById("f-agency").value;
@@ -372,7 +390,7 @@
             const pr = document.getElementById("f-prov").value;
             const pj = document.getElementById("f-proj").value;
             
-            // ดึงคำค้นหาลบช่องว่างออก
+            // ดึงคำค้นหาและลบช่องว่างออก
             const kClean = cleanStr(document.getElementById("search-box").value);
 
             const filtered = allData.filter(d => {
@@ -407,7 +425,7 @@
             updateFileCounts(filtered);
         }
 
-        // --- 📥 3. ฟังก์ชันเปิดหน้าต่างคลังโครงการแสดงรายการดาวน์โหลดไฟล์ ---
+        // --- 📥 3. ระบบหน้าต่างคลังโครงการ (ดาวน์โหลดไฟล์) ---
         window.openDownloadModal = function(projId, jobId) {
             let project = allData.find(d => d['รหัสโครงการ'] == projId && (d['รหัสงาน'] == jobId || (!d['รหัสงาน'] && !jobId)));
             let html = "";
@@ -438,7 +456,7 @@
             document.getElementById('download-modal').classList.add('show');
         };
 
-        // --- 🗂️ 4. ระบบคัดกรองแท็บไฟล์แผนที่ย่อย ---
+        // --- 🗂️ 4. อัปเดตรายการไฟล์ (KMZ / Drone) ---
         function updateFileCounts(data) {
             let vMap = new Map(), dMap = new Map();
             let y_val = document.getElementById("f-year").value;
@@ -483,7 +501,7 @@
             renderFn("list-vectors", vArr, 'v'); renderFn("list-drones", dArr, 'd');
         }
 
-        // --- 🛒 5. ระบบจัดการแผง LAYER เปรียบเทียบ ---
+        // --- 🛒 5. ระบบจัดการ LAYER เปรียบเทียบ ---
         function addToCart(safeId, url, name, prov, type) {
             if(cartItems.has(safeId)) {
                 if (window.innerWidth <= 768) document.getElementById('left-sidebar').classList.add('hidden');
@@ -563,7 +581,7 @@
             }
         }
 
-        // --- 🗺️ 6. ระบบเรนเดอร์ GIS บน Leaflet ---
+        // --- 🗺️ 6. เรนเดอร์แผนที่บน Leaflet ---
         async function toggleLayer(safeId, url, turnOn, type, prov) {
             if (turnOn && !activeLayers[safeId]) {
                 if (type === 'v') {
@@ -598,7 +616,7 @@
             }
         }
 
-        // --- 📤 7. 🔥 ระบบประมวลผลฟอร์มอัปโหลดข้อมูล (อ้างอิงฐานข้อมูลกรองคำออโต้ + วงล้อโหลดบอส) ---
+        // --- 📤 7. ระบบจัดการฟอร์มอัปโหลดข้อมูล (Auto-Complete Datalist) ---
         async function loadUploadAgencyData(agency) {
             if(!agency) return;
             showLoad(`กำลังดึงตัวเลือกสำหรับฟอร์ม ${agency}... 🔄`);
@@ -619,16 +637,16 @@
             const provInput = document.getElementById('up-prov').value;
             const projInput = document.getElementById('up-proj-name').value;
 
-            // กรองทำดรอปดาวน์จังหวัด
+            // อัปเดตรายการจังหวัด
             const provs = [...new Set(data.map(d => d['จังหวัด']))].filter(Boolean).sort();
             document.getElementById('dl-prov').innerHTML = provs.map(p => `<option value="${p}">`).join('');
 
-            // กรองทำดรอปดาวน์โครงการออโต้
+            // อัปเดตรายการโครงการ
             const filteredByProv = data.filter(d => !provInput || d['จังหวัด'] === provInput);
             const projs = [...new Set(filteredByProv.map(d => d['ชื่อโครงการ']))].filter(Boolean).sort();
             document.getElementById('dl-proj').innerHTML = projs.map(p => `<option value="${p}">`).join('');
 
-            // กรองทำดรอปดาวน์สายคลอง/งานย่อยออโต้
+            // อัปเดตรายการงานย่อย
             const filteredByProj = filteredByProv.filter(d => !projInput || d['ชื่อโครงการ'] === projInput);
             const jobs = [...new Set(filteredByProj.map(d => d['ชื่องาน']))].filter(Boolean).sort();
             document.getElementById('dl-job').innerHTML = jobs.map(j => (j && j !== 'undefined') ? `<option value="${j}">` : '').join('');
@@ -636,8 +654,6 @@
 
         async function uploadFile(e) {
             e.preventDefault();
-            
-            // 💡 อัปเกรดความปลอดภัยแปลงเป็นตัวเลข Decimal/Integer แท้ๆ ก่อนส่งไป Google Sheets
             const payload = {
                 agency: document.getElementById('up-agency').value,
                 year: parseInt(document.getElementById('up-year').value) || 0,
@@ -652,20 +668,17 @@
                 fileUrl: document.getElementById('up-file-url').value
             };
 
-            // 🔥 ดึงวงล้อรูปบอสขึ้นมาแสดงตอนส่งข้อมูลตามสั่งเป๊ะๆ
-            showLoad("กำลังซิงค์และบันทึกข้อมูลโครงการเข้าสู่เซิร์ฟเวอร์... 💾");
-
+            showLoad("กำลังซิงค์และบันทึกข้อมูลเข้าสู่เซิร์ฟเวอร์... 💾");
             try {
                 const response = await fetch(`${API}/api/projects`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 });
-
                 hideLoad();
                 
                 if(response.ok) {
-                    alert("✅ นำเข้าข้อมูลระบบสารสนเทศกลางสำเร็จเรียบร้อยครับบอส!");
+                    alert("✅ บันทึกข้อมูลสำเร็จเรียบร้อยครับบอส!");
                     document.getElementById('upload-modal').classList.remove('show');
                     document.getElementById('upload-form').reset();
                     
@@ -676,15 +689,43 @@
                     }
                 } else {
                     const err = await response.json();
-                    alert(`❌ บันทึกไม่สำเร็จ: ${err.message || 'เกิดข้อผิดพลาดจากเครือข่าย'}`);
+                    alert(`❌ ระบบไม่สามารถบันทึกได้: ${err.message || 'เกิดข้อผิดพลาด'}`);
                 }
             } catch (error) {
                 hideLoad();
-                alert("❌ การซิงค์ล้มเหลว ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์หลักได้");
+                alert("❌ เครือข่ายขัดข้อง ไม่สามารถติดต่อเซิร์ฟเวอร์หลังบ้านได้");
             }
         }
 
-        // --- 🚀 8. โหลดสารสนเทศตั้งต้นเมื่อเปิดจอ ---
+        // --- 🌐 8. ระบบดึงแผนที่ระวางที่ดินระดับประเทศ (WMS) ---
+        const wmsLandLayer = L.tileLayer.wms('http://ms.longdo.com/mapproxy/service', {
+            // 🚨 คำเตือน: บอสนำชื่อ Layer จาก GetCapabilities มาใส่แทน 'ใส่ชื่อเลเยอร์ตรงนี้' ได้เลยครับ
+            layers: 'ใส่ชื่อเลเยอร์ตรงนี้', 
+            format: 'image/png',
+            transparent: true,
+            maxZoom: 22,
+            opacity: 0.7
+        });
+
+        function toggleWMS(isChecked) {
+            if(isChecked) {
+                showLoad("กำลังดึงระวางที่ดินระดับประเทศ... 🗺️");
+                wmsLandLayer.addTo(map);
+                
+                wmsLandLayer.on('load', hideLoad);
+                wmsLandLayer.on('tileerror', hideLoad);
+                // ตั้งปลด Loading เผื่อเซิร์ฟเวอร์ต้นทางช้า
+                setTimeout(hideLoad, 2000); 
+            } else {
+                map.removeLayer(wmsLandLayer);
+            }
+        }
+
+        function changeWMSOpacity(val) {
+            wmsLandLayer.setOpacity(val);
+        }
+
+        // --- 🚀 9. โหลดข้อมูลตั้งต้นเมื่อเปิดเว็บ ---
         const aSel = document.getElementById("f-agency"); 
         const upAgencySel = document.getElementById("up-agency");
         for(let i=1; i<=17; i++) {
