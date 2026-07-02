@@ -104,10 +104,10 @@
         .leaflet-control-locate a { background: rgba(15, 23, 42, 0.9) !important; color: #4285F4 !important; border: 1px solid rgba(255,255,255,0.1) !important; transform: scale(0.85); transform-origin: top right; }
         .leaflet-control-locate a:hover { background: #1e293b !important; color: #357ae8 !important; }
 
-        /* 🎯 [อัปเดตใหม่] เอาวงกลมสีฟ้าออก เหลือเฉพาะเป้าเล็งกากบาท (Crosshair) ขาวคมชัดซ้อนเงาดำ */
+        /* 🎯 เป้าเล็งกากบาท (Crosshair) ขนาดเล็กจิ๋ว กระทัดรัด */
         .screen-center-marker { position: absolute; top: 50%; left: 50%; z-index: 9996; pointer-events: none; transform: translate(-50%, -50%); width: 0; height: 0; }
-        .screen-center-marker::before { content: ''; position: absolute; top: -0.5px; left: -8px; width: 16px; height: 1.5px; background: #ffffff; box-shadow: 0 0 3px rgba(0,0,0,0.9); }
-        .screen-center-marker::after { content: ''; position: absolute; top: -8px; left: -0.5px; width: 1.5px; height: 16px; background: #ffffff; box-shadow: 0 0 3px rgba(0,0,0,0.9); }
+        .screen-center-marker::before { content: ''; position: absolute; top: -0.5px; left: -8px; width: 16px; height: 1.5px; background: #ffffff; box-shadow: 0 0 2px rgba(0,0,0,0.8); }
+        .screen-center-marker::after { content: ''; position: absolute; top: -8px; left: -0.5px; width: 1.5px; height: 16px; background: #ffffff; box-shadow: 0 0 2px rgba(0,0,0,0.8); }
 
         /* 📥 ปรับแต่งฟอนต์ป๊อปอัพ Leaflet ให้เล็กเท่า HUD ขวาล่างตามสั่ง */
         .leaflet-popup-content-wrapper { background: rgba(15, 23, 42, 0.95) !important; color: #f8fafc !important; border: 1px solid rgba(255,255,255,0.1) !important; border-radius: 6px !important; box-shadow: 0 4px 15px rgba(0,0,0,0.5) !important; }
@@ -242,9 +242,12 @@
         </div>
 
         <div style="padding: 10px 15px; flex: 1; overflow-y: auto;" id="list-cart">
-            <p style="text-align:center; color:#475569; font-size:12px; margin-top:20px;">
-                ไม่มีเลเยอร์<br>คลิก "➕ ADD LAYER" จากแผงคลังข้อมูล
-            </p>
+            <div style="position:relative; text-align:center; padding: 25px 10px; border: 1px dashed rgba(56, 189, 248, 0.3); background: rgba(56, 189, 248, 0.05); border-radius: 8px; margin-top: 15px; cursor: pointer; transition: 0.2s;" onmouseover="this.style.background='rgba(56,189,248,0.1)'" onmouseout="this.style.background='rgba(56,189,248,0.05)'">
+                <input type="file" id="temp-file-upload" accept=".kmz,.kml" style="position:absolute; top:0; left:0; width:100%; height:100%; opacity:0; cursor:pointer; z-index:2;" onchange="loadTempLayer(this)">
+                <span style="font-size:26px; display:block; margin-bottom:8px;">📂</span>
+                <strong style="color:#38bdf8; font-size:12px; display:block; margin-bottom:4px;">คลิกเพื่อเปิดไฟล์ชั่วคราว (KMZ/KML)</strong>
+                <span style="color:#475569; font-size:10px;">หรือคลิก "➕ ADD LAYER" จากคลังข้อมูล</span>
+            </div>
         </div>
     </div>
 
@@ -305,7 +308,7 @@
         const googleMaps = L.tileLayer('https://mt1.google.com/vt/lyrs=r&x={x}&y={y}&z={z}');
         const googleSatellite = L.tileLayer('https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}');
         const googleHybrid = L.tileLayer('https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}');
-        const googleTerrain = L.tileLayer('https://mt1.google.com/vt/lyrs=p&x={x}&y={y}&z={z}');
+        const googleTerrain = L.tileLayer('https://mt1.google.com/vt/lyrs=t&x={x}&y={y}&z={z}');
 
         googleHybrid.addTo(map);
         L.control.layers({
@@ -342,7 +345,7 @@
             const utm = proj4('+proj=longlat', `+proj=utm +zone=${z} +units=m`, [center.lng, center.lat]);
             
             document.getElementById('hud-box').innerHTML = 
-                `<div style="color:#f8fafc; font-size:8px; margin-bottom:2px;">พิกัดกึ่งกลางจอ:</div>
+                `<div style="color:#f8fafc; font-size:10px; margin-bottom:2px;">🎯 พิกัดกึ่งกลางจอ:</div>
                  <strong style="color:#f59e0b;">Lat:</strong> ${center.lat.toFixed(6)}, <strong style="color:#f59e0b;">Lon:</strong> ${center.lng.toFixed(6)}<br>
                  <strong style="color:#38bdf8;">UTM Zone ${z}:</strong> X=${utm[0].toFixed(2)}, Y=${utm[1].toFixed(2)}`;
         }
@@ -356,7 +359,7 @@
             const lng = e.latlng.lng;
             const z = Math.floor((lng + 180) / 6) + 1;
             const utm = proj4('+proj=longlat', `+proj=utm +zone=${z} +units=m`, [lng, lat]);
-            const navUrl = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
+            const navUrl = `https://maps.google.com/?q=${lat},${lng}`;
             
             L.popup({ closeButton: false })
                 .setLatLng(e.latlng)
@@ -369,6 +372,39 @@
                 `)
                 .openOn(map);
         });
+
+        // --- ⏳ [ใหม่] ฟังก์ชันโหลดและวาดไฟล์ KMZ/KML ชั่วคราวลงหน้าจอสนาม ---
+        function loadTempLayer(input) {
+            if (!input.files || !input.files[0]) return;
+            const file = input.files[0];
+            const safeId = "L_temp_" + Date.now();
+            const url = URL.createObjectURL(file);
+            const name = `งานสนามชั่วคราว|||📂 ชั่วคราว: ${file.name}`;
+
+            showLoad("กำลังดึงข้อมูลไฟล์สนามชั่วคราว... 📂");
+
+            // บันทึกเข้าคลังแผงควบคุมฝั่งขวา
+            cartItems.set(safeId, { url, name, prov: '', type: 'v', checked: true, opacity: 1, isTemp: true });
+            renderCartUI();
+
+            // สั่ง Leaflet วาดโครงข่ายแนวเส้นลงแผนที่
+            const l = L.kmzLayer(url);
+            activeLayers[safeId] = l;
+            l.on('load', e => {
+                const b = e.layer.getBounds();
+                if (b && b.isValid()) map.fitBounds(b);
+                changeOpacity(safeId, 1);
+                hideLoad();
+            });
+            l.on('error', () => {
+                hideLoad();
+                alert("❌ โหลดไฟล์ข้อมูลชั่วคราวไม่สำเร็จ โปรดตรวจสอบว่าเป็นไฟล์ KMZ หรือ KML ที่สมบูรณ์");
+                removeFromCart(safeId);
+            });
+            l.addTo(map);
+
+            input.value = ''; // ล้างสถานะเพื่อให้กดเลือกไฟล์ซ้ำเดิมได้
+        }
 
         // --- 🔼 ฟังก์ชันยืด/หดแถบค้นหาบนสุด ---
         function toggleTopBar() {
@@ -554,7 +590,7 @@
             renderFn("list-vectors", vArr, 'v'); renderFn("list-drones", dArr, 'd');
         }
 
-        // --- 🛒 5. ระบบจัดการ LAYER เปรียบเทียบ ---
+        // --- 🛒 5. ระบบจัดการ LAYER เปรียบเทียบ และแสดงผลปุ่มโหลดไฟล์ชั่วคราว ---
         function addToCart(safeId, url, name, prov, type) {
             if(cartItems.has(safeId)) {
                 if (window.innerWidth <= 768) document.getElementById('left-sidebar').classList.add('hidden');
@@ -595,7 +631,22 @@
                         </div>
                     </div>`;
             });
-            document.getElementById('list-cart').innerHTML = html || '<p style="text-align:center; color:#475569; margin-top:20px; font-size:11px;">ไม่มีชั้นข้อมูลที่เปิดอยู่</p>';
+
+            // 📥 สคริปต์สลับมุมมองกล่องนำเข้าไฟล์ชั่วคราวซ่อนรูป
+            const tempUploadBox = `
+                <div style="position:relative; text-align:center; padding: 15px 10px; border: 1px dashed rgba(56, 189, 248, 0.3); background: rgba(56, 189, 248, 0.05); border-radius: 8px; margin-top: 10px; cursor: pointer; transition: 0.2s;" onmouseover="this.style.background='rgba(56,189,248,0.1)'" onmouseout="this.style.background='rgba(56,189,248,0.05)'">
+                    <input type="file" accept=".kmz,.kml" style="position:absolute; top:0; left:0; width:100%; height:100%; opacity:0; cursor:pointer; z-index:2;" onchange="loadTempLayer(this)">
+                    <span style="font-size:20px; display:block; margin-bottom:4px;">📂</span>
+                    <strong style="color:#38bdf8; font-size:11px; display:block;">เปิดไฟล์ชั่วคราวเพิ่ม (KMZ/KML)</strong>
+                </div>`;
+
+            document.getElementById('list-cart').innerHTML = html ? html + tempUploadBox : `
+                <div style="position:relative; text-align:center; padding: 25px 10px; border: 1px dashed rgba(56, 189, 248, 0.3); background: rgba(56, 189, 248, 0.05); border-radius: 8px; margin-top: 15px; cursor: pointer; transition: 0.2s;" onmouseover="this.style.background='rgba(56,189,248,0.1)'" onmouseout="this.style.background='rgba(56,189,248,0.05)'">
+                    <input type="file" accept=".kmz,.kml" style="position:absolute; top:0; left:0; width:100%; height:100%; opacity:0; cursor:pointer; z-index:2;" onchange="loadTempLayer(this)">
+                    <span style="font-size:26px; display:block; margin-bottom:8px;">📂</span>
+                    <strong style="color:#38bdf8; font-size:12px; display:block; margin-bottom:4px;">คลิกเพื่อเปิดไฟล์ชั่วคราว (KMZ/KML)</strong>
+                    <span style="color:#475569; font-size:10px;">หรือคลิก "➕ ADD LAYER" จากคลังข้อมูล</span>
+                </div>`;
         }
 
         function toggleCartSwitch(safeId, isChecked) {
@@ -757,12 +808,10 @@
             zIndex: 1000
         });
 
-        // ฟิลเตอร์แต่งสีรูปภาพ WMS คุมโทน
         wmsLandLayer.on('tileload', function(e) {
             e.tile.style.filter = 'brightness(1.4) contrast(1.25) hue-rotate(0deg)'; 
         });
 
-        // ฟังก์ชันเปิด/ปิด ชั้นข้อมูล WMS ระวางที่ดิน
         function toggleWMS(isChecked) {
             if(isChecked) {
                 showLoad("กำลังดึงระวางที่ดินระดับประเทศ... 🗺️");
@@ -776,7 +825,6 @@
             }
         }
 
-        // ฟังก์ชันควบคุมความโปร่งใสแสงระวางที่ดิน
         function changeWMSOpacity(val) {
             wmsLandLayer.setOpacity(val);
         }
