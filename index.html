@@ -87,12 +87,18 @@
         input[type=range].slim-slider { -webkit-appearance: none; width: 100%; height: 3px; background: #475569; border-radius: 3px; outline: none; margin-top: 3px; }
         input[type=range].slim-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 10px; height: 10px; border-radius: 50%; background: #10b981; cursor: pointer; box-shadow: 0 0 5px rgba(16, 185, 129, 0.8); }
 
-        /* 📍 เครื่องมือแผนที่ */
+        /* 📍 เครื่องมือแผนที่ และปุ่ม GPS */
         .leaflet-top.leaflet-right { top: 120px !important; right: 15px !important; transition: top 0.4s; z-index: 9995; }
         body.top-collapsed .leaflet-top.leaflet-right { top: 60px !important; }
         .leaflet-control-layers { background: rgba(15, 23, 42, 0.9) !important; color: #fff !important; border: 1px solid rgba(255,255,255,0.1) !important; font-family: 'Kanit'; font-size: 12px; }
         .leaflet-control-polyline-measure { transform: scale(0.85); transform-origin: top right; }
         #hud-box { position: absolute; bottom: 20px; right: 15px; background: rgba(11, 15, 25, 0.85); backdrop-filter: blur(10px); color: #00FFCC; padding: 10px 18px; border-radius: 8px; font-family: monospace; font-size: 12px; z-index: 9996; border: 1px solid rgba(0, 255, 204, 0.3); }
+
+        /* 📍 ดีไซน์ปุ่ม GPS และหมุดพิกัด */
+        .custom-gps-btn { background: rgba(15, 23, 42, 0.9) !important; color: #f59e0b !important; border: 1px solid rgba(255,255,255,0.1) !important; cursor: pointer; width: 34px !important; height: 34px !important; font-size: 18px !important; border-radius: 4px !important; margin-top: 8px !important; display: flex !important; align-items: center; justify-content: center; box-shadow: 0 1px 5px rgba(0,0,0,0.6) !important; transition: 0.2s; line-height: 1 !important; transform: scale(0.85); transform-origin: top right; }
+        .custom-gps-btn:hover { background: #1e293b !important; }
+        .gps-pulse { width: 14px; height: 14px; background: #f59e0b; border-radius: 50%; border: 2px solid white; box-shadow: 0 0 10px rgba(245, 158, 11, 0.8); animation: pulseGps 1.5s infinite; }
+        @keyframes pulseGps { 0% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(245, 158, 11, 0); } 100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); } }
 
         /* 📤 ป๊อปอัพอัปโหลด และ 📥 ป๊อปอัพดาวน์โหลด */
         .modal-overlay { position: fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(15,23,42,0.6); backdrop-filter:blur(6px); z-index:100000; display:flex; align-items:center; justify-content:center; opacity:0; pointer-events:none; transition:0.3s; }
@@ -133,24 +139,20 @@
 </head>
 <body class="">
 
-    <!-- 🌀 โหลดดิ้ง -->
     <div id="loading-overlay">
         <div class="spinner-wrapper">
             <div class="spinner-ring"></div>
-            <!-- ดึงรูปบอสจากระบบจัดเก็บคลาวด์ R2 -->
             <img src="https://pub-4961c816153f421dbb5a81bb6ac5d11c.r2.dev/images.jpg" class="spinner-img" alt="Loading">
         </div>
         <div class="loading-text" id="loading-msg">กำลังประมวลผล...</div>
     </div>
 
-    <!-- 🔘 ปุ่มควบคุมซ้าย-ขวา -->
     <button id="btn-left" class="hud-btn" onclick="toggleSidebar('left')">☰ คลังข้อมูล</button>
     <button id="btn-right" class="hud-btn" onclick="toggleSidebar('right')">🛒 LAYER</button>
 
     <div id="map"></div>
     <div id="hud-box">UTM Zone --</div>
 
-    <!-- แถบค้นหา และปุ่มสามเหลี่ยม -->
     <div id="top-bar" class="glass-panel">
         <select class="filter-select" id="f-agency" onchange="loadDataByAgency(this.value);">
             <option value="" disabled selected hidden>-- 1. สร.รว. --</option>
@@ -171,7 +173,6 @@
         <button id="toggle-topbar-btn" onclick="toggleTopBar()">▲</button>
     </div>
 
-    <!-- 🗂️ แผงซ้าย (คลังข้อมูล) -->
     <div id="left-sidebar" class="glass-panel">
         <div class="sidebar-header">
             <span style="font-weight:600; color: #38bdf8; font-size:14px;">📂 คลังข้อมูล</span>
@@ -200,18 +201,15 @@
         <div id="tab-layers" class="tab-content"><div id="list-vectors"></div></div>
         <div id="tab-drones" class="tab-content"><div id="list-drones"></div></div>
         
-        <!-- 💡 ปุ่มอัปโหลดที่ย้ายมาฝังในแผงซ้าย -->
         <button class="inner-upload-btn" onclick="document.getElementById('upload-modal').classList.add('show')">📤 อัปโหลดและนำเข้าข้อมูลระบบ</button>
     </div>
 
-    <!-- 🛒 แผงขวา (LAYER + WMS) -->
     <div id="right-sidebar" class="glass-panel hidden">
         <div class="sidebar-header" style="background: rgba(16, 185, 129, 0.15); border-bottom: 1px solid rgba(16,185,129,0.3);">
             <span id="c-count" style="font-weight:600; color: #10b981; font-size: 14px;">LAYER (0/10)</span>
             <button onclick="toggleSidebar('right')" style="background:none; border:none; color:#10b981; cursor:pointer; font-family:'Kanit'; font-weight:600;">❌</button>
         </div>
         
-        <!-- 🗺️ สวิตช์พิเศษ: WMS ระดับประเทศ (ฝังถาวรด้านบนสุดของแผง LAYER) -->
         <div style="padding: 10px 15px 0 15px; border-bottom: 1px solid rgba(255,255,255,0.05);">
             <div class="layer-item" style="border-left: 3px solid #f59e0b; margin-bottom: 10px; background: rgba(245, 158, 11, 0.1);">
                 <div style="display:flex; justify-content:space-between; align-items:center; gap:6px;">
@@ -233,7 +231,6 @@
         </div>
     </div>
 
-    <!-- 📤 ฟอร์มอัปโหลดข้อมูล (Auto-Complete Datalist) -->
     <div id="upload-modal" class="modal-overlay">
         <div class="modal-box">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; border-bottom:1px solid #e2e8f0; padding-bottom:10px;">
@@ -272,7 +269,6 @@
         </div>
     </div>
 
-    <!-- 📥 ป๊อปอัพคลังโครงการ (Download Modal) -->
     <div id="download-modal" class="modal-overlay">
         <div class="modal-box" style="width:380px;">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; border-bottom:1px solid #e2e8f0; padding-bottom:10px;">
@@ -299,8 +295,29 @@
             "⛰️ ภูมิประเทศ": googleTerrain
         }, null, { position: 'topright' }).addTo(map);
         
-        // 📏 ปุ่มไม้บรรทัดวัดระยะ
+        // 📏 ปุ่มไม้บรรทัดวัดระยะ (จะถูกแอดตัวแรกในฝั่งขวาบน)
         L.control.polylineMeasure({ position: 'topright', unit: 'metres' }).addTo(map);
+
+        // --- 📍 ระบบสร้างปุ่มตำแหน่ง GPS ใต้ปุ่มไม้บรรทัดขวามือ ---
+        L.Control.GpsButton = L.Control.extend({
+            onAdd: function(map) {
+                const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control');
+                const button = L.DomUtil.create('a', 'custom-gps-btn', container);
+                button.innerHTML = '📍';
+                button.href = '#';
+                button.title = 'Detect Location from GPS';
+
+                L.DomEvent.on(button, 'click', function(e) {
+                    L.DomEvent.stopPropagation(e);
+                    L.DomEvent.preventDefault(e);
+                    goToCurrentLocation();
+                });
+
+                return container;
+            }
+        });
+        // แอดปุ่ม GPS ต่อท้ายไม้บรรทัดทันทีเพื่อให้อยู่ด้านใต้พอดี
+        new L.Control.GpsButton({ position: 'topright' }).addTo(map);
 
         // --- 🌀 ระบบหน้าจอ Loading ---
         const loadingBox = document.getElementById('loading-overlay');
@@ -314,6 +331,53 @@
             const utm = proj4('+proj=longlat', `+proj=utm +zone=${z} +units=m`, [e.latlng.lng, e.latlng.lat]);
             document.getElementById('hud-box').innerHTML = `📍 Lat: ${e.latlng.lat.toFixed(5)}, Lon: ${e.latlng.lng.toFixed(5)}<br>🎯 UTM Zone ${z}: X=${utm[0].toFixed(2)}, Y=${utm[1].toFixed(2)}`;
         });
+
+        // --- 📍 ฟังก์ชันประมวลผลระบบพิกัด GPS ---
+        function goToCurrentLocation() {
+            if (!navigator.geolocation) {
+                alert("❌ เบราว์เซอร์ของคุณไม่รองรับการระบุตำแหน่ง GPS");
+                return;
+            }
+
+            showLoad("กำลังตรวจจับพิกัด GPS ปัจจุบันของคุณ... 📡");
+            
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const lat = position.coords.latitude;
+                    const lng = position.coords.longitude;
+                    const accuracy = position.coords.accuracy;
+
+                    map.flyTo([lat, lng], 17);
+
+                    // วงกลมรัศมีความคลาดเคลื่อนพิกัด
+                    L.circle([lat, lng], {
+                        radius: accuracy,
+                        color: '#38bdf8',
+                        fillColor: '#38bdf8',
+                        fillOpacity: 0.15,
+                        weight: 1
+                    }).addTo(map);
+
+                    // หมุดตำแหน่งสีส้มพร้อมไฟกระพริบเอฟเฟกต์ CSS
+                    L.marker([lat, lng], {
+                        icon: L.divIcon({
+                            className: 'gps-marker-container',
+                            html: '<div class="gps-pulse"></div>',
+                            iconSize: [14, 14],
+                            iconAnchor: [7, 7]
+                        })
+                    }).addTo(map);
+
+                    hideLoad();
+                    console.log(`✅ พิกัดปัจจุบันตรวจจับพบสำเร็จ: ${lat}, ${lng} (ความแม่นยำรัศมี ${accuracy} เมตร)`);
+                },
+                (err) => {
+                    hideLoad();
+                    alert("❌ ไม่สามารถระบุตำแหน่งได้: โปรดตรวจสอบว่าเปิดสิทธิ์ยอมรับการเข้าถึงพิกัด GPS บนอุปกรณ์ของคุณแล้ว");
+                },
+                { enableHighAccuracy: true, timeout: 12000 }
+            );
+        }
 
         // --- 🔼 ฟังก์ชันยืด/หดแถบค้นหาบนสุด ---
         function toggleTopBar() {
@@ -347,7 +411,7 @@
             if(e) e.currentTarget.classList.add('active');
         }
 
-        // --- 💾 ฐานข้อมูลและสมองกล ---
+        // --- 💾 ฐานข้อมูลและสมองกลคัดกรอง ---
         let memoryCache = {}; let allData = []; 
         const activeLayers = {}; const cartItems = new Map(); 
         
@@ -390,7 +454,6 @@
             const pr = document.getElementById("f-prov").value;
             const pj = document.getElementById("f-proj").value;
             
-            // ดึงคำค้นหาและลบช่องว่างออก
             const kClean = cleanStr(document.getElementById("search-box").value);
 
             const filtered = allData.filter(d => {
@@ -581,7 +644,7 @@
             }
         }
 
-        // --- 🗺️ 6. เรนเดอร์แผนที่บน Leaflet ---
+        // --- 🗺️ 6. เรนเดอร์แผนที่เวกเตอร์/โดรน ---
         async function toggleLayer(safeId, url, turnOn, type, prov) {
             if (turnOn && !activeLayers[safeId]) {
                 if (type === 'v') {
@@ -616,7 +679,7 @@
             }
         }
 
-        // --- 📤 7. ระบบจัดการฟอร์มอัปโหลดข้อมูล (Auto-Complete Datalist) ---
+        // --- 📤 7. ระบบฟอร์มอัปโหลดข้อมูลแบบสืบค้นดักคำเดาคำ ---
         async function loadUploadAgencyData(agency) {
             if(!agency) return;
             showLoad(`กำลังดึงตัวเลือกสำหรับฟอร์ม ${agency}... 🔄`);
@@ -637,16 +700,13 @@
             const provInput = document.getElementById('up-prov').value;
             const projInput = document.getElementById('up-proj-name').value;
 
-            // อัปเดตรายการจังหวัด
             const provs = [...new Set(data.map(d => d['จังหวัด']))].filter(Boolean).sort();
             document.getElementById('dl-prov').innerHTML = provs.map(p => `<option value="${p}">`).join('');
 
-            // อัปเดตรายการโครงการ
             const filteredByProv = data.filter(d => !provInput || d['จังหวัด'] === provInput);
             const projs = [...new Set(filteredByProv.map(d => d['ชื่อโครงการ']))].filter(Boolean).sort();
             document.getElementById('dl-proj').innerHTML = projs.map(p => `<option value="${p}">`).join('');
 
-            // อัปเดตรายการงานย่อย
             const filteredByProj = filteredByProv.filter(d => !projInput || d['ชื่อโครงการ'] === projInput);
             const jobs = [...new Set(filteredByProj.map(d => d['ชื่องาน']))].filter(Boolean).sort();
             document.getElementById('dl-job').innerHTML = jobs.map(j => (j && j !== 'undefined') ? `<option value="${j}">` : '').join('');
@@ -697,15 +757,21 @@
             }
         }
 
-      // --- 🌐 8. ระบบดึงแผนที่ระวางที่ดินระดับประเทศ (WMS) ---
+        // --- 🌐 8. ระบบเชื่อมต่อ WMS แผนที่ระวางที่ดินระดับประเทศ (Longdo HD) ---
         const wmsLandLayer = L.tileLayer.wms('https://ms.longdo.com/mapproxy/service', {
-            layers: 'dol_hd', // 🎯 เจอตัวแล้ว! เลเยอร์ระวางที่ดินกรมที่ดิน (Longdo HD)
+            layers: 'dol_hd', 
             format: 'image/png',
             transparent: true,
             maxZoom: 22,
             opacity: 0.7,
-            zIndex: 1000 // 🌟 ดันชั้นข้อมูลนี้ให้อยู่บนสุด ป้องกันแผนที่ดาวเทียมทับ
+            zIndex: 1000
         });
+
+        // ฟิลเตอร์แต่งสีรูปภาพ WMS คุมโทนผ่าน CSS Filter แว่นขยายสีตัดกับดาวเทียมมืด
+        wmsLandLayer.on('tileload', function(e) {
+            e.tile.style.filter = 'brightness(1.4) contrast(1.25) hue-rotate(0deg)'; 
+        });
+
         function toggleWMS(isChecked) {
             if(isChecked) {
                 showLoad("กำลังดึงระวางที่ดินระดับประเทศ... 🗺️");
@@ -713,7 +779,6 @@
                 
                 wmsLandLayer.on('load', hideLoad);
                 wmsLandLayer.on('tileerror', hideLoad);
-                // ตั้งปลด Loading เผื่อเซิร์ฟเวอร์ต้นทางช้า
                 setTimeout(hideLoad, 2000); 
             } else {
                 map.removeLayer(wmsLandLayer);
@@ -724,7 +789,7 @@
             wmsLandLayer.setOpacity(val);
         }
 
-        // --- 🚀 9. โหลดข้อมูลตั้งต้นเมื่อเปิดเว็บ ---
+        // --- 🚀 9. โหลดข้อมูลเมนูตั้งต้นเมื่อหน้าจอทำงาน ---
         const aSel = document.getElementById("f-agency"); 
         const upAgencySel = document.getElementById("up-agency");
         for(let i=1; i<=17; i++) {
