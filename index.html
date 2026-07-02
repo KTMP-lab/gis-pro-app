@@ -104,7 +104,7 @@
         .leaflet-control-locate a { background: rgba(15, 23, 42, 0.9) !important; color: #4285F4 !important; border: 1px solid rgba(255,255,255,0.1) !important; transform: scale(0.85); transform-origin: top right; }
         .leaflet-control-locate a:hover { background: #1e293b !important; color: #357ae8 !important; }
 
-        /* 🎯 เป้าเล็งกากบาท (Crosshair) ขนาดเล็กจิ๋ว กระทัดรัด */
+        /* 🎯 เป้าเล็งกากบาท (Crosshair) */
         .screen-center-marker { position: absolute; top: 50%; left: 50%; z-index: 9996; pointer-events: none; transform: translate(-50%, -50%); width: 0; height: 0; }
         .screen-center-marker::before { content: ''; position: absolute; top: -0.5px; left: -8px; width: 16px; height: 1.5px; background: #ffffff; box-shadow: 0 0 2px rgba(0,0,0,0.8); }
         .screen-center-marker::after { content: ''; position: absolute; top: -8px; left: -0.5px; width: 1.5px; height: 16px; background: #ffffff; box-shadow: 0 0 2px rgba(0,0,0,0.8); }
@@ -282,9 +282,18 @@
                 </div>
 
                 <div class="form-group"><label>7. ระยะทาง (กม.ต้น - กม.ปลาย)</label><div style="display:flex; gap:8px;"><input type="number" step="0.001" class="form-control" id="up-km-start" placeholder="กม.ต้น" required><input type="number" step="0.001" class="form-control" id="up-km-end" placeholder="กม.ปลาย" required></div></div>
-                <div class="form-group"><label>8. ประเภทไฟล์</label><select class="form-control" id="up-file-type" required><option value="KMZ">🗂️ เวกเตอร์ (KMZ/KML)</option><option value="Drone">🚁 แผนที่โดรน (XYZ/Drone)</option></select></div>
                 
-                <div class="form-group"><label>9. อัปโหลดไฟล์ (KMZ/Drone) ขึ้นคลาวด์ R2</label><input type="file" class="form-control" id="up-file-data" required></div>
+                <div class="form-group">
+                    <label>8. ประเภทไฟล์</label>
+                    <select class="form-control" id="up-file-type" required>
+                        <option value="KMZ">🗂️ เวกเตอร์ (KMZ/KML)</option>
+                        <option value="Drone">🚁 แผนที่โดรน (GeoTIFF/XYZ)</option>
+                        <option value="Image">🖼️ รูปภาพสำรวจหน้างาน (JPG/PNG)</option>
+                        <option value="Excel">📊 ตารางข้อมูล (Excel/CSV)</option>
+                    </select>
+                </div>
+                
+                <div class="form-group"><label>9. อัปโหลดไฟล์ขึ้นคลาวด์ R2</label><input type="file" class="form-control" id="up-file-data" required></div>
                 
                 <button type="submit" class="btn-submit">💾 บันทึกและซิงค์ข้อมูลลง Sheets</button>
             </form>
@@ -375,7 +384,7 @@
                 .openOn(map);
         });
 
-        // --- ⏳ ฟังก์ชันโหลดและวาดไฟล์ KMZ/KML ชั่วคราวลงหน้าจอสนาม (ไม่ต้องอัปโหลดขึ้นเซิร์ฟเวอร์) ---
+        // --- ⏳ ฟังก์ชันโหลดและวาดไฟล์ KMZ/KML ชั่วคราวลงหน้าจอสนาม ---
         function loadTempLayer(input) {
             if (!input.files || !input.files[0]) return;
             const file = input.files[0];
@@ -514,38 +523,52 @@
             updateFileCounts(filtered);
         }
 
-        // --- 📥 3. ระบบหน้าต่างคลังโครงการ (ดาวน์โหลดไฟล์) ---
+        // --- 📥 3. ระบบหน้าต่างคลังโครงการ (แยกประเภท และ ซ่อนโดรน) ---
         window.openDownloadModal = function(projId, jobId) {
             let project = allData.find(d => d['รหัสโครงการ'] == projId && (d['รหัสงาน'] == jobId || (!d['รหัสงาน'] && !jobId)));
             let html = "";
             
             if (project && project.files && project.files.length > 0) {
-                html = project.files.map(f => {
-                    let url = f['ลิงก์จาก R2'];
-                    if(!url || url === "-") return '';
-                    let icon = (f['ประเภทไฟล์'] === 'KMZ' || f['ประเภทไฟล์'] === 'KML') ? '🗂️' : '🚁';
-                    let fileName = f['ชื่องาน'] || 'ไฟล์ข้อมูลโครงการ';
-                    
-                    return `
-                    <div style="display:flex; justify-content:space-between; align-items:center; background:#f8fafc; padding:8px 12px; margin-bottom:8px; border-radius:6px; border:1px solid #e2e8f0;">
-                        <div style="flex:1; overflow:hidden; padding-right:10px;">
-                            <strong style="font-size:11.5px; color:#0f172a; display:block; white-space:nowrap; text-overflow:ellipsis;">${icon} ${fileName}</strong>
-                            <small style="color:#64748b; font-size:10px;">ประเภท: ${f['ประเภทไฟล์']}</small>
-                        </div>
-                        <a href="${url}" target="_blank" style="background:#2563eb; color:#fff; padding:6px 10px; border-radius:4px; text-decoration:none; font-size:10.5px; font-weight:600; flex-shrink:0; transition:0.2s;" onmouseover="this.style.background='#1d4ed8'" onmouseout="this.style.background='#2563eb'">⬇️ โหลดไฟล์</a>
-                    </div>`;
-                }).join('');
+                // กรองเอาเฉพาะไฟล์ที่ไม่ใช่โดรน
+                let allowedFiles = project.files.filter(f => f['ประเภทไฟล์'] !== 'Drone');
+                
+                if (allowedFiles.length > 0) {
+                    html = allowedFiles.map(f => {
+                        let url = f['ลิงก์จาก R2'];
+                        if(!url || url === "-") return '';
+                        
+                        let type = f['ประเภทไฟล์'];
+                        let icon = '📄';
+                        let btnTxt = '⬇️ โหลดไฟล์';
+                        
+                        // สมองกลแยกประเภทไอคอนและปุ่ม
+                        if (type === 'KMZ' || type === 'KML') { icon = '🗂️'; btnTxt = '⬇️ โหลดไฟล์'; }
+                        else if (type === 'Image') { icon = '🖼️'; btnTxt = '👁️ ดูรูปภาพ'; }
+                        else if (type === 'Excel') { icon = '📊'; btnTxt = '⬇️ เปิดตาราง'; }
+                        
+                        let fileName = f['ชื่องาน'] || 'ไฟล์เอกสาร/รูปภาพโครงการ';
+                        
+                        return `
+                        <div style="display:flex; justify-content:space-between; align-items:center; background:#f8fafc; padding:8px 12px; margin-bottom:8px; border-radius:6px; border:1px solid #e2e8f0;">
+                            <div style="flex:1; overflow:hidden; padding-right:10px;">
+                                <strong style="font-size:11.5px; color:#0f172a; display:block; white-space:nowrap; text-overflow:ellipsis;">${icon} ${fileName}</strong>
+                                <small style="color:#64748b; font-size:10px;">ประเภท: ${type}</small>
+                            </div>
+                            <a href="${url}" target="_blank" style="background:#2563eb; color:#fff; padding:6px 10px; border-radius:4px; text-decoration:none; font-size:10.5px; font-weight:600; flex-shrink:0; transition:0.2s;" onmouseover="this.style.background='#1d4ed8'" onmouseout="this.style.background='#2563eb'">${btnTxt}</a>
+                        </div>`;
+                    }).join('');
+                }
             }
             
             if(!html) {
-                html = '<div style="text-align:center; color:#64748b; padding:20px 0;"><span style="font-size:24px; display:block; margin-bottom:10px;">📂</span><span style="font-size:12px;">ยังไม่มีไฟล์จัดเก็บในระบบสำหรับโครงการนี้</span></div>';
+                html = '<div style="text-align:center; color:#64748b; padding:20px 0;"><span style="font-size:24px; display:block; margin-bottom:10px;">📂</span><span style="font-size:12px;">ยังไม่มีไฟล์เอกสาร/รูปภาพจัดเก็บในระบบสำหรับโครงการนี้</span></div>';
             }
             
             document.getElementById('download-list').innerHTML = html;
             document.getElementById('download-modal').classList.add('show');
         };
 
-        // --- 🗂️ 4. อัปเดตรายการไฟล์ (KMZ / Drone) ---
+        // --- 🗂️ 4. อัปเดตรายการไฟล์ (นับเฉพาะ KMZ / Drone เท่านั้น) ---
         function updateFileCounts(data) {
             let vMap = new Map(), dMap = new Map();
             let y_val = document.getElementById("f-year").value;
@@ -557,6 +580,9 @@
                 (p.files || []).forEach(f => {
                     let url = f['ลิงก์จาก R2'], type = f['ประเภทไฟล์'], prov = f['จังหวัด']||p['จังหวัด']||'';
                     if(!url || url==="-") return;
+                    
+                    // ข้ามไฟล์ Excel และ รูปภาพ ไม่ให้นำมานับและใส่ลงตะกร้าแผนที่
+                    if (type === 'Excel' || type === 'Image') return;
                     
                     let fullId = `สร.รว.${aNum}-${y}-${p['รหัสโครงการ']}-${f['รหัสงาน'] || '000'}`;
                     let n = `${fullId}|||${f['ชื่องาน']||'ไม่ระบุ'}`; 
@@ -752,7 +778,7 @@
             document.getElementById('dl-job').innerHTML = jobs.map(j => (j && j !== 'undefined') ? `<option value="${j}">` : '').join('');
         }
 
-        // 🎯 [อัปเดตใหม่] ฟังก์ชันอัปโหลดส่งเป็นก้อนไฟล์ (FormData) แทนลิงก์ข้อความ
+        // ฟังก์ชันอัปโหลดส่งเป็นก้อนไฟล์ (FormData)
         async function uploadFile(e) {
             e.preventDefault();
             
@@ -762,7 +788,6 @@
                 return;
             }
 
-            // แพ็คข้อมูลทั้งหมดใส่กล่อง FormData เพื่อเตรียมส่งไฟล์
             const formData = new FormData();
             formData.append('agency', document.getElementById('up-agency').value);
             formData.append('year', parseInt(document.getElementById('up-year').value) || 0);
@@ -774,13 +799,13 @@
             formData.append('kmStart', parseFloat(document.getElementById('up-km-start').value) || 0);
             formData.append('kmEnd', parseFloat(document.getElementById('up-km-end').value) || 0);
             formData.append('fileType', document.getElementById('up-file-type').value);
-            formData.append('file', fileInput.files[0]); // แนบไฟล์จริงเข้าไปตรงนี้
+            formData.append('file', fileInput.files[0]); 
 
             showLoad("กำลังอัปโหลดไฟล์ขึ้นคลาวด์และบันทึกลง Sheets... 🚀");
             try {
                 const response = await fetch(`${API}/api/projects`, {
                     method: 'POST',
-                    body: formData // ส่งเป็นก้อนข้อมูลแทน JSON
+                    body: formData 
                 });
                 hideLoad();
                 
