@@ -254,7 +254,7 @@
     <div id="upload-modal" class="modal-overlay">
         <div class="modal-box">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; border-bottom:1px solid #e2e8f0; padding-bottom:10px;">
-                <span style="font-weight:600; color:#2563eb; font-size:14px;">📤 อัปโหลดข้อมูลเข้าสู่ระบบ</span>
+                <span style="font-weight:600; color:#2563eb; font-size:14px;">📤 อัปโหลดข้อมูลถาวรเข้าสู่ระบบ</span>
                 <button onclick="document.getElementById('upload-modal').classList.remove('show')" style="background:none; border:none; color:#94a3b8; cursor:pointer; font-size:14px;">❌</button>
             </div>
             <form id="upload-form" onsubmit="uploadFile(event)">
@@ -283,8 +283,10 @@
 
                 <div class="form-group"><label>7. ระยะทาง (กม.ต้น - กม.ปลาย)</label><div style="display:flex; gap:8px;"><input type="number" step="0.001" class="form-control" id="up-km-start" placeholder="กม.ต้น" required><input type="number" step="0.001" class="form-control" id="up-km-end" placeholder="กม.ปลาย" required></div></div>
                 <div class="form-group"><label>8. ประเภทไฟล์</label><select class="form-control" id="up-file-type" required><option value="KMZ">🗂️ เวกเตอร์ (KMZ/KML)</option><option value="Drone">🚁 แผนที่โดรน (XYZ/Drone)</option></select></div>
-                <div class="form-group"><label>9. ลิงก์ที่อยู่ไฟล์จาก R2</label><input type="url" class="form-control" id="up-file-url" placeholder="https://pub-..." required></div>
-                <button type="submit" class="btn-submit">💾 บันทึกและซิงค์ข้อมูล</button>
+                
+                <div class="form-group"><label>9. อัปโหลดไฟล์ (KMZ/Drone) ขึ้นคลาวด์ R2</label><input type="file" class="form-control" id="up-file-data" required></div>
+                
+                <button type="submit" class="btn-submit">💾 บันทึกและซิงค์ข้อมูลลง Sheets</button>
             </form>
         </div>
     </div>
@@ -336,7 +338,7 @@
         const loadingBox = document.getElementById('loading-overlay');
         const loadingMsg = document.getElementById('loading-msg');
         function showLoad(msg) { loadingMsg.innerText = msg || "กำลังประมวลผล..."; loadingBox.classList.add('show'); }
-        function hideLoad() { loadingBox.remove('show'); }
+        function hideLoad() { loadingBox.classList.remove('show'); }
 
         // --- 🎯 ฟังก์ชันแสดงพิกัดแบบเล็งจุดกึ่งกลางหน้าจอ (Center Target) ---
         function updateCenterHUD() {
@@ -373,7 +375,7 @@
                 .openOn(map);
         });
 
-        // --- ⏳ [ใหม่] ฟังก์ชันโหลดและวาดไฟล์ KMZ/KML ชั่วคราวลงหน้าจอสนาม ---
+        // --- ⏳ ฟังก์ชันโหลดและวาดไฟล์ KMZ/KML ชั่วคราวลงหน้าจอสนาม (ไม่ต้องอัปโหลดขึ้นเซิร์ฟเวอร์) ---
         function loadTempLayer(input) {
             if (!input.files || !input.files[0]) return;
             const file = input.files[0];
@@ -383,11 +385,9 @@
 
             showLoad("กำลังดึงข้อมูลไฟล์สนามชั่วคราว... 📂");
 
-            // บันทึกเข้าคลังแผงควบคุมฝั่งขวา
             cartItems.set(safeId, { url, name, prov: '', type: 'v', checked: true, opacity: 1, isTemp: true });
             renderCartUI();
 
-            // สั่ง Leaflet วาดโครงข่ายแนวเส้นลงแผนที่
             const l = L.kmzLayer(url);
             activeLayers[safeId] = l;
             l.on('load', e => {
@@ -403,7 +403,7 @@
             });
             l.addTo(map);
 
-            input.value = ''; // ล้างสถานะเพื่อให้กดเลือกไฟล์ซ้ำเดิมได้
+            input.value = ''; 
         }
 
         // --- 🔼 ฟังก์ชันยืด/หดแถบค้นหาบนสุด ---
@@ -632,7 +632,6 @@
                     </div>`;
             });
 
-            // 📥 สคริปต์สลับมุมมองกล่องนำเข้าไฟล์ชั่วคราวซ่อนรูป
             const tempUploadBox = `
                 <div style="position:relative; text-align:center; padding: 15px 10px; border: 1px dashed rgba(56, 189, 248, 0.3); background: rgba(56, 189, 248, 0.05); border-radius: 8px; margin-top: 10px; cursor: pointer; transition: 0.2s;" onmouseover="this.style.background='rgba(56,189,248,0.1)'" onmouseout="this.style.background='rgba(56,189,248,0.05)'">
                     <input type="file" accept=".kmz,.kml" style="position:absolute; top:0; left:0; width:100%; height:100%; opacity:0; cursor:pointer; z-index:2;" onchange="loadTempLayer(this)">
@@ -753,33 +752,40 @@
             document.getElementById('dl-job').innerHTML = jobs.map(j => (j && j !== 'undefined') ? `<option value="${j}">` : '').join('');
         }
 
+        // 🎯 [อัปเดตใหม่] ฟังก์ชันอัปโหลดส่งเป็นก้อนไฟล์ (FormData) แทนลิงก์ข้อความ
         async function uploadFile(e) {
             e.preventDefault();
-            const payload = {
-                agency: document.getElementById('up-agency').value,
-                year: parseInt(document.getElementById('up-year').value) || 0,
-                projId: document.getElementById('up-proj-id').value,
-                jobId: document.getElementById('up-job-id').value,
-                prov: document.getElementById('up-prov').value,
-                projName: document.getElementById('up-proj-name').value,
-                jobName: document.getElementById('up-job-name').value,
-                kmStart: parseFloat(document.getElementById('up-km-start').value) || 0,
-                kmEnd: parseFloat(document.getElementById('up-km-end').value) || 0,
-                fileType: document.getElementById('up-file-type').value,
-                fileUrl: document.getElementById('up-file-url').value
-            };
+            
+            const fileInput = document.getElementById('up-file-data');
+            if (!fileInput.files || fileInput.files.length === 0) {
+                alert("❌ กรุณาเลือกไฟล์ที่จะอัปโหลดก่อนครับบอส!");
+                return;
+            }
 
-            showLoad("กำลังซิงค์และบันทึกข้อมูลเข้าสู่เซิร์ฟเวอร์... 💾");
+            // แพ็คข้อมูลทั้งหมดใส่กล่อง FormData เพื่อเตรียมส่งไฟล์
+            const formData = new FormData();
+            formData.append('agency', document.getElementById('up-agency').value);
+            formData.append('year', parseInt(document.getElementById('up-year').value) || 0);
+            formData.append('projId', document.getElementById('up-proj-id').value);
+            formData.append('jobId', document.getElementById('up-job-id').value);
+            formData.append('prov', document.getElementById('up-prov').value);
+            formData.append('projName', document.getElementById('up-proj-name').value);
+            formData.append('jobName', document.getElementById('up-job-name').value);
+            formData.append('kmStart', parseFloat(document.getElementById('up-km-start').value) || 0);
+            formData.append('kmEnd', parseFloat(document.getElementById('up-km-end').value) || 0);
+            formData.append('fileType', document.getElementById('up-file-type').value);
+            formData.append('file', fileInput.files[0]); // แนบไฟล์จริงเข้าไปตรงนี้
+
+            showLoad("กำลังอัปโหลดไฟล์ขึ้นคลาวด์และบันทึกลง Sheets... 🚀");
             try {
                 const response = await fetch(`${API}/api/projects`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
+                    body: formData // ส่งเป็นก้อนข้อมูลแทน JSON
                 });
                 hideLoad();
                 
                 if(response.ok) {
-                    alert("✅ บันทึกข้อมูลสำเร็จเรียบร้อยครับบอส!");
+                    alert("✅ บันทึกไฟล์และข้อมูลสำเร็จเรียบร้อยครับบอส!");
                     document.getElementById('upload-modal').classList.remove('show');
                     document.getElementById('upload-form').reset();
                     
@@ -790,7 +796,7 @@
                     }
                 } else {
                     const err = await response.json();
-                    alert(`❌ ระบบไม่สามารถบันทึกได้: ${err.message || 'เกิดข้อผิดพลาด'}`);
+                    alert(`❌ ระบบหลังบ้านแจ้งปัญหา: ${err.message || 'เกิดข้อผิดพลาดในการอัปโหลด'}`);
                 }
             } catch (error) {
                 hideLoad();
