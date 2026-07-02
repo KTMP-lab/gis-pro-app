@@ -94,11 +94,11 @@
         .leaflet-control-polyline-measure { transform: scale(0.85); transform-origin: top right; }
         #hud-box { position: absolute; bottom: 20px; right: 15px; background: rgba(11, 15, 25, 0.85); backdrop-filter: blur(10px); color: #00FFCC; padding: 10px 18px; border-radius: 8px; font-family: monospace; font-size: 12px; z-index: 9996; border: 1px solid rgba(0, 255, 204, 0.3); }
 
-        /* 📍 ดีไซน์ปุ่ม GPS และหมุดพิกัด */
-        .custom-gps-btn { background: rgba(15, 23, 42, 0.9) !important; color: #f59e0b !important; border: 1px solid rgba(255,255,255,0.1) !important; cursor: pointer; width: 34px !important; height: 34px !important; font-size: 18px !important; border-radius: 4px !important; margin-top: 8px !important; display: flex !important; align-items: center; justify-content: center; box-shadow: 0 1px 5px rgba(0,0,0,0.6) !important; transition: 0.2s; line-height: 1 !important; transform: scale(0.85); transform-origin: top right; }
-        .custom-gps-btn:hover { background: #1e293b !important; }
-        .gps-pulse { width: 14px; height: 14px; background: #f59e0b; border-radius: 50%; border: 2px solid white; box-shadow: 0 0 10px rgba(245, 158, 11, 0.8); animation: pulseGps 1.5s infinite; }
-        @keyframes pulseGps { 0% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(245, 158, 11, 0); } 100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); } }
+        /* 🎨 ดีไซน์ปุ่มและหมุดเรดาร์ตำแหน่ง (Google Blue) */
+        .custom-gps-btn { background: rgba(15, 23, 42, 0.9) !important; color: #4285F4 !important; border: 1px solid rgba(255,255,255,0.1) !important; cursor: pointer; width: 34px !important; height: 34px !important; font-size: 18px !important; border-radius: 4px !important; margin-top: 8px !important; display: flex !important; align-items: center; justify-content: center; box-shadow: 0 1px 5px rgba(0,0,0,0.6) !important; transition: 0.2s; line-height: 1 !important; transform: scale(0.85); transform-origin: top right; }
+        .custom-gps-btn:hover { background: #1e293b !important; color: #357ae8 !important; }
+        .gps-pulse { width: 14px; height: 14px; background: #4285F4; border-radius: 50%; border: 2px solid white; box-shadow: 0 0 12px rgba(66, 133, 244, 0.8); animation: pulseGps 1.5s infinite; }
+        @keyframes pulseGps { 0% { box-shadow: 0 0 0 0 rgba(66, 133, 244, 0.7); } 70% { box-shadow: 0 0 0 12px rgba(66, 133, 244, 0); } 100% { box-shadow: 0 0 0 0 rgba(66, 133, 244, 0); } }
 
         /* 📤 ป๊อปอัพอัปโหลด และ 📥 ป๊อปอัพดาวน์โหลด */
         .modal-overlay { position: fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(15,23,42,0.6); backdrop-filter:blur(6px); z-index:100000; display:flex; align-items:center; justify-content:center; opacity:0; pointer-events:none; transition:0.3s; }
@@ -281,6 +281,10 @@
         const API = "https://my-gis-backend.onrender.com";
         const map = L.map('map', { zoomControl: false }).setView([15.5, 100], 6);
         
+        // --- 🎯 อัปเกรดเมาส์เป็นเป้าเล็ง (Crosshair) แบบโปรแกรม GIS ---
+        // ทำให้ช่างรู้ตำแหน่งพิกัดเป๊ะๆ แบบมิลลิเมตร ว่าตัวเลขมุมขวาล่างคือจุดไหนของจอ
+        document.head.insertAdjacentHTML('beforeend', '<style>.leaflet-container { cursor: crosshair !important; }</style>');
+
         // --- 🗺️ ตั้งค่าแผนที่ฐาน (Base Maps) ---
         const googleMaps = L.tileLayer('https://mt1.google.com/vt/lyrs=r&x={x}&y={y}&z={z}');
         const googleSatellite = L.tileLayer('https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}');
@@ -298,14 +302,14 @@
         // 📏 ปุ่มไม้บรรทัดวัดระยะ (จะถูกแอดตัวแรกในฝั่งขวาบน)
         L.control.polylineMeasure({ position: 'topright', unit: 'metres' }).addTo(map);
 
-        // --- 📍 ระบบสร้างปุ่มตำแหน่ง GPS ใต้ปุ่มไม้บรรทัดขวามือ ---
+        // --- 📍 ระบบสร้างปุ่มตำแหน่ง GPS (สไตล์ Google Blue) ใต้ปุ่มไม้บรรทัด ---
         L.Control.GpsButton = L.Control.extend({
             onAdd: function(map) {
                 const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control');
                 const button = L.DomUtil.create('a', 'custom-gps-btn', container);
                 button.innerHTML = '📍';
                 button.href = '#';
-                button.title = 'Detect Location from GPS';
+                button.title = 'ไปยังตำแหน่งปัจจุบันของคุณ (GPS)';
 
                 L.DomEvent.on(button, 'click', function(e) {
                     L.DomEvent.stopPropagation(e);
@@ -316,7 +320,7 @@
                 return container;
             }
         });
-        // แอดปุ่ม GPS ต่อท้ายไม้บรรทัดทันทีเพื่อให้อยู่ด้านใต้พอดี
+        // แอดปุ่ม GPS ลงแผนที่
         new L.Control.GpsButton({ position: 'topright' }).addTo(map);
 
         // --- 🌀 ระบบหน้าจอ Loading ---
@@ -325,7 +329,7 @@
         function showLoad(msg) { loadingMsg.innerText = msg || "กำลังประมวลผล..."; loadingBox.classList.add('show'); }
         function hideLoad() { loadingBox.classList.remove('show'); }
 
-        // --- 📍 แสดงพิกัดเมาส์ระบบ UTM ---
+        // --- 📍 แสดงพิกัดเป้าเล็งระบบ UTM มุมขวาล่าง ---
         map.on('mousemove', e => {
             const z = Math.floor((e.latlng.lng + 180) / 6) + 1;
             const utm = proj4('+proj=longlat', `+proj=utm +zone=${z} +units=m`, [e.latlng.lng, e.latlng.lat]);
@@ -339,7 +343,7 @@
                 return;
             }
 
-            showLoad("กำลังตรวจจับพิกัด GPS ปัจจุบันของคุณ... 📡");
+            showLoad("กำลังค้นหาดาวเทียม GPS... 📡");
             
             navigator.geolocation.getCurrentPosition(
                 (position) => {
@@ -349,16 +353,16 @@
 
                     map.flyTo([lat, lng], 17);
 
-                    // วงกลมรัศมีความคลาดเคลื่อนพิกัด
+                    // วงกลมรัศมีความคลาดเคลื่อนพิกัด (Google Blue)
                     L.circle([lat, lng], {
                         radius: accuracy,
-                        color: '#38bdf8',
-                        fillColor: '#38bdf8',
+                        color: '#4285F4',
+                        fillColor: '#4285F4',
                         fillOpacity: 0.15,
                         weight: 1
                     }).addTo(map);
 
-                    // หมุดตำแหน่งสีส้มพร้อมไฟกระพริบเอฟเฟกต์ CSS
+                    // หมุดตำแหน่งพร้อมไฟกระพริบเอฟเฟกต์ CSS (Google Blue)
                     L.marker([lat, lng], {
                         icon: L.divIcon({
                             className: 'gps-marker-container',
@@ -415,7 +419,6 @@
         let memoryCache = {}; let allData = []; 
         const activeLayers = {}; const cartItems = new Map(); 
         
-        // สมองกลจัดการลบเว้นวรรค (Space Ignore) เพื่อการค้นหา
         const cleanStr = str => (str || '').toString().toLowerCase().replace(/\s+/g, '');
         const simpleHash = str => new Uint32Array([str.split('').reduce((h, c) => Math.imul(31, h) + c.charCodeAt(0) | 0, 0)])[0].toString(36);
 
@@ -767,7 +770,7 @@
             zIndex: 1000
         });
 
-        // ฟิลเตอร์แต่งสีรูปภาพ WMS คุมโทนผ่าน CSS Filter แว่นขยายสีตัดกับดาวเทียมมืด
+        // ฟิลเตอร์แต่งสีรูปภาพ WMS คุมโทน
         wmsLandLayer.on('tileload', function(e) {
             e.tile.style.filter = 'brightness(1.4) contrast(1.25) hue-rotate(0deg)'; 
         });
