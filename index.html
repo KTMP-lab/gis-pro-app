@@ -23,7 +23,7 @@
         body, html { margin: 0; padding: 0; width: 100vw; height: 100vh; overflow: hidden; font-family: 'Kanit', sans-serif; background-color: #0b0f19; }
         #map { width: 100%; height: 100%; z-index: 1; }
         
-        /* 🌀 ระบบโหลดดิ้ง (ทับหน้าสุด) */
+        /* 🌀 ระบบโหลดดิ้ง (ดัน z-index ให้อยู่หน้าสุด 999999 ทับป๊อปอัพทั้งหมด) */
         #loading-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(11, 15, 25, 0.85); backdrop-filter: blur(8px); z-index: 999999; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.3s; opacity: 0; pointer-events: none; }
         #loading-overlay.show { opacity: 1; pointer-events: all; }
         .spinner-wrapper { position: relative; width: 100px; height: 100px; display: flex; align-items: center; justify-content: center; }
@@ -34,9 +34,9 @@
         @keyframes pulseText { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
 
         /* ✨ สไตล์กระจกดำ */
-        .glass-panel { background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; box-shadow: 0 10px 35px rgba(0,0,0,0.6); color: #f8fafc; z-index: 9997; }
+        .glass-panel { background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; box-shadow: 0 10px 35px rgba(0,0,0,0.6); color: #f8fafc; }
         
-        /* 📍 แถบค้นหาบนสุด */
+        /* 📍 แถบค้นหาบนสุด (z-index 9999 อยู่เหนือ Sidebar) */
         #top-bar { position: absolute; top: 15px; left: 50%; transform: translateX(-50%); width: 75%; display: flex; gap: 8px; padding: 10px 16px; align-items: center; justify-content: center; z-index: 9999; transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); box-sizing: border-box; } 
         #top-bar.collapsed { transform: translate(-50%, -100%); }
         #toggle-topbar-btn { position: absolute; bottom: -24px; left: 50%; transform: translateX(-50%); width: 40px; height: 24px; background: rgba(37, 99, 235, 0.85); border: none; border-radius: 0 0 12px 12px; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 11px; box-shadow: 0 4px 8px rgba(0,0,0,0.4); }
@@ -45,28 +45,31 @@
         select option { background: #0f172a; color: #f8fafc; }
         #search-box { flex: 1.6; background: rgba(15, 23, 42, 0.95); border: 1.5px solid #2563eb; color: #38bdf8; }
 
-        /* 🔘 กลุ่มปุ่มควบคุม (จัดระเบียบเงาความลอยให้เท่ากันทั้งหมด) */
-        .hud-btn { position: absolute; z-index: 9998; padding: 8px 14px; background: #0f172a; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; font-family: 'Kanit'; cursor: pointer; font-weight: 600; color: #fff; box-shadow: 0 4px 10px rgba(0,0,0,0.5); transition: 0.3s; font-size: 13px; } 
-        .hud-btn:hover { background: #1e293b; }
-        
-        /* 🎯 จัดตำแหน่งปุ่มบนหน้าจอ Desktop */
-        #btn-left { top: 75px; left: 15px; color: #38bdf8; }
-        .leaflet-top.leaflet-right { top: 70px !important; right: 15px !important; z-index: 9995; }
-        /* ย้ายปุ่ม LAYER ไปอยู่ใต้กล่องควบคุมแผนที่ Google */
-        #btn-right { top: 185px; right: 15px; color: #10b981; }
-
-        /* จัดเงาของเครื่องมือ Leaflet ให้ลอยเท่ากับปุ่ม HUD */
-        .leaflet-bar, .leaflet-control-layers { box-shadow: 0 4px 10px rgba(0,0,0,0.5) !important; border: 1px solid rgba(255,255,255,0.1) !important; }
-
-        /* 🗂️ แผงทำงาน ซ้าย-ขวา */
-        #left-sidebar { position: absolute; top: 125px; left: 15px; width: 420px; bottom: 25px; display: flex; flex-direction: column; overflow: hidden; transition: 0.4s; z-index: 9997; } 
+        /* 🗂️ แผงทำงาน ซ้าย-ขวา (z-index 9998 เพื่อให้ทับปุ่ม LAYER และแผนที่) */
+        #left-sidebar { position: absolute; top: 125px; left: 15px; width: 420px; bottom: 25px; display: flex; flex-direction: column; overflow: hidden; transition: 0.4s; z-index: 9998; } 
         #left-sidebar.hidden { transform: translateX(-480px); }
         
-        #right-sidebar { position: absolute; top: 235px; right: 15px; width: 420px; bottom: 25px; display: flex; flex-direction: column; overflow: hidden; transition: 0.4s; border: 1px solid rgba(16, 185, 129, 0.3); z-index: 9997; } 
+        #right-sidebar { position: absolute; top: 235px; right: 15px; width: 420px; bottom: 25px; display: flex; flex-direction: column; overflow: hidden; transition: 0.4s; border: 1px solid rgba(16, 185, 129, 0.3); z-index: 9998; } 
         #right-sidebar.hidden { transform: translateX(480px); }
 
-        .sidebar-header { padding: 12px 16px; background: rgba(15,23,42,0.9); color: #fff; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        /* 🔘 กลุ่มปุ่มควบคุม (จัดระเบียบเงาความลอยให้เท่ากันทั้งหมด) */
+        .hud-btn { position: absolute; padding: 8px 14px; background: #0f172a; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; font-family: 'Kanit'; cursor: pointer; font-weight: 600; color: #fff; box-shadow: 0 4px 10px rgba(0,0,0,0.5); transition: 0.3s; font-size: 13px; z-index: 9996; } 
+        .hud-btn:hover { background: #1e293b; }
         
+        /* 🎯 จัดตำแหน่งปุ่มบนหน้าจอ Desktop (เรียง Map -> LAYER -> Ruler -> GPS) */
+        #btn-left { top: 75px; left: 15px; color: #38bdf8; }
+        .leaflet-top.leaflet-right { top: 70px !important; right: 15px !important; z-index: 9995; }
+        .leaflet-control-layers { z-index: 9997 !important; } /* ให้เมนูแผนที่ทับปุ่ม LAYER เวลายืดออก */
+        
+        /* ย้ายปุ่ม LAYER ไปสอดไส้ใต้ Google Map */
+        #btn-right { top: 125px; right: 15px; color: #10b981; }
+        /* ดันไม้บรรทัดและ GPS ลงไป เพื่อเว้นที่ให้ปุ่ม LAYER ตรงกลาง */
+        .leaflet-control-polyline-measure { margin-top: 50px !important; } 
+
+        /* จัดเงาของเครื่องมือ Leaflet ให้ลอยมีมิติเท่ากับปุ่ม HUD */
+        .leaflet-bar, .leaflet-control-layers { box-shadow: 0 4px 10px rgba(0,0,0,0.5) !important; border: 1px solid rgba(255,255,255,0.1) !important; }
+
+        .sidebar-header { padding: 12px 16px; background: rgba(15,23,42,0.9); color: #fff; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); }
         .tab-header { display: flex; background-color: rgba(15, 23, 42, 0.6); padding: 4px; margin: 12px; border-radius: 8px; gap: 4px; flex-shrink: 0; }
         .tab-btn { flex: 1; padding: 6px; font-family: 'Kanit'; font-weight: 600; font-size: 11.5px; cursor: pointer; border: none; border-radius: 6px; color: #94a3b8; background: none; transition: 0.2s; }
         .tab-btn.active { color: #fff; background: #2563eb; }
@@ -101,7 +104,7 @@
         .leaflet-popup-content-wrapper { background: rgba(15, 23, 42, 0.95) !important; color: #f8fafc !important; border: 1px solid rgba(255,255,255,0.1) !important; border-radius: 6px !important; }
         .leaflet-popup-content { margin: 8px 10px !important; font-size: 11px !important; }
 
-        /* 📤 โมดัล (ป๊อปอัพ) */
+        /* 📤 โมดัล (ป๊อปอัพ - z-index 100000 ให้อยู่หน้าสุดเสมอ) */
         .modal-overlay { position: fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(15,23,42,0.6); backdrop-filter:blur(6px); z-index:100000; display:flex; align-items:center; justify-content:center; opacity:0; pointer-events:none; transition:0.3s; }
         .modal-overlay.show { opacity:1; pointer-events:all; }
         .modal-box { width:420px; max-height:85vh; overflow-y:auto; padding:20px; background: #ffffff; border-radius: 8px; box-shadow: 0 15px 40px rgba(0,0,0,0.5); color: #1e293b; box-sizing: border-box; }
@@ -110,19 +113,20 @@
         .form-control { width:100%; padding:7px 10px; background:#f8fafc; border:1px solid #cbd5e1; border-radius:4px; color:#0f172a; font-family:'Kanit'; font-size:11.5px; box-sizing:border-box; outline:none; }
         .btn-submit { width:100%; padding:10px; background:#2563eb; color:#fff; border:none; border-radius:4px; font-family:'Kanit'; font-weight:600; cursor:pointer; font-size:12.5px; margin-top:5px; }
 
-        /* 📱 Responsive Mobile (สัดส่วนมือถือ ปรับให้สวยงามและไม่ทับซ้อน) */
+        /* 📱 Responsive Mobile (ปรับสัดส่วนหลบขอบ ไม่ให้ปุ่มทับกัน) */
         @media (max-width: 768px) {
-            #top-bar { width: 96%; top: 5px; flex-wrap: wrap; padding: 6px 8px; gap: 4px; }
+            #top-bar { width: 96%; top: 5px; flex-wrap: wrap; padding: 6px 8px; gap: 4px; z-index: 9999; }
             .filter-select { flex: 1 1 45%; font-size: 11px; padding: 6px; margin:0; }
             #search-box { flex: 1 1 100%; margin-top: 2px; }
             
-            #btn-left { top: 95px !important; left: 10px !important; padding: 6px 10px; }
-            .leaflet-top.leaflet-right { top: 90px !important; right: 10px !important; }
-            #btn-right { top: 195px !important; right: 10px !important; padding: 6px 10px; }
+            #btn-left { top: 100px !important; left: 10px !important; padding: 6px 10px; z-index: 9996; }
+            .leaflet-top.leaflet-right { top: 100px !important; right: 10px !important; z-index: 9995; }
+            #btn-right { top: 150px !important; right: 10px !important; padding: 6px 10px; z-index: 9996; }
+            .leaflet-control-polyline-measure { margin-top: 45px !important; }
 
-            /* ปรับขนาดกล่องแผงข้างในมือถือให้พอดีจอ */
-            #left-sidebar { width: 94%; left: 3%; right: 3%; top: 140px; bottom: 10px; } 
-            #right-sidebar { width: 94%; left: 3%; right: 3%; top: 240px; bottom: 10px; } 
+            /* ปรับขนาดแผงคลังข้อมูลในมือถือให้ชิดขอบ เพื่อทับปุ่มที่ไม่จำเป็น */
+            #left-sidebar { width: 94%; left: 3%; right: 3%; top: 95px !important; bottom: 10px !important; z-index: 9998 !important; } 
+            #right-sidebar { width: 94%; left: 3%; right: 3%; top: 95px !important; bottom: 10px !important; z-index: 9998 !important; } 
             
             #left-sidebar.hidden { transform: translateX(-110vw); }
             #right-sidebar.hidden { transform: translateX(110vw); }
@@ -241,6 +245,8 @@
         const googleTerrain = L.tileLayer('https://mt1.google.com/vt/lyrs=t&x={x}&y={y}&z={z}');
 
         googleHybrid.addTo(map);
+        
+        // 🎛️ 1. ปุ่มแผนที่ฐาน (อยู่บนสุด)
         L.control.layers({
             "🗺️ แผนที่ฐานภาพทางถนน": googleMaps,
             "📷 แผนที่ฐานภาพดาวเทียม": googleSatellite,
@@ -248,10 +254,10 @@
             "⛰️ แผนที่ฐานภูมิประเทศ": googleTerrain
         }, null, { position: 'topright' }).addTo(map);
         
-        // 📏 เครื่องมือไม้บรรทัดวัดระยะทางและพื้นที่บนแผนที่
+        // 📏 2. เครื่องมือไม้บรรทัดวัดระยะทาง (โดน CSS ดันลงมาให้อยู่ใต้ปุ่ม LAYER)
         L.control.polylineMeasure({ position: 'topright', unit: 'metres' }).addTo(map);
 
-        // 📍 ปุ่มพิกัดปัจจุบัน GPS (สไตล์ถูกควบคุมด้วย CSS พื้นหลังขาว ไอคอนเข้ม ตามสเปก)
+        // 📍 3. ปุ่มพิกัดปัจจุบัน GPS (พื้นหลังขาว ไอคอนเข้ม)
         L.control.locate({
             position: 'topright',
             strings: { title: "แสดงตำแหน่งปัจจุบันของฉัน (GPS)" },
@@ -262,13 +268,13 @@
             circleStyle: { color: '#2563eb', fillColor: '#2563eb', fillOpacity: 0.15, weight: 1 }
         }).addTo(map);
 
-        // 🌀 ระบบหน้าจอรอโหลด (Loading Overlay ทับหน้าจออัปโหลดถาวร)
+        // 🌀 ระบบหน้าจอรอโหลด (Loading Overlay)
         const loadingBox = document.getElementById('loading-overlay');
         const loadingMsg = document.getElementById('loading-msg');
         function showLoad(msg) { loadingMsg.innerText = msg || "กำลังประมวลผล..."; loadingBox.classList.add('show'); }
         function hideLoad() { loadingBox.classList.remove('show'); }
 
-        // 🎯 สมองกลคำนวณและแสดงพิกัดกึ่งกลางหน้าจอถาวร (WGS84 -> UTM แบบ Real-time)
+        // 🎯 สมองกลคำนวณและแสดงพิกัดกึ่งกลางหน้าจอถาวร (WGS84 -> UTM)
         function updateCenterHUD() {
             const center = map.getCenter();
             const z = Math.floor((center.lng + 180) / 6) + 1;
@@ -283,7 +289,7 @@
         map.on('zoom', updateCenterHUD);
         updateCenterHUD(); 
 
-        // 📌 ระบบคลิกขวา (คอม) หรือกดค้าง (มือถือ) เพื่อสร้างจุดนำทางสากล 3 บรรทัดจิ๋ว
+        // 📌 ระบบคลิกขวา (คอม) หรือกดค้าง (มือถือ) เพื่อสร้างจุดนำทาง
         map.on('contextmenu', function(e) {
             const lat = e.latlng.lat;
             const lng = e.latlng.lng;
@@ -303,7 +309,7 @@
                 .openOn(map);
         });
 
-        // ⏳ ฟังก์ชันโหลดและวาดไฟล์ KMZ/KML ชั่วคราวลงหน้าจอสนาม (รีเซ็ทแล้วหายไป)
+        // ⏳ ฟังก์ชันโหลดและวาดไฟล์ KMZ/KML ชั่วคราวลงหน้าจอสนาม
         function loadTempLayer(input) {
             if (!input.files || !input.files[0]) return;
             const file = input.files[0];
@@ -313,7 +319,6 @@
 
             showLoad("กำลังดึงข้อมูลไฟล์สนามชั่วคราว... 📂");
 
-            // ตั้งค่าสีเริ่มต้นไฟล์ชั่วคราวเป็นสีฟ้า (#38bdf8)
             cartItems.set(safeId, { url, name, prov: '', type: 'v', checked: true, opacity: 1, color: '#38bdf8', isTemp: true });
             renderCartUI();
 
@@ -328,7 +333,7 @@
             });
             l.on('error', () => {
                 hideLoad();
-                alert("❌ โหลดไฟล์ข้อมูลชั่วคราวไม่สำเร็จ โปรดตรวจสอบว่าเป็นไฟล์ KMZ หรือ KML ที่สมบูรณ์");
+                alert("❌ โหลดไฟล์ข้อมูลชั่วคราวไม่สำเร็จ โปรดตรวจสอบว่าไฟล์สมบูรณ์หรือไม่");
                 removeFromCart(safeId);
             });
             l.addTo(map);
@@ -370,7 +375,6 @@
         // 💾 ฐานข้อมูลเชิงตำแหน่งและสมองกลคัดกรอง
         let memoryCache = {}; let allData = []; 
         const activeLayers = {}; const cartItems = new Map(); 
-        
         const cleanStr = str => (str || '').toString().toLowerCase().replace(/\s+/g, '');
         const simpleHash = str => new Uint32Array([str.split('').reduce((h, c) => Math.imul(31, h) + c.charCodeAt(0) | 0, 0)])[0].toString(36);
 
@@ -400,7 +404,7 @@
             if(prov) [...new Set(allData.filter(d => d['จังหวัด'] === prov).map(d => d['ชื่อโครงการ']))].filter(Boolean).sort().forEach(p => pSel.appendChild(new Option(p, p)));
         }
 
-        // 🔍 2. ระบบค้นหากรองข้อมูลตารางหลัก (Space-Ignored Search)
+        // 🔍 2. ระบบค้นหากรองข้อมูลตารางหลัก
         function filterAll() {
             let y_val = document.getElementById("f-year").value;
             let a_val = document.getElementById("f-agency").value;
@@ -441,24 +445,20 @@
             updateFileCounts(filtered);
         }
 
-        // 📥 3. หน้าต่างคลังโครงการ (แยกประเภทไฟล์ และซ่อนไฟล์ภาพโดรน ตามคำสั่งบอส)
+        // 📥 3. หน้าต่างคลังโครงการ (ซ่อนภาพโดรน)
         window.openDownloadModal = function(projId, jobId) {
             let project = allData.find(d => d['รหัสโครงการ'] == projId && (d['รหัสงาน'] == jobId || (!d['รหัสงาน'] && !jobId)));
             let html = "";
             
             if (project && project.files && project.files.length > 0) {
-                // กรองเฉพาะไฟล์ที่ไม่ใช่โดรน (Drone)
                 let allowedFiles = project.files.filter(f => f['ประเภทไฟล์'] !== 'Drone');
-                
                 if (allowedFiles.length > 0) {
                     html = allowedFiles.map(f => {
                         let url = f['ลิงก์จาก R2'];
                         if(!url || url === "-") return '';
                         
                         let type = f['ประเภทไฟล์'];
-                        let icon = '📄';
-                        let btnTxt = '⬇️ โหลดไฟล์';
-                        
+                        let icon = '📄', btnTxt = '⬇️ โหลดไฟล์';
                         if (type === 'KMZ' || type === 'KML') { icon = '🗂️'; }
                         else if (type === 'Image') { icon = '🖼️'; btnTxt = '👁️ ดูรูปภาพ'; }
                         else if (type === 'Excel') { icon = '📊'; btnTxt = '⬇️ เปิดตาราง'; }
@@ -482,7 +482,7 @@
             document.getElementById('download-modal').classList.add('show');
         };
 
-        // 🗂️ 4. ระบบนับจำนวนชั้นข้อมูลแผงซ้าย (นับเฉพาะ KMZ และ โดรน ไม่รวมภาพถ่าย/Excel)
+        // 🗂️ 4. ระบบนับจำนวนชั้นข้อมูล (นับเฉพาะ KMZ / โดรน)
         function updateFileCounts(data) {
             let vMap = new Map(), dMap = new Map();
             let y_val = document.getElementById("f-year").value;
@@ -527,12 +527,11 @@
             renderFn("list-vectors", vArr, 'v'); renderFn("list-drones", dArr, 'd');
         }
 
-        // 🛒 5. ระบบจัดการแผงควบคุม LAYER ที่กำลังแสดง (ปรับโฉม: จานสีคู่แถบเลื่อน + ตัวเลข %)
+        // 🛒 5. ระบบจัดการแผงควบคุม LAYER (มีจานสี + ตัวเลข %)
         function addToCart(safeId, url, name, prov, type) {
             if(cartItems.has(safeId)) { document.getElementById('right-sidebar').classList.remove('hidden'); return; }
             if(cartItems.size >= 10) return alert("🛑 หน้าต่าง LAYER เต็มแล้ว (เปิดได้สูงสุด 10 ชั้นข้อมูล)");
             
-            // ตั้งค่าสีเริ่มต้นเวกเตอร์เป็นสีน้ำเงินอ่อนระบบ (#38bdf8)
             cartItems.set(safeId, { url, name, prov, type, checked: true, opacity: 1, color: '#38bdf8' });
             renderCartUI();
             
@@ -551,7 +550,6 @@
                     return `<span style="color:#38bdf8; font-size:9.5px; font-weight:600;">${p[0]}</span><br>${icon} ${p[1]||''}`;
                 }).join('<br>');
 
-                // แนบจานสี (Color Picker) ไว้ข้างปุ่มเลื่อนเฉพาะไฟล์เวกเตอร์ KMZ เท่านั้น
                 let colorPickerHtml = f.type === 'v' ? `
                     <input type="color" value="${f.color || '#38bdf8'}" onchange="changeColor('${safeId}', this.value)" style="width:22px; height:22px; padding:0; border:1px solid #475569; border-radius:4px; background:none; cursor:pointer;" title="เปลี่ยนสีเส้นโครงข่าย">
                 ` : `<div style="width:22px;"></div>`;
@@ -594,7 +592,6 @@
             if(f) { f.checked = isChecked; renderCartUI(); toggleLayer(safeId, f.url, isChecked, f.type, f.prov); }
         }
 
-        // 🎚️ ฟังก์ชันปรับความโปร่งแสงพร้อมแสดงเปอร์เซ็นต์สด
         function changeOpacity(safeId, val) {
             let f = cartItems.get(safeId);
             if(f) {
@@ -616,7 +613,6 @@
             }
         }
 
-        // 🎨 ฟังก์ชันย้อมสีเส้น KMZ วาดใหม่แบบ Real-time ตามจานสี
         function changeColor(safeId, colorHex) {
             let f = cartItems.get(safeId);
             if(f) {
@@ -635,7 +631,7 @@
             if(f) { toggleLayer(safeId, f.url, false, f.type, f.prov); cartItems.delete(safeId); renderCartUI(); }
         }
 
-        // 🗺️ 6. สมองกลประมวลผลวาดชั้นเลเยอร์ลงแผนที่ Leaflet
+        // 🗺️ 6. สมองกลประมวลผลวาดชั้นเลเยอร์ลงแผนที่
         async function toggleLayer(safeId, url, turnOn, type, prov) {
             if (turnOn && !activeLayers[safeId]) {
                 if (type === 'v') {
@@ -647,7 +643,7 @@
                         if(b && b.isValid()) map.fitBounds(b); 
                         let f = cartItems.get(safeId);
                         changeOpacity(safeId, f.opacity); 
-                        if(f.color) changeColor(safeId, f.color); // บังคับย้อมสีเส้นตามถาดจานสีทันทีที่โหลดเสร็จ
+                        if(f.color) changeColor(safeId, f.color); 
                         hideLoad(); 
                     });
                     l.on('error', () => { hideLoad(); alert("❌ โหลดไฟล์ KMZ ไม่สำเร็จ"); removeFromCart(safeId); });
@@ -672,7 +668,7 @@
             }
         }
 
-        // --- 📤 7. ระบบฟอร์มอัปโหลดข้อมูลถาวรเข้าฐานข้อมูลสืบค้นเดาคำอัจฉริยะ ---
+        // --- 📤 7. ระบบฟอร์มอัปโหลดข้อมูลถาวร ---
         async function loadUploadAgencyData(agency) {
             if(!agency) return;
             showLoad(`กำลังดึงข้อมูลฟอร์ม ${agency}... 🔄`);
@@ -700,7 +696,7 @@
             document.getElementById('dl-job').innerHTML = [...new Set(filteredByProj.map(d => d['ชื่องาน']))].filter(Boolean).sort().map(j => (j && j !== 'undefined') ? `<option value="${j}">` : '').join('');
         }
 
-        // ส่งข้อมูลเป็นก้อนไฟล์ (FormData) รวมทั้ง .dwg, .kmz ยิงเข้าประตู /api/projects
+        // ส่งข้อมูลเป็นก้อนไฟล์ (FormData)
         async function uploadFile(e) {
             e.preventDefault();
             const fileInput = document.getElementById('up-file-data');
@@ -762,7 +758,7 @@
         });
 
         wmsLandLayer.on('tileload', function(e) {
-            // ไม่ต้องหมุนสีแล้ว แต่ดันความสว่าง (brightness), ความคมชัด (contrast) และความสดของสีแดง (saturate) ให้สุดหลอด
+            // ดันความสว่าง, ความคมชัด และความสดของสีแดง ให้สุดหลอด
             e.tile.style.filter = 'brightness(1.1) contrast(2.5) saturate(5)'; 
         });
 
@@ -782,7 +778,7 @@
             document.getElementById('opacity-val-wms').innerText = `${Math.round(val * 100)}%`;
         }
 
-        // --- 🚀 9. เริ่มระบบสร้างเมนู Dropdown สร.รว.1-17 ตั้งต้นเมื่อหน้าจอพร้อมทำงาน
+        // --- 🚀 9. เริ่มระบบสร้างเมนู Dropdown สร.รว.1-17
         const aSel = document.getElementById("f-agency"); 
         const upAgencySel = document.getElementById("up-agency");
         for(let i=1; i<=17; i++) {
