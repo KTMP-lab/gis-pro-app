@@ -17,15 +17,14 @@
     <script src="https://unpkg.com/jszip@3.10.1/dist/jszip.min.js"></script>
     <script src="https://unpkg.com/leaflet-kmz@latest/dist/leaflet-kmz.js"></script>
     <script src="https://ppete2.github.io/Leaflet.PolylineMeasure/Leaflet.PolylineMeasure.js"></script>
-    
     <script src="https://cdn.jsdelivr.net/npm/leaflet.locatecontrol/dist/L.Control.Locate.min.js" charset="utf-8"></script>
 
     <style>
         body, html { margin: 0; padding: 0; width: 100vw; height: 100vh; overflow: hidden; font-family: 'Kanit', sans-serif; background-color: #0b0f19; }
         #map { width: 100%; height: 100%; z-index: 1; }
         
-        /* 🌀 ระบบโหลดดิ้ง */
-        #loading-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(11, 15, 25, 0.85); backdrop-filter: blur(8px); z-index: 99999; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.3s; opacity: 0; pointer-events: none; }
+        /* 🌀 ระบบโหลดดิ้ง (ดัน z-index เป็น 999999 ให้อยู่หน้าสุด ทับหน้าจออัปโหลด) */
+        #loading-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(11, 15, 25, 0.85); backdrop-filter: blur(8px); z-index: 999999; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.3s; opacity: 0; pointer-events: none; }
         #loading-overlay.show { opacity: 1; pointer-events: all; }
         .spinner-wrapper { position: relative; width: 100px; height: 100px; display: flex; align-items: center; justify-content: center; }
         .spinner-ring { position: absolute; width: 100%; height: 100%; border: 4px solid rgba(56, 189, 248, 0.2); border-top: 4px solid #38bdf8; border-radius: 50%; animation: spin 1s linear infinite; }
@@ -37,39 +36,33 @@
         /* ✨ สไตล์กระจกดำ */
         .glass-panel { background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; box-shadow: 0 10px 35px rgba(0,0,0,0.6); color: #f8fafc; z-index: 9997; }
         
-        /* 📍 แถบค้นหาบนสุด และอนิเมชันพับเก็บ */
+        /* 📍 แถบค้นหาบนสุด */
         #top-bar { position: absolute; top: 15px; left: 50%; transform: translateX(-50%); width: 75%; display: flex; gap: 8px; padding: 10px 16px; align-items: center; justify-content: center; z-index: 9999; transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); box-sizing: border-box; } 
         #top-bar.collapsed { transform: translate(-50%, -100%); }
-        
-        #toggle-topbar-btn { position: absolute; bottom: -24px; left: 50%; transform: translateX(-50%); width: 40px; height: 24px; background: rgba(37, 99, 235, 0.85); border: none; border-radius: 0 0 12px 12px; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 11px; box-shadow: 0 4px 8px rgba(0,0,0,0.4); transition: background 0.3s; z-index: -1; }
-        #toggle-topbar-btn:hover { background: #1d4ed8; }
+        #toggle-topbar-btn { position: absolute; bottom: -24px; left: 50%; transform: translateX(-50%); width: 40px; height: 24px; background: rgba(37, 99, 235, 0.85); border: none; border-radius: 0 0 12px 12px; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 11px; box-shadow: 0 4px 8px rgba(0,0,0,0.4); }
 
         .filter-select { flex: 1; padding: 10px 12px; background: rgba(30, 41, 59, 0.8); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; font-family: 'Kanit'; font-size: 13px; color: #f8fafc; outline: none; transition: 0.3s; box-sizing: border-box; }
-        .filter-select:focus { border-color: #38bdf8; }
         select option { background: #0f172a; color: #f8fafc; }
         #search-box { flex: 1.6; background: rgba(15, 23, 42, 0.95); border: 1.5px solid #2563eb; color: #38bdf8; }
 
-        /* 🔘 กลุ่มปุ่มควบคุม (ซ้าย-ขวา) */
-        .hud-btn { position: absolute; z-index: 9998; padding: 8px 14px; background: #0f172a; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; font-family: 'Kanit'; cursor: pointer; font-weight: 600; color: #fff; box-shadow: 0 4px 12px rgba(0,0,0,0.4); transition: top 0.4s cubic-bezier(0.4, 0, 0.2, 1), background 0.2s; font-size: 13px; } 
+        /* 🔘 กลุ่มปุ่มควบคุม */
+        .hud-btn { position: absolute; z-index: 9998; padding: 8px 14px; background: #0f172a; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; font-family: 'Kanit'; cursor: pointer; font-weight: 600; color: #fff; box-shadow: 0 4px 12px rgba(0,0,0,0.4); transition: 0.3s; font-size: 13px; } 
         .hud-btn:hover { background: #1e293b; }
         
-        #btn-left { top: 80px; left: 15px; color: #38bdf8; }
-        #btn-right { top: 80px; right: 15px; color: #10b981; }
-
-        body.top-collapsed .hud-btn { top: 20px !important; }
+        /* สลับตำแหน่ง แผนที่ (Leaflet) อยู่บน ปุ่ม LAYER อยู่ล่าง */
+        #btn-left { top: 75px; left: 15px; color: #38bdf8; }
+        .leaflet-top.leaflet-right { top: 70px !important; right: 15px !important; z-index: 9995; }
+        #btn-right { top: 220px; right: 15px; color: #10b981; }
 
         /* 🗂️ แผงทำงาน ซ้าย-ขวา */
-        #left-sidebar { position: absolute; top: 130px; left: 15px; width: 420px; bottom: 25px; display: flex; flex-direction: column; overflow: hidden; transition: top 0.4s, transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); z-index: 9997; } 
+        #left-sidebar { position: absolute; top: 125px; left: 15px; width: 420px; bottom: 25px; display: flex; flex-direction: column; overflow: hidden; transition: 0.4s; z-index: 9997; } 
         #left-sidebar.hidden { transform: translateX(-480px); }
         
-        #right-sidebar { position: absolute; top: 130px; right: 15px; width: 420px; bottom: 25px; display: flex; flex-direction: column; overflow: hidden; transition: top 0.4s, transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); border: 1px solid rgba(16, 185, 129, 0.3); z-index: 9997; } 
+        #right-sidebar { position: absolute; top: 270px; right: 15px; width: 420px; bottom: 25px; display: flex; flex-direction: column; overflow: hidden; transition: 0.4s; border: 1px solid rgba(16, 185, 129, 0.3); z-index: 9997; } 
         #right-sidebar.hidden { transform: translateX(480px); }
-
-        body.top-collapsed #left-sidebar, body.top-collapsed #right-sidebar { top: 70px !important; }
 
         .sidebar-header { padding: 12px 16px; background: rgba(15,23,42,0.9); color: #fff; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); }
         
-        /* แท็บคลังข้อมูล */
         .tab-header { display: flex; background-color: rgba(15, 23, 42, 0.6); padding: 4px; margin: 12px; border-radius: 8px; gap: 4px; flex-shrink: 0; }
         .tab-btn { flex: 1; padding: 6px; font-family: 'Kanit'; font-weight: 600; font-size: 11.5px; cursor: pointer; border: none; border-radius: 6px; color: #94a3b8; background: none; transition: 0.2s; }
         .tab-btn.active { color: #fff; background: #2563eb; }
@@ -77,81 +70,64 @@
         .tab-content.active { display: block; }
         #tab-stats.active { display: flex !important; flex-direction: column; } 
 
-        /* 💡 ปุ่มอัปโหลดฝังแผงซ้าย */
         .inner-upload-btn { background: rgba(251, 191, 36, 0.1); border: 1px solid rgba(251, 191, 36, 0.4); color: #fbbf24; padding: 12px; margin: 12px 15px 15px 15px; border-radius: 8px; font-family: 'Kanit'; font-weight: 600; font-size: 13px; cursor: pointer; text-align: center; transition: 0.2s; flex-shrink: 0; }
-        .inner-upload-btn:hover { background: rgba(251, 191, 36, 0.2); }
-
+        
         .excel-table { width: 100%; border-collapse: collapse; font-size: 11px; }
         .excel-table th { padding: 8px 4px; background-color: #0f172a; color: #94a3b8; position: sticky; top: 0; z-index: 2; white-space: nowrap; }
         .excel-table td { padding: 8px 4px; border-bottom: 1px solid rgba(255,255,255,0.04); color: #cbd5e1; }
         
-        .layer-item { background: rgba(30, 41, 59, 0.6); border-radius: 6px; margin-bottom: 4px; padding: 5px 8px; border: 1px solid rgba(255,255,255,0.05); transition: 0.2s; }
-        .btn-add-cart { background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 4px; cursor: pointer; font-family: 'Kanit'; font-weight: 600; transition: 0.2s; white-space: nowrap; padding: 2px 6px; font-size: 8.5px; }
-        .btn-add-cart:hover { background: #10b981; color: #fff; }
-        input[type=range].slim-slider { -webkit-appearance: none; width: 100%; height: 3px; background: #475569; border-radius: 3px; outline: none; margin-top: 3px; }
-        input[type=range].slim-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 10px; height: 10px; border-radius: 50%; background: #10b981; cursor: pointer; box-shadow: 0 0 5px rgba(16, 185, 129, 0.8); }
+        .layer-item { background: rgba(30, 41, 59, 0.6); border-radius: 6px; margin-bottom: 4px; padding: 8px; border: 1px solid rgba(255,255,255,0.05); transition: 0.2s; }
+        .btn-add-cart { background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 4px; cursor: pointer; font-family: 'Kanit'; font-weight: 600; padding: 2px 6px; font-size: 8.5px; white-space: nowrap; }
+        
+        input[type=range].slim-slider { -webkit-appearance: none; width: 100%; height: 3px; background: #475569; border-radius: 3px; outline: none; }
+        input[type=range].slim-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 12px; height: 12px; border-radius: 50%; background: #10b981; cursor: pointer; box-shadow: 0 0 5px rgba(16, 185, 129, 0.8); }
 
-        /* 📍 เครื่องมือแผนที่ */
-        .leaflet-top.leaflet-right { top: 120px !important; right: 15px !important; transition: top 0.4s; z-index: 9995; }
-        body.top-collapsed .leaflet-top.leaflet-right { top: 60px !important; }
+        /* 🎨 เปลี่ยนสีปุ่ม GPS ให้พื้นขาว ไอคอนสีเข้ม */
+        .leaflet-control-locate a { background: #ffffff !important; color: #0f172a !important; border: 1px solid rgba(0,0,0,0.2) !important; transform: scale(0.85); transform-origin: top right; }
+        .leaflet-control-locate a:hover { background: #f1f5f9 !important; color: #000000 !important; }
         .leaflet-control-layers { background: rgba(15, 23, 42, 0.9) !important; color: #fff !important; border: 1px solid rgba(255,255,255,0.1) !important; font-family: 'Kanit'; font-size: 12px; }
         .leaflet-control-polyline-measure { transform: scale(0.85); transform-origin: top right; margin-bottom: 8px !important; }
-        
-        /* 📊 HUD กล่องแสดงพิกัดขวาล่าง */
-        #hud-box { position: absolute; bottom: 20px; right: 15px; background: rgba(11, 15, 25, 0.85); backdrop-filter: blur(10px); color: #00FFCC; padding: 10px 18px; border-radius: 8px; font-family: monospace; font-size: 12px; z-index: 9996; border: 1px solid rgba(0, 255, 204, 0.3); line-height: 1.4; pointer-events: none; }
 
-        /* 🎨 แต่งสีปุ่มปลั๊กอิน GPS */
-        .leaflet-control-locate a { background: rgba(15, 23, 42, 0.9) !important; color: #4285F4 !important; border: 1px solid rgba(255,255,255,0.1) !important; transform: scale(0.85); transform-origin: top right; }
-        .leaflet-control-locate a:hover { background: #1e293b !important; color: #357ae8 !important; }
-
-        /* 🎯 เป้าเล็งกากบาท (Crosshair) */
+        /* 🎯 เป้าเล็ง */
         .screen-center-marker { position: absolute; top: 50%; left: 50%; z-index: 9996; pointer-events: none; transform: translate(-50%, -50%); width: 0; height: 0; }
         .screen-center-marker::before { content: ''; position: absolute; top: -0.5px; left: -8px; width: 16px; height: 1.5px; background: #ffffff; box-shadow: 0 0 2px rgba(0,0,0,0.8); }
         .screen-center-marker::after { content: ''; position: absolute; top: -8px; left: -0.5px; width: 1.5px; height: 16px; background: #ffffff; box-shadow: 0 0 2px rgba(0,0,0,0.8); }
 
-        /* 📥 ปรับแต่งฟอนต์ป๊อปอัพ Leaflet ให้เล็กเท่า HUD ขวาล่างตามสั่ง */
-        .leaflet-popup-content-wrapper { background: rgba(15, 23, 42, 0.95) !important; color: #f8fafc !important; border: 1px solid rgba(255,255,255,0.1) !important; border-radius: 6px !important; box-shadow: 0 4px 15px rgba(0,0,0,0.5) !important; }
+        #hud-box { position: absolute; bottom: 20px; right: 15px; background: rgba(11, 15, 25, 0.85); backdrop-filter: blur(10px); color: #00FFCC; padding: 10px 18px; border-radius: 8px; font-family: monospace; font-size: 12px; z-index: 9996; border: 1px solid rgba(0, 255, 204, 0.3); line-height: 1.4; pointer-events: none; }
+        .leaflet-popup-content-wrapper { background: rgba(15, 23, 42, 0.95) !important; color: #f8fafc !important; border: 1px solid rgba(255,255,255,0.1) !important; border-radius: 6px !important; }
         .leaflet-popup-content { margin: 8px 10px !important; font-size: 11px !important; }
-        .leaflet-popup-tip { background: rgba(15, 23, 42, 0.95) !important; border: 1px solid rgba(255,255,255,0.1) !important; }
 
-        /* 📤 ป๊อปอัพอัปโหลด และ 📥 ป๊อปอัพดาวน์โหลด */
+        /* 📤 โมดัล (ป๊อปอัพ) */
         .modal-overlay { position: fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(15,23,42,0.6); backdrop-filter:blur(6px); z-index:100000; display:flex; align-items:center; justify-content:center; opacity:0; pointer-events:none; transition:0.3s; }
         .modal-overlay.show { opacity:1; pointer-events:all; }
         .modal-box { width:420px; max-height:85vh; overflow-y:auto; padding:20px; background: #ffffff; border-radius: 8px; box-shadow: 0 15px 40px rgba(0,0,0,0.5); color: #1e293b; box-sizing: border-box; }
         .form-group { margin-bottom: 10px; }
         .form-group label { display:block; font-size:11px; color:#475569; margin-bottom:4px; font-weight:600; }
-        .form-control { width:100%; padding:7px 10px; background:#f8fafc; border:1px solid #cbd5e1; border-radius:4px; color:#0f172a; font-family:'Kanit'; font-size:11.5px; box-sizing:border-box; outline:none; transition: 0.2s; }
-        .form-control:focus { border-color:#2563eb; background:#fff; box-shadow: 0 0 0 2px rgba(37,99,235,0.2); }
+        .form-control { width:100%; padding:7px 10px; background:#f8fafc; border:1px solid #cbd5e1; border-radius:4px; color:#0f172a; font-family:'Kanit'; font-size:11.5px; box-sizing:border-box; outline:none; }
         .btn-submit { width:100%; padding:10px; background:#2563eb; color:#fff; border:none; border-radius:4px; font-family:'Kanit'; font-weight:600; cursor:pointer; font-size:12.5px; margin-top:5px; }
 
-        /* 📱 จัดการ Responsive สำหรับมือถือ */
+        /* 📱 Responsive Mobile (สลับตำแหน่งแล้วไม่ให้ทับกัน) */
         @media (max-width: 768px) {
             #top-bar { width: 95%; top: 10px; flex-wrap: wrap; padding: 10px 8px; gap: 6px; }
-            #top-bar.collapsed { transform: translate(-50%, -100%); }
-            #toggle-topbar-btn { width: 40px; height: 26px; font-size: 13px; bottom: -26px; }
-            
             .filter-select { flex: 1 1 45%; font-size: 11px; padding: 8px; margin:0; }
             #search-box { flex: 1 1 100%; margin-top: 2px; }
             
-            .hud-btn { top: 135px !important; padding: 8px 10px; font-size: 11px; }
-            #btn-left { left: 10px !important; }
-            #btn-right { right: 10px !important; }
-            body.top-collapsed .hud-btn { top: 20px !important; }
+            #btn-left { top: 60px !important; }
+            .leaflet-top.leaflet-right { top: 60px !important; right: 10px !important; }
+            #btn-right { top: 190px !important; right: 10px !important; }
 
-            #left-sidebar, #right-sidebar { width: 96%; left: 2%; right: 2%; top: 185px; bottom: 15px; } 
-            body.top-collapsed #left-sidebar, body.top-collapsed #right-sidebar { top: 70px !important; bottom: 15px !important; }
+            #left-sidebar { width: 96%; left: 2%; right: 2%; top: 110px; bottom: 15px; } 
+            #right-sidebar { width: 96%; left: 2%; right: 2%; top: 240px; bottom: 15px; } 
             
             #left-sidebar.hidden { transform: translateX(-110vw); }
             #right-sidebar.hidden { transform: translateX(110vw); }
-
-            .leaflet-top.leaflet-right { top: 185px !important; right: 10px !important; }
-            body.top-collapsed .leaflet-top.leaflet-right { top: 70px !important; }
+            
             .modal-box { width: 92%; padding: 15px; }
             #hud-box { bottom: 10px; right: 10px; font-size: 10px; padding: 6px 10px; }
         }
     </style>
 </head>
-<body class="">
+<body>
 
     <div id="loading-overlay">
         <div class="spinner-wrapper">
@@ -162,30 +138,17 @@
     </div>
 
     <button id="btn-left" class="hud-btn" onclick="toggleSidebar('left')">☰ คลังข้อมูล</button>
-    <button id="btn-right" class="hud-btn" onclick="toggleSidebar('right')">🛒 LAYER</button>
+    <button id="btn-right" class="hud-btn" onclick="toggleSidebar('right')">LAYER</button>
 
     <div id="map"></div>
-    
     <div class="screen-center-marker"></div>
-    
     <div id="hud-box">UTM Zone --</div>
 
     <div id="top-bar" class="glass-panel">
-        <select class="filter-select" id="f-agency" onchange="loadDataByAgency(this.value);">
-            <option value="" disabled selected hidden>-- 1. สร.รว. --</option>
-        </select>
-        <select class="filter-select" id="f-year" onchange="filterAll();">
-            <option value="" disabled selected hidden>-- 2. ปีงบประมาณ --</option>
-            <option value="2569">2569</option>
-            <option value="2568">2568</option>
-            <option value="2567">2567</option>
-        </select>
-        <select class="filter-select" id="f-prov" onchange="populateProj(); filterAll();">
-            <option value="" disabled selected hidden>-- 3. จังหวัด --</option>
-        </select>
-        <select class="filter-select" id="f-proj" onchange="filterAll()">
-            <option value="" disabled selected hidden>-- 4. โครงการ --</option>
-        </select>
+        <select class="filter-select" id="f-agency" onchange="loadDataByAgency(this.value);"><option value="" disabled selected hidden>-- 1. สร.รว. --</option></select>
+        <select class="filter-select" id="f-year" onchange="filterAll();"><option value="" disabled selected hidden>-- 2. ปีงบประมาณ --</option><option value="2569">2569</option><option value="2568">2568</option><option value="2567">2567</option></select>
+        <select class="filter-select" id="f-prov" onchange="populateProj(); filterAll();"><option value="" disabled selected hidden>-- 3. จังหวัด --</option></select>
+        <select class="filter-select" id="f-proj" onchange="filterAll()"><option value="" disabled selected hidden>-- 4. โครงการ --</option></select>
         <input type="text" class="filter-select" id="search-box" placeholder="🔍 ค้นหารหัส หรือชื่อโครงการ..." onkeyup="filterAll()">
         <button id="toggle-topbar-btn" onclick="toggleTopBar()">▲</button>
     </div>
@@ -193,109 +156,59 @@
     <div id="left-sidebar" class="glass-panel">
         <div class="sidebar-header">
             <span style="font-weight:600; color: #38bdf8; font-size:14px;">📂 คลังข้อมูล</span>
-            <button onclick="toggleSidebar('left')" style="background:none; border:none; color:#64748b; cursor:pointer; font-family:'Kanit';">❌</button>
+            <button onclick="toggleSidebar('left')" style="background:none; border:none; color:#64748b; cursor:pointer;">❌</button>
         </div>
         <div class="tab-header">
             <button class="tab-btn active" onclick="openTab(event, 'tab-stats')">📊 งาน</button>
             <button class="tab-btn" id="v-count" onclick="openTab(event, 'tab-layers')">🗂️ KMZ (0)</button>
             <button class="tab-btn" id="d-count" onclick="openTab(event, 'tab-drones')">🚁 โดรน (0)</button>
         </div>
-        <div id="tab-stats" class="tab-content active">
-            <div style="flex:1; overflow-y:auto;">
-                <table class="excel-table">
-                    <thead>
-                        <tr>
-                            <th style="text-align: left;">โครงการ / ชื่องานย่อย</th>
-                            <th>กม.ต้น</th>
-                            <th>กม.ปลาย</th>
-                            <th>ระยะ (กม.)</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tbody-stats"></tbody>
-                </table>
-            </div>
-        </div>
+        <div id="tab-stats" class="tab-content active"><div style="flex:1; overflow-y:auto;"><table class="excel-table"><thead><tr><th style="text-align: left;">โครงการ / ชื่องานย่อย</th><th>กม.ต้น</th><th>กม.ปลาย</th><th>ระยะ (กม.)</th></tr></thead><tbody id="tbody-stats"></tbody></table></div></div>
         <div id="tab-layers" class="tab-content"><div id="list-vectors"></div></div>
         <div id="tab-drones" class="tab-content"><div id="list-drones"></div></div>
-        
-        <button class="inner-upload-btn" onclick="document.getElementById('upload-modal').classList.add('show')">📤 อัปโหลดและนำเข้าข้อมูลระบบ</button>
+        <button class="inner-upload-btn" onclick="document.getElementById('upload-modal').classList.add('show')">📤 อัปโหลดข้อมูลใหม่</button>
     </div>
 
     <div id="right-sidebar" class="glass-panel hidden">
         <div class="sidebar-header" style="background: rgba(16, 185, 129, 0.15); border-bottom: 1px solid rgba(16,185,129,0.3);">
-            <span id="c-count" style="font-weight:600; color: #10b981; font-size: 14px;">LAYER (0/10)</span>
-            <button onclick="toggleSidebar('right')" style="background:none; border:none; color:#10b981; cursor:pointer; font-family:'Kanit'; font-weight:600;">❌</button>
+            <span id="c-count" style="font-weight:600; color: #10b981; font-size: 14px;">LAYER ที่กำลังแสดง (0/10)</span>
+            <button onclick="toggleSidebar('right')" style="background:none; border:none; color:#10b981; cursor:pointer; font-weight:600;">❌</button>
         </div>
         
         <div style="padding: 10px 15px 0 15px; border-bottom: 1px solid rgba(255,255,255,0.05);">
             <div class="layer-item" style="border-left: 3px solid #f59e0b; margin-bottom: 10px; background: rgba(245, 158, 11, 0.1);">
                 <div style="display:flex; justify-content:space-between; align-items:center; gap:6px;">
-                    <input type="checkbox" id="wms-land-toggle" onchange="toggleWMS(this.checked)" style="width:13px; height:13px; accent-color:#f59e0b; cursor:pointer; flex-shrink: 0;">
-                    <div style="flex:1; line-height: 1.1;">
-                        <strong style="color:#fbbf24; font-size:11px;">🗺️ แนวเขตที่ดิน (WMS Longdo)</strong>
-                    </div>
+                    <input type="checkbox" id="wms-land-toggle" onchange="toggleWMS(this.checked)" style="width:13px; height:13px; accent-color:#f59e0b; cursor:pointer;">
+                    <div style="flex:1;"><strong style="color:#fbbf24; font-size:11px;">🗺️ แนวเขตที่ดิน (WMS Longdo)</strong></div>
                 </div>
-                <div class="item-slider-box" style="padding: 0; margin-top: 4px; background:none; border:none;">
-                    <input type="range" class="slim-slider" min="0" max="1" step="0.05" value="0.7" oninput="changeWMSOpacity(this.value)">
+                <div style="display:flex; align-items:center; gap:8px; margin-top:6px;">
+                    <input type="range" class="slim-slider" min="0" max="1" step="0.05" value="0.7" oninput="changeWMSOpacity(this.value)" style="flex:1;">
+                    <span id="opacity-val-wms" style="color:#94a3b8; font-size:10px; width:30px; text-align:right;">70%</span>
                 </div>
             </div>
         </div>
 
-        <div style="padding: 10px 15px; flex: 1; overflow-y: auto;" id="list-cart">
-            <div style="position:relative; text-align:center; padding: 25px 10px; border: 1px dashed rgba(56, 189, 248, 0.3); background: rgba(56, 189, 248, 0.05); border-radius: 8px; margin-top: 15px; cursor: pointer; transition: 0.2s;" onmouseover="this.style.background='rgba(56,189,248,0.1)'" onmouseout="this.style.background='rgba(56,189,248,0.05)'">
-                <input type="file" id="temp-file-upload" accept=".kmz,.kml" style="position:absolute; top:0; left:0; width:100%; height:100%; opacity:0; cursor:pointer; z-index:2;" onchange="loadTempLayer(this)">
-                <span style="font-size:26px; display:block; margin-bottom:8px;">📂</span>
-                <strong style="color:#38bdf8; font-size:12px; display:block; margin-bottom:4px;">คลิกเพื่อเปิดไฟล์ชั่วคราว (KMZ/KML)</strong>
-                <span style="color:#475569; font-size:10px;">หรือคลิก "➕ ADD LAYER" จากคลังข้อมูล</span>
-            </div>
-        </div>
+        <div style="padding: 10px 15px; flex: 1; overflow-y: auto;" id="list-cart"></div>
     </div>
 
     <div id="upload-modal" class="modal-overlay">
         <div class="modal-box">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; border-bottom:1px solid #e2e8f0; padding-bottom:10px;">
-                <span style="font-weight:600; color:#2563eb; font-size:14px;">📤 อัปโหลดข้อมูลถาวรเข้าสู่ระบบ</span>
+                <span style="font-weight:600; color:#2563eb; font-size:14px;">📤 อัปโหลดข้อมูลถาวร</span>
                 <button onclick="document.getElementById('upload-modal').classList.remove('show')" style="background:none; border:none; color:#94a3b8; cursor:pointer; font-size:14px;">❌</button>
             </div>
             <form id="upload-form" onsubmit="uploadFile(event)">
-                <div class="form-group">
-                    <label>1. หน่วยงาน (สร.รว.) *ระบบจะดึงข้อมูลมาให้กรองอัตโนมัติ</label>
-                    <select class="form-control" id="up-agency" required onchange="loadUploadAgencyData(this.value)"><option value="" disabled selected>-- เลือก สร.รว. --</option></select>
-                </div>
+                <div class="form-group"><label>1. หน่วยงาน (สร.รว.)</label><select class="form-control" id="up-agency" required onchange="loadUploadAgencyData(this.value)"><option value="" disabled selected>-- เลือก สร.รว. --</option></select></div>
                 <div class="form-group"><label>2. ปีงบประมาณ พ.ศ.</label><input type="number" class="form-control" id="up-year" placeholder="เช่น 2567" required min="2500" max="2600"></div>
-                <div class="form-group"><label>3. รหัสโครงการ (3 หลัก) และ รหัสงานย่อย (3 หลัก)</label><div style="display:flex; gap:8px;"><input type="text" class="form-control" id="up-proj-id" placeholder="โครงการ (101)" maxlength="3" required><input type="text" class="form-control" id="up-job-id" placeholder="งานย่อย (001)" maxlength="3" required></div></div>
+                <div class="form-group"><label>3. รหัสโครงการ และ รหัสงานย่อย</label><div style="display:flex; gap:8px;"><input type="text" class="form-control" id="up-proj-id" placeholder="โครงการ" maxlength="3" required><input type="text" class="form-control" id="up-job-id" placeholder="งานย่อย" maxlength="3" required></div></div>
+                <div class="form-group"><label>4. ข้อมูลพื้นที่ (จังหวัด)</label><input type="text" class="form-control" id="up-prov" list="dl-prov" oninput="updateUploadDatalists()" required><datalist id="dl-prov"></datalist></div>
+                <div class="form-group"><label>5. ชื่อโครงการหลัก</label><input type="text" class="form-control" id="up-proj-name" list="dl-proj" oninput="updateUploadDatalists()" required><datalist id="dl-proj"></datalist></div>
+                <div class="form-group"><label>6. ชื่องานย่อย</label><input type="text" class="form-control" id="up-job-name" list="dl-job" required><datalist id="dl-job"></datalist></div>
+                <div class="form-group"><label>7. ระยะทาง (กม.ต้น - กม.ปลาย)</label><div style="display:flex; gap:8px;"><input type="number" step="0.001" class="form-control" id="up-km-start" required><input type="number" step="0.001" class="form-control" id="up-km-end" required></div></div>
+                <div class="form-group"><label>8. ประเภทไฟล์</label><select class="form-control" id="up-file-type" required><option value="KMZ">🗂️ เวกเตอร์ (KMZ/KML)</option><option value="Drone">🚁 โดรน (GeoTIFF/XYZ)</option><option value="Image">🖼️ รูปภาพ (JPG/PNG)</option><option value="Excel">📊 ตาราง (Excel)</option><option value="CAD">📐 CAD (.dwg/.dxf)</option></select></div>
                 
-                <div class="form-group">
-                    <label>4. ข้อมูลพื้นที่ (จังหวัด)</label>
-                    <input type="text" class="form-control" id="up-prov" list="dl-prov" placeholder="เลือกจังหวัดหรือพิมพ์ใหม่" oninput="updateUploadDatalists()" required>
-                    <datalist id="dl-prov"></datalist>
-                </div>
-                <div class="form-group">
-                    <label>5. ชื่อโครงการหลัก</label>
-                    <input type="text" class="form-control" id="up-proj-name" list="dl-proj" placeholder="เลือกโครงการหรือพิมพ์ใหม่" oninput="updateUploadDatalists()" required>
-                    <datalist id="dl-proj"></datalist>
-                </div>
-                <div class="form-group">
-                    <label>6. ชื่องานย่อย / ชื่อสายทาง / ชื่อคลอง</label>
-                    <input type="text" class="form-control" id="up-job-name" list="dl-job" placeholder="เลือกชื่องานหรือพิมพ์ใหม่" required>
-                    <datalist id="dl-job"></datalist>
-                </div>
-
-                <div class="form-group"><label>7. ระยะทาง (กม.ต้น - กม.ปลาย)</label><div style="display:flex; gap:8px;"><input type="number" step="0.001" class="form-control" id="up-km-start" placeholder="กม.ต้น" required><input type="number" step="0.001" class="form-control" id="up-km-end" placeholder="กม.ปลาย" required></div></div>
-                
-                <div class="form-group">
-                    <label>8. ประเภทไฟล์</label>
-                    <select class="form-control" id="up-file-type" required>
-                        <option value="KMZ">🗂️ เวกเตอร์ (KMZ/KML)</option>
-                        <option value="Drone">🚁 แผนที่โดรน (GeoTIFF/XYZ)</option>
-                        <option value="Image">🖼️ รูปภาพสำรวจหน้างาน (JPG/PNG)</option>
-                        <option value="Excel">📊 ตารางข้อมูล (Excel/CSV)</option>
-                    </select>
-                </div>
-                
-                <div class="form-group"><label>9. อัปโหลดไฟล์ขึ้นคลาวด์ R2</label><input type="file" class="form-control" id="up-file-data" required></div>
-                
-                <button type="submit" class="btn-submit">💾 บันทึกและซิงค์ข้อมูลลง Sheets</button>
+                <div class="form-group"><label>9. อัปโหลดไฟล์ขึ้นคลาวด์</label><input type="file" class="form-control" id="up-file-data" accept=".kmz,.kml,.tif,.tiff,.xyz,.jpg,.jpeg,.png,.xls,.xlsx,.csv,.dwg,.dxf" required></div>
+                <button type="submit" class="btn-submit">💾 บันทึกข้อมูลลง Sheets</button>
             </form>
         </div>
     </div>
@@ -304,7 +217,7 @@
         <div class="modal-box" style="width:380px;">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; border-bottom:1px solid #e2e8f0; padding-bottom:10px;">
                 <span style="font-weight:600; color:#2563eb; font-size:14px;">📥 คลังโครงการ (ดาวน์โหลดไฟล์)</span>
-                <button onclick="document.getElementById('download-modal').classList.remove('show')" style="background:none; border:none; color:#94a3b8; cursor:pointer; font-size:14px;">❌</button>
+                <button onclick="document.getElementById('download-modal').classList.remove('show')" style="background:none; border:none; color:#94a3b8; cursor:pointer;">❌</button>
             </div>
             <div id="download-list" style="max-height: 250px; overflow-y: auto;"></div>
         </div>
@@ -312,10 +225,10 @@
         const API = "https://my-gis-backend.onrender.com";
         const map = L.map('map', { zoomControl: false }).setView([15.5, 100], 6);
         
-        // --- 🎯 อัปเกรดเมาส์เป็นเป้าเล็ง (Crosshair) แบบโปรแกรม GIS ---
+        // 🎯 กำหนดให้เมาส์แสดงเป็นกากบาท (Crosshair) สไตล์โปรแกรม GIS มืออาชีพ
         document.head.insertAdjacentHTML('beforeend', '<style>.leaflet-container { cursor: crosshair !important; }</style>');
 
-        // --- 🗺️ ตั้งค่าแผนที่ฐาน (Base Maps) ---
+        // 🗺️ ระบบแผนที่ฐาน (Base Maps)
         const googleMaps = L.tileLayer('https://mt1.google.com/vt/lyrs=r&x={x}&y={y}&z={z}');
         const googleSatellite = L.tileLayer('https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}');
         const googleHybrid = L.tileLayer('https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}');
@@ -323,33 +236,33 @@
 
         googleHybrid.addTo(map);
         L.control.layers({
-            "🗺️ แผนที่": googleMaps,
-            "📷 ดาวเทียม": googleSatellite,
-            "🛰️ ผสม (ค่าเริ่มต้น)": googleHybrid,
-            "⛰️ ภูมิประเทศ": googleTerrain
+            "🗺️ แผนที่ฐานภาพทางถนน": googleMaps,
+            "📷 แผนที่ฐานภาพดาวเทียม": googleSatellite,
+            "🛰️ แผนที่ฐานไฮบริด (ค่าเริ่มต้น)": googleHybrid,
+            "⛰️ แผนที่ฐานภูมิประเทศ": googleTerrain
         }, null, { position: 'topright' }).addTo(map);
         
-        // 📏 ปุ่มไม้บรรทัดวัดระยะ 
+        // 📏 เครื่องมือไม้บรรทัดวัดระยะทางและพื้นที่บนแผนที่
         L.control.polylineMeasure({ position: 'topright', unit: 'metres' }).addTo(map);
 
-        // --- 📍 ระบบ GPS ด้วยปลั๊กอินสำเร็จรูป (Leaflet.Locate) ---
+        // 📍 ปุ่มพิกัดปัจจุบัน GPS (สไตล์ถูกควบคุมด้วย CSS พื้นหลังขาว ไอคอนเข้ม ตามสเปก)
         L.control.locate({
             position: 'topright',
             strings: { title: "แสดงตำแหน่งปัจจุบันของฉัน (GPS)" },
             locateOptions: { enableHighAccuracy: true, maxZoom: 17 },
             flyTo: true,
             keepCurrentZoomLevel: false,
-            markerStyle: { color: '#ffffff', fillColor: '#4285F4', fillOpacity: 1, weight: 2 },
-            circleStyle: { color: '#4285F4', fillColor: '#4285F4', fillOpacity: 0.15, weight: 1 }
+            markerStyle: { color: '#ffffff', fillColor: '#2563eb', fillOpacity: 1, weight: 2 },
+            circleStyle: { color: '#2563eb', fillColor: '#2563eb', fillOpacity: 0.15, weight: 1 }
         }).addTo(map);
 
-        // --- 🌀 ระบบหน้าจอ Loading ---
+        // 🌀 ระบบหน้าจอรอโหลด (Loading Overlay ทับหน้าจออัปโหลดถาวร)
         const loadingBox = document.getElementById('loading-overlay');
         const loadingMsg = document.getElementById('loading-msg');
         function showLoad(msg) { loadingMsg.innerText = msg || "กำลังประมวลผล..."; loadingBox.classList.add('show'); }
         function hideLoad() { loadingBox.classList.remove('show'); }
 
-        // --- 🎯 ฟังก์ชันแสดงพิกัดแบบเล็งจุดกึ่งกลางหน้าจอ (Center Target) ---
+        // 🎯 สมองกลคำนวณและแสดงพิกัดกึ่งกลางหน้าจอถาวร (WGS84 -> UTM แบบ Real-time)
         function updateCenterHUD() {
             const center = map.getCenter();
             const z = Math.floor((center.lng + 180) / 6) + 1;
@@ -364,7 +277,7 @@
         map.on('zoom', updateCenterHUD);
         updateCenterHUD(); 
 
-        // --- 📌 ระบบป๊อปอัพ 3 บรรทัดจิ๋ว (กดค้างในมือถือ / คลิกขวาในคอม) เพื่อลิงก์นำทางสากล ---
+        // 📌 ระบบคลิกขวา (คอม) หรือกดค้าง (มือถือ) เพื่อสร้างจุดนำทางสากล 3 บรรทัดจิ๋ว
         map.on('contextmenu', function(e) {
             const lat = e.latlng.lat;
             const lng = e.latlng.lng;
@@ -384,7 +297,7 @@
                 .openOn(map);
         });
 
-        // --- ⏳ ฟังก์ชันโหลดและวาดไฟล์ KMZ/KML ชั่วคราวลงหน้าจอสนาม ---
+        // ⏳ ฟังก์ชันโหลดและวาดไฟล์ KMZ/KML ชั่วคราวลงหน้าจอสนาม (รีเซ็ทแล้วหายไป)
         function loadTempLayer(input) {
             if (!input.files || !input.files[0]) return;
             const file = input.files[0];
@@ -394,7 +307,8 @@
 
             showLoad("กำลังดึงข้อมูลไฟล์สนามชั่วคราว... 📂");
 
-            cartItems.set(safeId, { url, name, prov: '', type: 'v', checked: true, opacity: 1, isTemp: true });
+            // ตั้งค่าสีเริ่มต้นไฟล์ชั่วคราวเป็นสีฟ้า (#38bdf8)
+            cartItems.set(safeId, { url, name, prov: '', type: 'v', checked: true, opacity: 1, color: '#38bdf8', isTemp: true });
             renderCartUI();
 
             const l = L.kmzLayer(url);
@@ -403,6 +317,7 @@
                 const b = e.layer.getBounds();
                 if (b && b.isValid()) map.fitBounds(b);
                 changeOpacity(safeId, 1);
+                changeColor(safeId, '#38bdf8');
                 hideLoad();
             });
             l.on('error', () => {
@@ -415,17 +330,16 @@
             input.value = ''; 
         }
 
-        // --- 🔼 ฟังก์ชันยืด/หดแถบค้นหาบนสุด ---
+        // 🔼 ฟังก์ชันยืด/หดแถบค้นหาบนสุด
         function toggleTopBar() {
             const topBar = document.getElementById('top-bar');
             const btn = document.getElementById('toggle-topbar-btn');
-            
             topBar.classList.toggle('collapsed');
             document.body.classList.toggle('top-collapsed');
             btn.innerHTML = topBar.classList.contains('collapsed') ? "▼" : "▲";
         }
 
-        // --- ⚙️ ฟังก์ชันควบคุม UI แผงซ้าย-ขวา ---
+        // ⚙️ ฟังก์ชันควบคุมเปิด/ปิดแผงทำงาน ซ้าย-ขวา
         function toggleSidebar(side) {
             if (window.innerWidth <= 768) {
                 if (side === 'left') {
@@ -447,14 +361,14 @@
             if(e) e.currentTarget.classList.add('active');
         }
 
-        // --- 💾 ฐานข้อมูลและสมองกลคัดกรอง ---
+        // 💾 ฐานข้อมูลเชิงตำแหน่งและสมองกลคัดกรอง
         let memoryCache = {}; let allData = []; 
         const activeLayers = {}; const cartItems = new Map(); 
         
         const cleanStr = str => (str || '').toString().toLowerCase().replace(/\s+/g, '');
         const simpleHash = str => new Uint32Array([str.split('').reduce((h, c) => Math.imul(31, h) + c.charCodeAt(0) | 0, 0)])[0].toString(36);
 
-        // --- 🔄 1. ดึงข้อมูลโครงการหลัก ---
+        // 🔄 1. ดึงข้อมูลโครงการหลักราย สร.รว. จากหลังบ้าน
         async function loadDataByAgency(agency) {
             if(!agency) return filterAll();
             showLoad(`กำลังซิงค์ข้อมูล ${agency}...`); 
@@ -473,13 +387,14 @@
             const pSel = document.getElementById("f-prov"); pSel.innerHTML = '<option value="" disabled selected hidden>-- 3. จังหวัด --</option>';
             [...new Set(allData.map(d => d['จังหวัด']))].filter(Boolean).sort().forEach(p => pSel.appendChild(new Option(p, p)));
         }
+        
         function populateProj() {
             const prov = document.getElementById("f-prov").value;
             const pSel = document.getElementById("f-proj"); pSel.innerHTML = '<option value="" disabled selected hidden>-- 4. โครงการ --</option>';
             if(prov) [...new Set(allData.filter(d => d['จังหวัด'] === prov).map(d => d['ชื่อโครงการ']))].filter(Boolean).sort().forEach(p => pSel.appendChild(new Option(p, p)));
         }
 
-        // --- 🔍 2. กรองข้อมูลตารางหลัก (Space-Ignored Search) ---
+        // 🔍 2. ระบบค้นหากรองข้อมูลตารางหลัก (Space-Ignored Search)
         function filterAll() {
             let y_val = document.getElementById("f-year").value;
             let a_val = document.getElementById("f-agency").value;
@@ -488,7 +403,6 @@
             
             const pr = document.getElementById("f-prov").value;
             const pj = document.getElementById("f-proj").value;
-            
             const kClean = cleanStr(document.getElementById("search-box").value);
 
             const filtered = allData.filter(d => {
@@ -505,31 +419,29 @@
                 let s = parseFloat(d['กม.ต้น'])||0, e = parseFloat(d['กม.ปลาย'])||0; 
                 let fullId = `สร.รว.${aNum}-${y}-${d['รหัสโครงการ']}-${d['รหัสงาน'] || '000'}`;
                 
-                let downloadBtn = `<button onclick="openDownloadModal('${d['รหัสโครงการ']}', '${d['รหัสงาน']}')" style="background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); padding: 2px 8px; border-radius: 4px; font-size: 9.5px; margin-top: 4px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; transition: 0.2s;"><span style="font-size:11px;">📥</span> คลังโครงการ</button>`;
-
                 return `<tr>
                     <td>
                         <span style="color:#38bdf8; font-weight:600; font-size:11px;">${fullId}</span><br>
                         <strong style="font-size:11.5px; line-height: 1.2; display:block;">${d['ชื่อโครงการ']}</strong>
                         <small style="color:#fbbf24; font-size:10px; display:block; margin-bottom:2px;">งาน: ${d['ชื่องาน'] && d['ชื่องาน']!=="undefined" ? d['ชื่องาน'] : '-'}</small>
-                        ${downloadBtn}
+                        <button onclick="openDownloadModal('${d['รหัสโครงการ']}', '${d['รหัสงาน']}')" style="background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); padding: 2px 8px; border-radius: 4px; font-size: 9.5px; margin-top: 4px; cursor: pointer;">📥 คลังโครงการ</button>
                     </td>
-                    <td style="text-align:center; vertical-align:middle;">${s.toFixed(3)}</td>
-                    <td style="text-align:center; vertical-align:middle;">${e.toFixed(3)}</td>
-                    <td style="color:#10b981; font-weight:600; text-align:center; vertical-align:middle;">${Math.abs(e-s).toFixed(3)}</td>
+                    <td align="center" style="vertical-align:middle;">${s.toFixed(3)}</td>
+                    <td align="center" style="vertical-align:middle;">${e.toFixed(3)}</td>
+                    <td align="center" style="color:#10b981; font-weight:600; vertical-align:middle;">${Math.abs(e-s).toFixed(3)}</td>
                 </tr>`;
-            }).join('') || '<tr><td colspan="4" style="text-align:center; padding:15px; color:#475569;">ไม่พบข้อมูล</td></tr>';
+            }).join('') || '<tr><td colspan="4" align="center" style="padding:15px; color:#475569;">ไม่พบข้อมูล</td></tr>';
             
             updateFileCounts(filtered);
         }
 
-        // --- 📥 3. ระบบหน้าต่างคลังโครงการ (แยกประเภท และ ซ่อนโดรน) ---
+        // 📥 3. หน้าต่างคลังโครงการ (แยกประเภทไฟล์ และซ่อนไฟล์ภาพโดรน ตามคำสั่งบอส)
         window.openDownloadModal = function(projId, jobId) {
             let project = allData.find(d => d['รหัสโครงการ'] == projId && (d['รหัสงาน'] == jobId || (!d['รหัสงาน'] && !jobId)));
             let html = "";
             
             if (project && project.files && project.files.length > 0) {
-                // กรองเอาเฉพาะไฟล์ที่ไม่ใช่โดรน
+                // กรองเฉพาะไฟล์ที่ไม่ใช่โดรน (Drone)
                 let allowedFiles = project.files.filter(f => f['ประเภทไฟล์'] !== 'Drone');
                 
                 if (allowedFiles.length > 0) {
@@ -541,12 +453,12 @@
                         let icon = '📄';
                         let btnTxt = '⬇️ โหลดไฟล์';
                         
-                        // สมองกลแยกประเภทไอคอนและปุ่ม
-                        if (type === 'KMZ' || type === 'KML') { icon = '🗂️'; btnTxt = '⬇️ โหลดไฟล์'; }
+                        if (type === 'KMZ' || type === 'KML') { icon = '🗂️'; }
                         else if (type === 'Image') { icon = '🖼️'; btnTxt = '👁️ ดูรูปภาพ'; }
                         else if (type === 'Excel') { icon = '📊'; btnTxt = '⬇️ เปิดตาราง'; }
+                        else if (type === 'CAD') { icon = '📐'; btnTxt = '⬇️ โหลดไฟล์ CAD'; }
                         
-                        let fileName = f['ชื่องาน'] || 'ไฟล์เอกสาร/รูปภาพโครงการ';
+                        let fileName = f['ชื่องาน'] || 'ไฟล์ข้อมูลแนบ';
                         
                         return `
                         <div style="display:flex; justify-content:space-between; align-items:center; background:#f8fafc; padding:8px 12px; margin-bottom:8px; border-radius:6px; border:1px solid #e2e8f0;">
@@ -554,21 +466,17 @@
                                 <strong style="font-size:11.5px; color:#0f172a; display:block; white-space:nowrap; text-overflow:ellipsis;">${icon} ${fileName}</strong>
                                 <small style="color:#64748b; font-size:10px;">ประเภท: ${type}</small>
                             </div>
-                            <a href="${url}" target="_blank" style="background:#2563eb; color:#fff; padding:6px 10px; border-radius:4px; text-decoration:none; font-size:10.5px; font-weight:600; flex-shrink:0; transition:0.2s;" onmouseover="this.style.background='#1d4ed8'" onmouseout="this.style.background='#2563eb'">${btnTxt}</a>
+                            <a href="${url}" target="_blank" style="background:#2563eb; color:#fff; padding:6px 10px; border-radius:4px; text-decoration:none; font-size:10.5px; font-weight:600; flex-shrink:0; transition:0.2s;">${btnTxt}</a>
                         </div>`;
                     }).join('');
                 }
             }
             
-            if(!html) {
-                html = '<div style="text-align:center; color:#64748b; padding:20px 0;"><span style="font-size:24px; display:block; margin-bottom:10px;">📂</span><span style="font-size:12px;">ยังไม่มีไฟล์เอกสาร/รูปภาพจัดเก็บในระบบสำหรับโครงการนี้</span></div>';
-            }
-            
-            document.getElementById('download-list').innerHTML = html;
+            document.getElementById('download-list').innerHTML = html || '<div style="text-align:center; color:#64748b; padding:20px 0;"><span style="font-size:24px; display:block; margin-bottom:10px;">📂</span><span style="font-size:12px;">ยังไม่มีไฟล์จัดเก็บเฉพาะในคลังโครงการนี้</span></div>';
             document.getElementById('download-modal').classList.add('show');
         };
 
-        // --- 🗂️ 4. อัปเดตรายการไฟล์ (นับเฉพาะ KMZ / Drone เท่านั้น) ---
+        // 🗂️ 4. ระบบนับจำนวนชั้นข้อมูลแผงซ้าย (นับเฉพาะ KMZ และ โดรน ไม่รวมภาพถ่าย/Excel)
         function updateFileCounts(data) {
             let vMap = new Map(), dMap = new Map();
             let y_val = document.getElementById("f-year").value;
@@ -579,10 +487,7 @@
             data.forEach(p => {
                 (p.files || []).forEach(f => {
                     let url = f['ลิงก์จาก R2'], type = f['ประเภทไฟล์'], prov = f['จังหวัด']||p['จังหวัด']||'';
-                    if(!url || url==="-") return;
-                    
-                    // ข้ามไฟล์ Excel และ รูปภาพ ไม่ให้นำมานับและใส่ลงตะกร้าแผนที่
-                    if (type === 'Excel' || type === 'Image') return;
+                    if(!url || url==="-" || type === 'Excel' || type === 'Image' || type === 'CAD') return;
                     
                     let fullId = `สร.รว.${aNum}-${y}-${p['รหัสโครงการ']}-${f['รหัสงาน'] || '000'}`;
                     let n = `${fullId}|||${f['ชื่องาน']||'ไม่ระบุ'}`; 
@@ -616,16 +521,13 @@
             renderFn("list-vectors", vArr, 'v'); renderFn("list-drones", dArr, 'd');
         }
 
-        // --- 🛒 5. ระบบจัดการ LAYER เปรียบเทียบ และแสดงผลปุ่มโหลดไฟล์ชั่วคราว ---
+        // 🛒 5. ระบบจัดการแผงควบคุม LAYER ที่กำลังแสดง (ปรับโฉม: จานสีคู่แถบเลื่อน + ตัวเลข %)
         function addToCart(safeId, url, name, prov, type) {
-            if(cartItems.has(safeId)) {
-                if (window.innerWidth <= 768) document.getElementById('left-sidebar').classList.add('hidden');
-                document.getElementById('right-sidebar').classList.remove('hidden'); 
-                return;
-            }
+            if(cartItems.has(safeId)) { document.getElementById('right-sidebar').classList.remove('hidden'); return; }
             if(cartItems.size >= 10) return alert("🛑 หน้าต่าง LAYER เต็มแล้ว (เปิดได้สูงสุด 10 ชั้นข้อมูล)");
             
-            cartItems.set(safeId, { url, name, prov, type, checked: true, opacity: 1 });
+            // ตั้งค่าสีเริ่มต้นเวกเตอร์เป็นสีน้ำเงินอ่อนระบบ (#38bdf8)
+            cartItems.set(safeId, { url, name, prov, type, checked: true, opacity: 1, color: '#38bdf8' });
             renderCartUI();
             
             if (window.innerWidth <= 768) document.getElementById('left-sidebar').classList.add('hidden');
@@ -634,7 +536,7 @@
         }
 
         function renderCartUI() {
-            document.getElementById("c-count").innerText = `LAYER (${cartItems.size}/10)`;
+            document.getElementById("c-count").innerText = `LAYER ที่กำลังแสดง (${cartItems.size}/10)`;
             let html = "";
             cartItems.forEach((f, safeId) => {
                 let icon = f.type === 'v' ? '🗂️' : '🚁';
@@ -642,6 +544,11 @@
                     let p = item.split('|||');
                     return `<span style="color:#38bdf8; font-size:9.5px; font-weight:600;">${p[0]}</span><br>${icon} ${p[1]||''}`;
                 }).join('<br>');
+
+                // แนบจานสี (Color Picker) ไว้ข้างปุ่มเลื่อนเฉพาะไฟล์เวกเตอร์ KMZ เท่านั้น
+                let colorPickerHtml = f.type === 'v' ? `
+                    <input type="color" value="${f.color || '#38bdf8'}" onchange="changeColor('${safeId}', this.value)" style="width:22px; height:22px; padding:0; border:1px solid #475569; border-radius:4px; background:none; cursor:pointer;" title="เปลี่ยนสีเส้นโครงข่าย">
+                ` : `<div style="width:22px;"></div>`;
 
                 html += `
                     <div class="layer-item" style="border-left: 3px solid #10b981; margin-bottom: 4px;">
@@ -652,21 +559,23 @@
                             </div>
                             <button onclick="removeFromCart('${safeId}')" style="background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(248, 113, 113, 0.2); padding: 1px 4px; border-radius: 3px; cursor: pointer; font-size: 9px; flex-shrink: 0;">❌</button>
                         </div>
-                        <div class="item-slider-box" style="padding: 0; margin-top: 2px; background:none; border:none; ${!f.checked ? 'opacity: 0.1; pointer-events:none;' : ''}">
-                            <input type="range" class="slim-slider" min="0" max="1" step="0.05" value="${f.opacity}" oninput="changeOpacity('${safeId}', this.value)">
+                        <div style="display:flex; align-items:center; gap:8px; margin-top:6px; ${!f.checked ? 'opacity: 0.2; pointer-events:none;' : ''}">
+                            ${colorPickerHtml}
+                            <input type="range" class="slim-slider" min="0" max="1" step="0.05" value="${f.opacity}" oninput="changeOpacity('${safeId}', this.value)" style="flex:1;">
+                            <span id="opacity-val-${safeId}" style="color:#94a3b8; font-size:10px; width:32px; text-align:right; font-weight:600;">${Math.round(f.opacity * 100)}%</span>
                         </div>
                     </div>`;
             });
 
             const tempUploadBox = `
-                <div style="position:relative; text-align:center; padding: 15px 10px; border: 1px dashed rgba(56, 189, 248, 0.3); background: rgba(56, 189, 248, 0.05); border-radius: 8px; margin-top: 10px; cursor: pointer; transition: 0.2s;" onmouseover="this.style.background='rgba(56,189,248,0.1)'" onmouseout="this.style.background='rgba(56,189,248,0.05)'">
+                <div style="position:relative; text-align:center; padding: 15px 10px; border: 1px dashed rgba(56, 189, 248, 0.3); background: rgba(56, 189, 248, 0.05); border-radius: 8px; margin-top: 10px; cursor: pointer;">
                     <input type="file" accept=".kmz,.kml" style="position:absolute; top:0; left:0; width:100%; height:100%; opacity:0; cursor:pointer; z-index:2;" onchange="loadTempLayer(this)">
                     <span style="font-size:20px; display:block; margin-bottom:4px;">📂</span>
                     <strong style="color:#38bdf8; font-size:11px; display:block;">เปิดไฟล์ชั่วคราวเพิ่ม (KMZ/KML)</strong>
                 </div>`;
 
             document.getElementById('list-cart').innerHTML = html ? html + tempUploadBox : `
-                <div style="position:relative; text-align:center; padding: 25px 10px; border: 1px dashed rgba(56, 189, 248, 0.3); background: rgba(56, 189, 248, 0.05); border-radius: 8px; margin-top: 15px; cursor: pointer; transition: 0.2s;" onmouseover="this.style.background='rgba(56,189,248,0.1)'" onmouseout="this.style.background='rgba(56,189,248,0.05)'">
+                <div style="position:relative; text-align:center; padding: 25px 10px; border: 1px dashed rgba(56, 189, 248, 0.3); background: rgba(56, 189, 248, 0.05); border-radius: 8px; margin-top: 15px; cursor: pointer;">
                     <input type="file" accept=".kmz,.kml" style="position:absolute; top:0; left:0; width:100%; height:100%; opacity:0; cursor:pointer; z-index:2;" onchange="loadTempLayer(this)">
                     <span style="font-size:26px; display:block; margin-bottom:8px;">📂</span>
                     <strong style="color:#38bdf8; font-size:12px; display:block; margin-bottom:4px;">คลิกเพื่อเปิดไฟล์ชั่วคราว (KMZ/KML)</strong>
@@ -676,17 +585,17 @@
 
         function toggleCartSwitch(safeId, isChecked) {
             let f = cartItems.get(safeId);
-            if(f) { 
-                f.checked = isChecked; 
-                renderCartUI(); 
-                toggleLayer(safeId, f.url, isChecked, f.type, f.prov); 
-            }
+            if(f) { f.checked = isChecked; renderCartUI(); toggleLayer(safeId, f.url, isChecked, f.type, f.prov); }
         }
 
+        // 🎚️ ฟังก์ชันปรับความโปร่งแสงพร้อมแสดงเปอร์เซ็นต์สด
         function changeOpacity(safeId, val) {
             let f = cartItems.get(safeId);
             if(f) {
                 f.opacity = val; 
+                let pctLabel = document.getElementById(`opacity-val-${safeId}`);
+                if(pctLabel) pctLabel.innerText = `${Math.round(val * 100)}%`;
+                
                 let layer = activeLayers[safeId];
                 if(layer) {
                     if(f.type === 'v' && layer.eachLayer) {
@@ -701,32 +610,44 @@
             }
         }
 
-        function removeFromCart(safeId) {
+        // 🎨 ฟังก์ชันย้อมสีเส้น KMZ วาดใหม่แบบ Real-time ตามจานสี
+        function changeColor(safeId, colorHex) {
             let f = cartItems.get(safeId);
-            if(f) { 
-                toggleLayer(safeId, f.url, false, f.type, f.prov); 
-                cartItems.delete(safeId); 
-                renderCartUI(); 
+            if(f) {
+                f.color = colorHex;
+                let layer = activeLayers[safeId];
+                if(layer && f.type === 'v' && layer.eachLayer) {
+                    layer.eachLayer(sub => {
+                        if(sub.setStyle) sub.setStyle({ color: colorHex, fillColor: colorHex });
+                    });
+                }
             }
         }
 
-        // --- 🗺️ 6. เรนเดอร์แผนที่เวกเตอร์/โดรน ---
+        function removeFromCart(safeId) {
+            let f = cartItems.get(safeId);
+            if(f) { toggleLayer(safeId, f.url, false, f.type, f.prov); cartItems.delete(safeId); renderCartUI(); }
+        }
+
+        // 🗺️ 6. สมองกลประมวลผลวาดชั้นเลเยอร์ลงแผนที่ Leaflet
         async function toggleLayer(safeId, url, turnOn, type, prov) {
             if (turnOn && !activeLayers[safeId]) {
                 if (type === 'v') {
-                    showLoad("กำลังวาดโครงข่ายแนวคลอง KMZ... 🗺️"); 
+                    showLoad("กำลังวาดโครงข่ายเชิงเส้น KMZ... 🗺️"); 
                     const l = L.kmzLayer(url); 
                     activeLayers[safeId] = l;
                     l.on('load', e => { 
                         const b = e.layer.getBounds(); 
                         if(b && b.isValid()) map.fitBounds(b); 
-                        changeOpacity(safeId, cartItems.get(safeId).opacity); 
+                        let f = cartItems.get(safeId);
+                        changeOpacity(safeId, f.opacity); 
+                        if(f.color) changeColor(safeId, f.color); // บังคับย้อมสีเส้นตามถาดจานสีทันทีที่โหลดเสร็จ
                         hideLoad(); 
                     });
                     l.on('error', () => { hideLoad(); alert("❌ โหลดไฟล์ KMZ ไม่สำเร็จ"); removeFromCart(safeId); });
                     l.addTo(map);
                 } else {
-                    showLoad("กำลังดาวน์โหลดภาพโดรน... 🚁"); 
+                    showLoad("กำลังดาวน์โหลดภาพโดรน XYZ... 🚁"); 
                     activeLayers[safeId] = L.tileLayer(url, { maxNativeZoom: 20, maxZoom: 22, zIndex: 100 }).addTo(map);
                     changeOpacity(safeId, cartItems.get(safeId).opacity);
                     
@@ -745,10 +666,10 @@
             }
         }
 
-        // --- 📤 7. ระบบฟอร์มอัปโหลดข้อมูลแบบสืบค้นดักคำเดาคำ ---
+        // --- 📤 7. ระบบฟอร์มอัปโหลดข้อมูลถาวรเข้าฐานข้อมูลสืบค้นเดาคำอัจฉริยะ ---
         async function loadUploadAgencyData(agency) {
             if(!agency) return;
-            showLoad(`กำลังดึงตัวเลือกสำหรับฟอร์ม ${agency}... 🔄`);
+            showLoad(`กำลังดึงข้อมูลฟอร์ม ${agency}... 🔄`);
             if (!memoryCache[agency]) {
                 try {
                     const res = await fetch(`${API}/api/projects/by-agency?agency=${agency}&_t=${Date.now()}`);
@@ -766,22 +687,16 @@
             const provInput = document.getElementById('up-prov').value;
             const projInput = document.getElementById('up-proj-name').value;
 
-            const provs = [...new Set(data.map(d => d['จังหวัด']))].filter(Boolean).sort();
-            document.getElementById('dl-prov').innerHTML = provs.map(p => `<option value="${p}">`).join('');
-
+            document.getElementById('dl-prov').innerHTML = [...new Set(data.map(d => d['จังหวัด']))].filter(Boolean).sort().map(p => `<option value="${p}">`).join('');
             const filteredByProv = data.filter(d => !provInput || d['จังหวัด'] === provInput);
-            const projs = [...new Set(filteredByProv.map(d => d['ชื่อโครงการ']))].filter(Boolean).sort();
-            document.getElementById('dl-proj').innerHTML = projs.map(p => `<option value="${p}">`).join('');
-
+            document.getElementById('dl-proj').innerHTML = [...new Set(filteredByProv.map(d => d['ชื่อโครงการ']))].filter(Boolean).sort().map(p => `<option value="${p}">`).join('');
             const filteredByProj = filteredByProv.filter(d => !projInput || d['ชื่อโครงการ'] === projInput);
-            const jobs = [...new Set(filteredByProj.map(d => d['ชื่องาน']))].filter(Boolean).sort();
-            document.getElementById('dl-job').innerHTML = jobs.map(j => (j && j !== 'undefined') ? `<option value="${j}">` : '').join('');
+            document.getElementById('dl-job').innerHTML = [...new Set(filteredByProj.map(d => d['ชื่องาน']))].filter(Boolean).sort().map(j => (j && j !== 'undefined') ? `<option value="${j}">` : '').join('');
         }
 
-        // ฟังก์ชันอัปโหลดส่งเป็นก้อนไฟล์ (FormData)
+        // ส่งข้อมูลเป็นก้อนไฟล์ (FormData) รวมทั้ง .dwg, .kmz ยิงเข้าประตู /api/projects
         async function uploadFile(e) {
             e.preventDefault();
-            
             const fileInput = document.getElementById('up-file-data');
             if (!fileInput.files || fileInput.files.length === 0) {
                 alert("❌ กรุณาเลือกไฟล์ที่จะอัปโหลดก่อนครับบอส!");
@@ -801,7 +716,7 @@
             formData.append('fileType', document.getElementById('up-file-type').value);
             formData.append('file', fileInput.files[0]); 
 
-            showLoad("กำลังอัปโหลดไฟล์ขึ้นคลาวด์และบันทึกลง Sheets... 🚀");
+            showLoad("กำลังอัปโหลดไฟล์ขึ้นคลาวด์ R2 และบันทึกลง Google Sheets... 🚀");
             try {
                 const response = await fetch(`${API}/api/projects`, {
                     method: 'POST',
@@ -810,7 +725,7 @@
                 hideLoad();
                 
                 if(response.ok) {
-                    alert("✅ บันทึกไฟล์และข้อมูลสำเร็จเรียบร้อยครับบอส!");
+                    alert("✅ บันทึกไฟล์และซิงค์ข้อมูลลง Sheets เรียบร้อยครับบอส!");
                     document.getElementById('upload-modal').classList.remove('show');
                     document.getElementById('upload-form').reset();
                     
@@ -821,7 +736,7 @@
                     }
                 } else {
                     const err = await response.json();
-                    alert(`❌ ระบบหลังบ้านแจ้งปัญหา: ${err.message || 'เกิดข้อผิดพลาดในการอัปโหลด'}`);
+                    alert(`❌ ระบบไม่สามารถบันทึกได้: ${err.message || 'เกิดข้อผิดพลาด'}`);
                 }
             } catch (error) {
                 hideLoad();
@@ -829,7 +744,7 @@
             }
         }
 
-        // --- 🌐 8. ระบบเชื่อมต่อ WMS แผนที่ระวางที่ดินระดับประเทศ (Longdo HD) ---
+        // 🌐 8. แผนที่แนวเขตที่ดินกรมที่ดิน WMS (ปรับปรุงเป็นสีน้ำเงินตามสั่งสไตล์ hue-rotate)
         const wmsLandLayer = L.tileLayer.wms('https://ms.longdo.com/mapproxy/service', {
             layers: 'dol_hd', 
             format: 'image/png',
@@ -840,16 +755,15 @@
         });
 
         wmsLandLayer.on('tileload', function(e) {
+            // หมุนโทนสีแดงเดิม 220 องศาเพื่อเปลี่ยนเป้าหมายเป็นสีน้ำเงินเข้ม เร่งความเข้มข้นสี 2 เท่า
             e.tile.style.filter = 'brightness(1.2) contrast(1.5) hue-rotate(220deg) saturate(2)'; 
         });
 
         function toggleWMS(isChecked) {
             if(isChecked) {
-                showLoad("กำลังดึงระวางที่ดินระดับประเทศ... 🗺️");
+                showLoad("กำลังดึงระวางแนวเขตที่ดินระดับประเทศ... 🗺️");
                 wmsLandLayer.addTo(map);
-                
                 wmsLandLayer.on('load', hideLoad);
-                wmsLandLayer.on('tileerror', hideLoad);
                 setTimeout(hideLoad, 2000); 
             } else {
                 map.removeLayer(wmsLandLayer);
@@ -858,9 +772,10 @@
 
         function changeWMSOpacity(val) {
             wmsLandLayer.setOpacity(val);
+            document.getElementById('opacity-val-wms').innerText = `${Math.round(val * 100)}%`;
         }
 
-        // --- 🚀 9. โหลดข้อมูลเมนูตั้งต้นเมื่อหน้าจอทำงาน ---
+        // --- 🚀 9. เริ่มระบบสร้างเมนู Dropdown สร.รว.1-17 ตั้งต้นเมื่อหน้าจอพร้อมทำงาน
         const aSel = document.getElementById("f-agency"); 
         const upAgencySel = document.getElementById("up-agency");
         for(let i=1; i<=17; i++) {
