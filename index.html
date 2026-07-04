@@ -111,38 +111,56 @@
             #top-bar { 
                 width: 96%; 
                 top: 5px; 
-                flex-wrap: wrap;  /* 👈 ตัวนี้สำคัญมาก ถ้าไม่มี ทุกอย่างจะบีบอยู่ในบรรทัดเดียว */
+                flex-wrap: wrap;  
                 padding: 6px 8px; 
                 gap: 4px; 
             }
             
-            /* 2. ช่อง Dropdown ทั้ง 4: สั่งให้กินพื้นที่ 48% (เพื่อให้ 1 บรรทัดยัดได้แค่ 2 ช่อง) */
             .filter-select { 
-                flex: 1 1 48%; /* 👈 เปลี่ยนตัวเลขตรงนี้เป็น 48% (แบ่งครึ่งหักลบระยะห่าง) */
+                flex: 1 1 48%; 
                 font-size: 11px; 
                 padding: 6px; 
                 margin: 0; 
             }
             
-            /* 3. ช่องพิมพ์ค้นหา: สั่งให้จองพื้นที่ 100% เพื่อเหมาบรรทัดล่างสุดคนเดียว */
             #search-box { 
-                flex: 1 1 100%; /* 👈 เปลี่ยนตรงนี้เป็น 100% */
+                flex: 1 1 100%; 
                 margin-top: 2px; 
             }
-            /* 1. ใส่ Transition ให้ปุ่มและแผงต่างๆ เลื่อนขึ้นลงแบบสมูท ไม่กระตุก */
+
+            /* 🎯 1. เริ่มต้นปุ่มคลังและ LAYER ให้พ้นแถบค้นหา */
+            #btn-left { top: 155px !important; left: 10px !important; padding: 6px 10px; z-index: 9996; }
+            #btn-right { top: 155px !important; right: 10px !important; width: 60px; font-size: 11px; z-index: 9996; margin: 0 !important; }
+            
+            /* 🎯 2. ดันเครื่องมือแผนที่ไม่ให้ทับปุ่ม LAYER */
+            .leaflet-top.leaflet-right { top: 200px !important; right: 10px !important; }
+
+            /* 🎯 3. แก้กล่องแผงให้กลับเป็นกล่องมนปกติ แต่ขยายความกว้างพอดีจอมือถือ (94%) */
+            #left-sidebar { width: 94% !important; left: 3% !important; right: 3% !important; top: 155px !important; bottom: 10px !important; z-index: 9998 !important; } 
+            #right-sidebar { width: 94% !important; left: 3% !important; right: 3% !important; top: 155px !important; bottom: 10px !important; z-index: 9998 !important; } 
+            
+            #left-sidebar.hidden { transform: translateX(-110vw) !important; }
+            #right-sidebar.hidden { transform: translateX(110vw) !important; }
+            
+            .modal-box { width: 92%; padding: 15px; }
+            #hud-box { bottom: 10px; right: 10px; font-size: 10px; padding: 6px 10px; }
+
+            /* 🎯 4. ใส่ Transition ให้เลื่อนขึ้นลงแบบสมูท */
             #btn-left, #btn-right, #left-sidebar, #right-sidebar, .leaflet-top.leaflet-right {
-                transition: top 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
+                transition: top 0.4s cubic-bezier(0.4, 0, 0.2, 1), transform 0.4s ease !important;
             }
 
-            /* 2. สั่งเลื่อนปุ่ม ซ้าย-ขวา ขึ้นไปประกบลูกศร เมื่อแถบบนถูกพับ */
+            /* 🎯 5. เมื่อพับแถบค้นหา ให้ทุกอย่างเลื่อนขึ้นไปชิดลูกศร */
             body.top-collapsed #btn-left,
             body.top-collapsed #btn-right {
                 top: 15px !important; 
             }
 
-            /* 3. สั่งเลื่อนแผงข้อมูล แผงLAYER และเครื่องมือแผนที่ ขึ้นตามไปให้ชิดขึ้น */
             body.top-collapsed #left-sidebar,
-            body.top-collapsed #right-sidebar,
+            body.top-collapsed #right-sidebar {
+                top: 65px !important; 
+            }
+
             body.top-collapsed .leaflet-top.leaflet-right {
                 top: 65px !important; 
             }
@@ -211,8 +229,7 @@
         </div>
 
         <div style="padding: 10px 15px; flex: 1; overflow-y: auto;" id="list-cart"></div>
-    </div>
-
+    </div> <!-- 📤 ฟอร์มอัปโหลดข้อมูลถาวร -->
     <div id="upload-modal" class="modal-overlay">
         <div class="modal-box">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; border-bottom:1px solid #e2e8f0; padding-bottom:10px;">
@@ -234,6 +251,7 @@
         </div>
     </div>
 
+    <!-- 📥 ป๊อปอัพคลังโครงการ (ดาวน์โหลดไฟล์) -->
     <div id="download-modal" class="modal-overlay">
         <div class="modal-box" style="width:400px;">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; border-bottom:1px solid #e2e8f0; padding-bottom:10px;">
@@ -312,6 +330,7 @@
                 .openOn(map);
         });
 
+        // 📂 ฟังก์ชันโหลดไฟล์ชั่วคราว (KMZ/KML)
         function loadTempLayer(input) {
             if (!input.files || !input.files[0]) return;
             const file = input.files[0];
@@ -439,13 +458,13 @@
 
         // 🎯 สมองกลดึงไฟล์: กรองเจาะจงเฉพาะรหัสโครงการหลัก (เพื่อหาอาร์เรย์ files) แล้วกรองซ้ำด้วยรหัสงานย่อย
         window.openDownloadModal = function(projId, jobId) {
-            let project = allData.find(d => d['รหัสโครงการ'] == projId);
+            let project = allData.find(d => d['รหัสโครงการ'] == projId && (d['รหัสงาน'] == jobId || (!d['รหัสงาน'] && !jobId)));
             let html = "";
             
             if (project && project.files && project.files.length > 0) {
                 let allowedFiles = project.files.filter(f => 
                     f['ประเภทไฟล์'] !== 'Drone' && 
-                    (!jobId || f['รหัสงาน'] == jobId)
+                    (!jobId || f['รหัสงาน'] == jobId || !f['รหัสงาน'])
                 );
                 
                 if (allowedFiles.length > 0) {
