@@ -108,6 +108,27 @@
 
         /* 📱 Responsive Mobile */
         @media (max-width: 768px) {
+            #top-bar { 
+                width: 96%; 
+                top: 5px; 
+                flex-wrap: wrap;  /* 👈 ตัวนี้สำคัญมาก ถ้าไม่มี ทุกอย่างจะบีบอยู่ในบรรทัดเดียว */
+                padding: 6px 8px; 
+                gap: 4px; 
+            }
+            
+            /* 2. ช่อง Dropdown ทั้ง 4: สั่งให้กินพื้นที่ 48% (เพื่อให้ 1 บรรทัดยัดได้แค่ 2 ช่อง) */
+            .filter-select { 
+                flex: 1 1 48%; /* 👈 เปลี่ยนตัวเลขตรงนี้เป็น 48% (แบ่งครึ่งหักลบระยะห่าง) */
+                font-size: 11px; 
+                padding: 6px; 
+                margin: 0; 
+            }
+            
+            /* 3. ช่องพิมพ์ค้นหา: สั่งให้จองพื้นที่ 100% เพื่อเหมาบรรทัดล่างสุดคนเดียว */
+            #search-box { 
+                flex: 1 1 100%; /* 👈 เปลี่ยนตรงนี้เป็น 100% */
+                margin-top: 2px; 
+            }
             /* 1. ใส่ Transition ให้ปุ่มและแผงต่างๆ เลื่อนขึ้นลงแบบสมูท ไม่กระตุก */
             #btn-left, #btn-right, #left-sidebar, #right-sidebar, .leaflet-top.leaflet-right {
                 transition: top 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
