@@ -442,7 +442,8 @@
 
             document.getElementById("tbody-stats").innerHTML = filtered.map(d => {
                 let s = parseFloat(d['กม.ต้น'])||0, e = parseFloat(d['กม.ปลาย'])||0; 
-                let fullId = `สร.รว.${aNum}-${y}-${d['รหัสโครงการ']}-${d['รหัสงาน'] || '000'}`;
+                let shortJobId = (d['รหัสงาน'] || '000').toString().split('-').pop();
+                let fullId = `สร.รว.${aNum}-${y}-${d['รหัสโครงการ']}-${shortJobId}`;
                 
                 return `<tr>
                     <td>
@@ -514,7 +515,8 @@
                     let url = f['ลิงก์จาก R2'], type = f['ประเภทไฟล์'], prov = f['จังหวัด']||p['จังหวัด']||'';
                     if(!url || url==="-" || type === 'Excel' || type === 'Image' || type === 'CAD') return;
                     
-                    let fullId = `สร.รว.${aNum}-${y}-${p['รหัสโครงการ']}-${f['รหัสงาน'] || '000'}`;
+                    let shortJobId = (f['รหัสงาน'] || '000').toString().split('-').pop();
+                    let fullId = `สร.รว.${aNum}-${y}-${p['รหัสโครงการ']}-${shortJobId}`;
                     let n = `${fullId}|||${f['ชื่องาน']||'ไม่ระบุ'}`; 
                     
                     let target = type==='KMZ'||type==='KML' ? vMap : (type==='Drone' ? dMap : null);
