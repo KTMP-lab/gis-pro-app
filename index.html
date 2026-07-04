@@ -45,7 +45,7 @@
         select option { background: #0f172a; color: #f8fafc; }
         #search-box { flex: 1.6; background: rgba(15, 23, 42, 0.95); border: 1.5px solid #2563eb; color: #38bdf8; }
 
-        /* 🗂️ แผงทำงาน ซ้าย-ขวา (ตำแหน่งเดิมตามคำสั่ง แต่เพิ่ม z-index ให้ทับปุ่มในมือถือ) */
+        /* 🗂️ แผงทำงาน ซ้าย-ขวา */
         #left-sidebar { position: absolute; top: 125px; left: 15px; width: 420px; bottom: 25px; display: flex; flex-direction: column; overflow: hidden; transition: 0.4s; z-index: 9998; } 
         #left-sidebar.hidden { transform: translateX(-480px); }
         
@@ -58,7 +58,11 @@
 
         /* 🎯 กลุ่มควบคุมฝั่งขวาสุด ล็อกพิกัดตายตัว กันการไหลซ้อนทับกัน */
         .leaflet-top.leaflet-right { top: 70px !important; right: 15px !important; z-index: 9995; overflow: visible !important; }
+        
+        /* 🛠️ แก้เมนูแผนที่ฐานไม่ให้ตกบรรทัดและลอยทับปุ่ม LAYER สนิท */
         .leaflet-control-layers { position: absolute !important; top: 0 !important; right: 0 !important; margin: 0 !important; z-index: 9997 !important; box-shadow: 0 4px 10px rgba(0,0,0,0.5) !important; border: 1px solid rgba(255,255,255,0.1) !important; }
+        .leaflet-control-layers-expanded { padding: 8px 12px !important; }
+        .leaflet-control-layers label span { white-space: nowrap !important; font-family: 'Kanit', sans-serif !important; font-size: 12px !important; }
         
         #btn-right { position: absolute !important; top: 48px !important; right: 0 !important; margin: 0 !important; z-index: 9996 !important; padding: 8px 14px; background: #0f172a; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; font-family: 'Kanit'; cursor: pointer; font-weight: 600; color: #10b981; box-shadow: 0 4px 10px rgba(0,0,0,0.5) !important; font-size: 13px; width: 84px; height: 34px; box-sizing: border-box; display: flex; align-items: center; justify-content: center; }
         #btn-right:hover { background: #1e293b; }
@@ -437,17 +441,17 @@
             updateFileCounts(filtered);
         }
 
-        // 📥 3. หน้าต่างคลังโครงการ (อัปเกรด: คัดกรองรหัสงานย่อย + ดีไซน์บรรทัดเดียว ปุ่มจิ๋ว)
+        // 📥 3. หน้าต่างคลังโครงการ (อัปเกรด: คัดกรองตรงตามรหัสงานย่อย + ดีไซน์บรรทัดเดียว ปุ่มจิ๋ว)
         window.openDownloadModal = function(projId, jobId) {
-            // หาข้อมูลโครงการที่ตรงกับรหัสโครงการหลัก (เพื่อดึง array ไฟล์ทั้งหมดออกมาก่อน)
-            let project = allData.find(d => d['รหัสโครงการ'] == projId);
+            // ค้นหาแถวข้อมูลโครงการที่ตรงคู่รหัสโครงการหลักและรหัสงานย่อยแบบล็อกเป้าแม่นยำ
+            let project = allData.find(d => d['รหัสโครงการ'] == projId && (d['รหัสงาน'] == jobId || (!d['รหัสงาน'] && !jobId)));
             let html = "";
             
             if (project && project.files && project.files.length > 0) {
-                // 🎯 กรอง 1. เอาเฉพาะไฟล์ที่ตรงกับรหัสงานย่อย (jobId) ที่กดเข้ามา และ 2. ซ่อนภาพโดรน
+                // กรองเอาเฉพาะไฟล์แนบที่ไม่ใช่ Drone และตรงตามรหัสงานย่อยที่เลือกเข้ามา
                 let allowedFiles = project.files.filter(f => 
                     f['ประเภทไฟล์'] !== 'Drone' && 
-                    (!jobId || f['รหัสงาน'] == jobId || !f['รหัสงาน']) 
+                    (!jobId || f['รหัสงาน'] == jobId || !f['รหัสงาน'])
                 );
                 
                 if (allowedFiles.length > 0) {
@@ -457,16 +461,16 @@
                         
                         let type = f['ประเภทไฟล์'];
                         let icon = '📄';
-                        let btnIcon = '⬇️'; // ปุ่มโหลดเริ่มต้น
+                        let btnIcon = '⬇️'; 
                         
                         if (type === 'KMZ' || type === 'KML') { icon = '🗂️'; }
-                        else if (type === 'Image') { icon = '🖼️'; btnIcon = '👁️'; } // ถ้าเป็นรูปเปลี่ยนไอคอนปุ่มเป็นรูปลูกตา
+                        else if (type === 'Image') { icon = '🖼️'; btnIcon = '👁️'; } 
                         else if (type === 'Excel') { icon = '📊'; }
                         else if (type === 'CAD') { icon = '📐'; }
                         
                         let fileName = f['ชื่องาน'] || 'ไฟล์ข้อมูลแนบ';
                         
-                        // สร้างแถวข้อมูลบรรทัดเดียว ดีไซน์คลีน ปุ่มจิ๋วขวามือ
+                        // เรนเดอร์โครงสร้างบรรทัดเดียว ปุ่มจิ๋วขวามือตามดีไซน์คลาสในท่อน 1
                         return `
                         <div class="download-item-row">
                             <div class="download-item-left">
