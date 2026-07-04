@@ -88,8 +88,10 @@
 
         #hud-box { position: absolute; bottom: 20px; right: 15px; background: rgba(11, 15, 25, 0.85); backdrop-filter: blur(10px); color: #00FFCC; padding: 10px 18px; border-radius: 8px; font-family: monospace; font-size: 12px; z-index: 9996; border: 1px solid rgba(0, 255, 204, 0.3); line-height: 1.4; pointer-events: none; }
         
+        /* 🚨 แก้บั๊กตรงนี้! เปลี่ยน pointer-events:all เป็น auto เพื่อให้มือถือกดปุ่มและลิ้งก์ได้ 100% 🚨 */
         .modal-overlay { position: fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(15,23,42,0.6); backdrop-filter:blur(6px); z-index:100000; display:flex; align-items:center; justify-content:center; opacity:0; pointer-events:none; transition:0.3s; }
-        .modal-overlay.show { opacity:1; pointer-events:all; }
+        .modal-overlay.show { opacity:1; pointer-events: auto !important; }
+        
         .modal-box { width:420px; max-height:85vh; overflow-y:auto; padding:20px; background: #ffffff; border-radius: 8px; box-shadow: 0 15px 40px rgba(0,0,0,0.5); color: #1e293b; box-sizing: border-box; }
         .form-group { margin-bottom: 10px; }
         .form-group label { display:block; font-size:11px; color:#475569; margin-bottom:4px; font-weight:600; }
@@ -265,6 +267,16 @@
                 
                 <button type="submit" class="btn-submit">💾 บันทึกข้อมูลลง Sheets</button>
             </form>
+        </div>
+    </div>
+
+    <div id="download-modal" class="modal-overlay">
+        <div class="modal-box" style="width:400px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; border-bottom:1px solid #e2e8f0; padding-bottom:10px;">
+                <span style="font-weight:600; color:#2563eb; font-size:14px;">📥 คลังโครงการ (ดาวน์โหลดไฟล์)</span>
+                <button onclick="document.getElementById('download-modal').classList.remove('show')" style="background:none; border:none; color:#94a3b8; cursor:pointer;">❌</button>
+            </div>
+            <div id="download-list" style="max-height: 300px; overflow-y: auto; padding-right: 4px;"></div>
         </div>
     </div> <script>
         const API = "https://my-gis-backend.onrender.com";
@@ -442,15 +454,32 @@
 
             document.getElementById("tbody-stats").innerHTML = filtered.map(d => {
                 let s = parseFloat(d['กม.ต้น'])||0, e = parseFloat(d['กม.ปลาย'])||0; 
+                
+                // ✂️ หั่นรหัสงานย่อยซ้ำซ้อน เอาแค่ 3 ตัวหลัง
                 let shortJobId = (d['รหัสงาน'] || '000').toString().split('-').pop();
                 let fullId = `สร.รว.${aNum}-${y}-${d['รหัสโครงการ']}-${shortJobId}`;
+                
+                // 🔍 นับจำนวนไฟล์ที่มีในคลังของงานย่อยนี้ (ไม่นับโดรน)
+                let allowedFiles = (d.files || []).filter(f => 
+                    f['ประเภทไฟล์'] !== 'Drone' && 
+                    (!d['รหัสงาน'] || f['รหัสงาน'] == d['รหัสงาน'] || !f['รหัสงาน'])
+                );
+                let fileCount = allowedFiles.length;
+                let btnHtml = "";
+
+                // 🚦 สมองกลเปลี่ยนสีปุ่ม: มีไฟล์ = เขียวคลิกได้ / ไม่มีไฟล์ = เทาคลิกไม่ได้
+                if (fileCount > 0) {
+                    btnHtml = `<button onclick="openDownloadModal('${d['รหัสโครงการ']}', '${d['รหัสงาน']}')" style="background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); padding: 2px 8px; border-radius: 4px; font-size: 9.5px; margin-top: 4px; cursor: pointer;">📥 คลังโครงการ (${fileCount})</button>`;
+                } else {
+                    btnHtml = `<button disabled style="background: rgba(148, 163, 184, 0.15); color: #94a3b8; border: 1px solid rgba(148, 163, 184, 0.3); padding: 2px 8px; border-radius: 4px; font-size: 9.5px; margin-top: 4px; cursor: not-allowed;">📥 คลังโครงการ (0)</button>`;
+                }
                 
                 return `<tr>
                     <td>
                         <span style="color:#38bdf8; font-weight:600; font-size:11px;">${fullId}</span><br>
                         <strong style="font-size:11.5px; line-height: 1.2; display:block;">${d['ชื่อโครงการ']}</strong>
                         <small style="color:#fbbf24; font-size:10px; display:block; margin-bottom:2px;">งาน: ${d['ชื่องาน'] && d['ชื่องาน']!=="undefined" ? d['ชื่องาน'] : '-'}</small>
-                        <button onclick="openDownloadModal('${d['รหัสโครงการ']}', '${d['รหัสงาน']}')" style="background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); padding: 2px 8px; border-radius: 4px; font-size: 9.5px; margin-top: 4px; cursor: pointer;">📥 คลังโครงการ</button>
+                        ${btnHtml}
                     </td>
                     <td align="center" style="vertical-align:middle;">${s.toFixed(3)}</td>
                     <td align="center" style="vertical-align:middle;">${e.toFixed(3)}</td>
@@ -515,6 +544,7 @@
                     let url = f['ลิงก์จาก R2'], type = f['ประเภทไฟล์'], prov = f['จังหวัด']||p['จังหวัด']||'';
                     if(!url || url==="-" || type === 'Excel' || type === 'Image' || type === 'CAD') return;
                     
+                    // ✂️ หั่นรหัสงานย่อยซ้ำซ้อนในแผง LAYER ออกด้วย
                     let shortJobId = (f['รหัสงาน'] || '000').toString().split('-').pop();
                     let fullId = `สร.รว.${aNum}-${y}-${p['รหัสโครงการ']}-${shortJobId}`;
                     let n = `${fullId}|||${f['ชื่องาน']||'ไม่ระบุ'}`; 
@@ -591,7 +621,6 @@
                     </div>`;
             });
 
-            // 🎯 กล่องอัปโหลดไฟล์ชั่วคราว
             const tempUploadBox = `
                 <div style="position:relative; text-align:center; padding: 15px 10px; border: 1px dashed rgba(56, 189, 248, 0.3); background: rgba(56, 189, 248, 0.05); border-radius: 8px; margin-top: 10px; cursor: pointer;">
                     <input type="file" accept=".kmz,.kml" style="position:absolute; top:0; left:0; width:100%; height:100%; opacity:0; cursor:pointer; z-index:2;" onchange="loadTempLayer(this)">
@@ -713,31 +742,23 @@
             const projInput = document.getElementById('up-proj-name').value;
             const jobInput = document.getElementById('up-job-name').value;
 
-            // เติมลิสต์จังหวัด
             document.getElementById('dl-prov').innerHTML = [...new Set(data.map(d => d['จังหวัด']))].filter(Boolean).sort().map(p => `<option value="${p}">`).join('');
             
-            // กรองตามจังหวัด
             const filteredByProv = data.filter(d => !provInput || d['จังหวัด'] === provInput);
-            
-            // เติมลิสต์ชื่อโครงการ
             document.getElementById('dl-proj').innerHTML = [...new Set(filteredByProv.map(d => d['ชื่อโครงการ']))].filter(Boolean).sort().map(p => `<option value="${p}">`).join('');
             
-            // 🎯 เติม "รหัสโครงการ" อัตโนมัติ ถ้าชื่อตรงกับในฐานข้อมูล
             const matchedProj = filteredByProv.find(d => d['ชื่อโครงการ'] === projInput);
             if (matchedProj && matchedProj['รหัสโครงการ']) {
                 document.getElementById('up-proj-id').value = matchedProj['รหัสโครงการ'];
             }
 
-            // กรองตามโครงการ
             const filteredByProj = filteredByProv.filter(d => !projInput || d['ชื่อโครงการ'] === projInput);
-            
-            // เติมลิสต์ชื่องานย่อย
             document.getElementById('dl-job').innerHTML = [...new Set(filteredByProj.map(d => d['ชื่องาน']))].filter(Boolean).sort().map(j => (j && j !== 'undefined') ? `<option value="${j}">` : '').join('');
             
-            // 🎯 เติม "รหัสงานย่อย" อัตโนมัติ ถ้าชื่อตรงกับในฐานข้อมูล
             const matchedJob = filteredByProj.find(d => d['ชื่องาน'] === jobInput);
             if (matchedJob && matchedJob['รหัสงาน']) {
-                document.getElementById('up-job-id').value = matchedJob['รหัสงาน'];
+                let shortJobId = matchedJob['รหัสงาน'].toString().split('-').pop(); // ✂️ หั่นรหัสงานตอนเติมอัตโนมัติด้วย
+                document.getElementById('up-job-id').value = shortJobId;
             }
         }
 
