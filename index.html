@@ -108,23 +108,23 @@
 
         /* 📱 Responsive Mobile */
         @media (max-width: 768px) {
-            #top-bar { width: 96%; top: 5px; flex-wrap: wrap; padding: 6px 8px; gap: 4px; }
-            .filter-select { flex: 1 1 45%; font-size: 11px; padding: 6px; margin:0; }
-            #search-box { flex: 1 1 100%; margin-top: 2px; }
-            
-            /* ดันปุ่มมือถือลงมาให้พ้นแถบค้นหาที่ขยายตัว (แก้บั๊กมองไม่เห็นปุ่ม) */
-            #btn-left { top: 155px !important; left: 10px !important; padding: 6px 10px; z-index: 9996; }
-            #btn-right { top: 155px !important; right: 10px !important; width: 60px; font-size: 11px; z-index: 9996; }
-            .leaflet-top.leaflet-right { top: 200px !important; right: 10px !important; }
+            /* 1. ใส่ Transition ให้ปุ่มและแผงต่างๆ เลื่อนขึ้นลงแบบสมูท ไม่กระตุก */
+            #btn-left, #btn-right, #left-sidebar, #right-sidebar, .leaflet-top.leaflet-right {
+                transition: top 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
+            }
 
-            #left-sidebar { width: 94%; left: 3%; right: 3%; top: 155px !important; bottom: 10px !important; z-index: 9998 !important; } 
-            #right-sidebar { width: 94%; left: 3%; right: 3%; top: 155px !important; bottom: 10px !important; z-index: 9998 !important; } 
-            
-            #left-sidebar.hidden { transform: translateX(-110vw); }
-            #right-sidebar.hidden { transform: translateX(110vw); }
-            
-            .modal-box { width: 92%; padding: 15px; }
-            #hud-box { bottom: 10px; right: 10px; font-size: 10px; padding: 6px 10px; }
+            /* 2. สั่งเลื่อนปุ่ม ซ้าย-ขวา ขึ้นไปประกบลูกศร เมื่อแถบบนถูกพับ */
+            body.top-collapsed #btn-left,
+            body.top-collapsed #btn-right {
+                top: 15px !important; 
+            }
+
+            /* 3. สั่งเลื่อนแผงข้อมูล แผงLAYER และเครื่องมือแผนที่ ขึ้นตามไปให้ชิดขึ้น */
+            body.top-collapsed #left-sidebar,
+            body.top-collapsed #right-sidebar,
+            body.top-collapsed .leaflet-top.leaflet-right {
+                top: 65px !important; 
+            }
         }
     </style>
 </head>
