@@ -23,7 +23,7 @@
         body, html { margin: 0; padding: 0; width: 100vw; height: 100vh; overflow: hidden; font-family: 'Kanit', sans-serif; background-color: #0b0f19; }
         #map { width: 100%; height: 100%; z-index: 1; }
         
-        /* 🌀 ระบบโหลดดิ้ง (ดัน z-index ให้อยู่หน้าสุด 999999 ทับป๊อปอัพทั้งหมด) */
+        /* 🌀 ระบบหน้าจอรอโหลด (z-index สูงสุดหน้าสุดเสมอ) */
         #loading-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(11, 15, 25, 0.85); backdrop-filter: blur(8px); z-index: 999999; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.3s; opacity: 0; pointer-events: none; }
         #loading-overlay.show { opacity: 1; pointer-events: all; }
         .spinner-wrapper { position: relative; width: 100px; height: 100px; display: flex; align-items: center; justify-content: center; }
@@ -33,10 +33,10 @@
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         @keyframes pulseText { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
 
-        /* ✨ สไตล์กระจกดำ */
+        /* ✨ สไตล์แผงกระจกดำ */
         .glass-panel { background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; box-shadow: 0 10px 35px rgba(0,0,0,0.6); color: #f8fafc; }
         
-        /* 📍 แถบค้นหาบนสุด (z-index 9999 อยู่เหนือ Sidebar) */
+        /* 📍 แถบค้นหาบนสุด */
         #top-bar { position: absolute; top: 15px; left: 50%; transform: translateX(-50%); width: 75%; display: flex; gap: 8px; padding: 10px 16px; align-items: center; justify-content: center; z-index: 9999; transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); box-sizing: border-box; } 
         #top-bar.collapsed { transform: translate(-50%, -100%); }
         #toggle-topbar-btn { position: absolute; bottom: -24px; left: 50%; transform: translateX(-50%); width: 40px; height: 24px; background: rgba(37, 99, 235, 0.85); border: none; border-radius: 0 0 12px 12px; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 11px; box-shadow: 0 4px 8px rgba(0,0,0,0.4); }
@@ -45,29 +45,31 @@
         select option { background: #0f172a; color: #f8fafc; }
         #search-box { flex: 1.6; background: rgba(15, 23, 42, 0.95); border: 1.5px solid #2563eb; color: #38bdf8; }
 
-        /* 🗂️ แผงทำงาน ซ้าย-ขวา (z-index 9998 เพื่อให้ทับปุ่ม LAYER และแผนที่) */
+        /* 🗂️ แผงทำงาน ซ้าย-ขวา (ปรับปรุง: สูงเท่ากัน และแผงขวาร่นหลบเครื่องมือตามสั่งบอส) */
         #left-sidebar { position: absolute; top: 125px; left: 15px; width: 420px; bottom: 25px; display: flex; flex-direction: column; overflow: hidden; transition: 0.4s; z-index: 9998; } 
         #left-sidebar.hidden { transform: translateX(-480px); }
         
-        #right-sidebar { position: absolute; top: 235px; right: 15px; width: 420px; bottom: 25px; display: flex; flex-direction: column; overflow: hidden; transition: 0.4s; border: 1px solid rgba(16, 185, 129, 0.3); z-index: 9998; } 
-        #right-sidebar.hidden { transform: translateX(480px); }
+        /* 🎯 แผง LAYER สูงเท่าแผงข้อมูล (top: 125px) และขยับร่นไปทางซ้าย (right: 110px) เพื่อเว้นที่เห็นเครื่องมือควบคุมชัดเจน */
+        #right-sidebar { position: absolute; top: 125px; right: 110px; width: 420px; bottom: 25px; display: flex; flex-direction: column; overflow: hidden; transition: 0.4s; border: 1px solid rgba(16, 185, 129, 0.3); z-index: 9998; } 
+        #right-sidebar.hidden { transform: translateX(100vw); }
 
-        /* 🔘 กลุ่มปุ่มควบคุม (จัดระเบียบเงาความลอยให้เท่ากันทั้งหมด) */
-        .hud-btn { position: absolute; padding: 8px 14px; background: #0f172a; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; font-family: 'Kanit'; cursor: pointer; font-weight: 600; color: #fff; box-shadow: 0 4px 10px rgba(0,0,0,0.5); transition: 0.3s; font-size: 13px; z-index: 9996; } 
-        .hud-btn:hover { background: #1e293b; }
-        
-        /* 🎯 จัดตำแหน่งปุ่มบนหน้าจอ Desktop (เรียง Map -> LAYER -> Ruler -> GPS) */
-        #btn-left { top: 75px; left: 15px; color: #38bdf8; }
-        .leaflet-top.leaflet-right { top: 70px !important; right: 15px !important; z-index: 9995; }
-        .leaflet-control-layers { z-index: 9997 !important; } /* ให้เมนูแผนที่ทับปุ่ม LAYER เวลายืดออก */
-        
-        /* ย้ายปุ่ม LAYER ไปสอดไส้ใต้ Google Map */
-        #btn-right { top: 125px; right: 15px; color: #10b981; }
-        /* ดันไม้บรรทัดและ GPS ลงไป เพื่อเว้นที่ให้ปุ่ม LAYER ตรงกลาง */
-        .leaflet-control-polyline-measure { margin-top: 50px !important; } 
+        /* 🔘 ปุ่มควบคุมฝั่งซ้าย (☰ คลังข้อมูล) */
+        #btn-left { position: absolute; top: 75px; left: 15px; padding: 8px 14px; background: #0f172a; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; font-family: 'Kanit'; cursor: pointer; font-weight: 600; color: #38bdf8; box-shadow: 0 4px 10px rgba(0,0,0,0.5); z-index: 9996; transition: 0.3s; font-size: 13px; }
+        #btn-left:hover { background: #1e293b; }
 
-        /* จัดเงาของเครื่องมือ Leaflet ให้ลอยมีมิติเท่ากับปุ่ม HUD */
-        .leaflet-bar, .leaflet-control-layers { box-shadow: 0 4px 10px rgba(0,0,0,0.5) !important; border: 1px solid rgba(255,255,255,0.1) !important; }
+        /* 🎯 กลุ่มควบคุมฝั่งขวาสุด ล็อกพิกัดตายตัว ลอยเด่นสวยงามไม่โดนแผง LAYER บัง */
+        .leaflet-top.leaflet-right { top: 70px !important; right: 15px !important; z-index: 9995; overflow: visible !important; }
+        .leaflet-control-layers { position: absolute !important; top: 0 !important; right: 0 !important; margin: 0 !important; z-index: 9997 !important; box-shadow: 0 4px 10px rgba(0,0,0,0.5) !important; border: 1px solid rgba(255,255,255,0.1) !important; }
+        
+        #btn-right { position: absolute !important; top: 48px !important; right: 0 !important; margin: 0 !important; z-index: 9996 !important; padding: 8px 14px; background: #0f172a; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; font-family: 'Kanit'; cursor: pointer; font-weight: 600; color: #10b981; box-shadow: 0 4px 10px rgba(0,0,0,0.5) !important; font-size: 13px; width: 84px; height: 34px; box-sizing: border-box; display: flex; align-items: center; justify-content: center; }
+        #btn-right:hover { background: #1e293b; }
+
+        .leaflet-control-polyline-measure { position: absolute !important; top: 96px !important; right: 0 !important; margin: 0 !important; z-index: 9996 !important; }
+        .leaflet-control-polyline-measure a { box-shadow: 0 4px 10px rgba(0,0,0,0.5) !important; border: 1px solid rgba(255,255,255,0.1) !important; }
+
+        .leaflet-control-locate { position: absolute !important; top: 144px !important; right: 0 !important; margin: 0 !important; z-index: 9996 !important; }
+        .leaflet-control-locate a { background: #ffffff !important; border: 1px solid rgba(0,0,0,0.2) !important; border-radius: 4px !important; width: 34px !important; height: 34px !important; display: flex !important; align-items: center !important; justify-content: center !important; box-shadow: 0 4px 10px rgba(0,0,0,0.5) !important; }
+        .leaflet-control-locate a .leaflet-control-locate-icon { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%230f172a'%3E%3Cpath d='M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm8.94 3c-.46-4.17-3.77-7.48-7.94-7.94V1h-2v2.06C6.83 3.52 3.52 6.83 3.06 11H1v2h2.06c.46 4.17 3.77 7.48 7.94 7.94V23h2v-2.06c4.17-.46 7.48-3.77 7.94-7.94H23v-2h-2.06zM12 19c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z'/%3E%3C/svg%3E") !important; background-size: 18px 18px !important; background-position: center !important; background-repeat: no-repeat !important; width: 18px !important; height: 18px !important; display: block !important; }
 
         .sidebar-header { padding: 12px 16px; background: rgba(15,23,42,0.9); color: #fff; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); }
         .tab-header { display: flex; background-color: rgba(15, 23, 42, 0.6); padding: 4px; margin: 12px; border-radius: 8px; gap: 4px; flex-shrink: 0; }
@@ -78,7 +80,6 @@
         #tab-stats.active { display: flex !important; flex-direction: column; } 
 
         .inner-upload-btn { background: rgba(251, 191, 36, 0.1); border: 1px solid rgba(251, 191, 36, 0.4); color: #fbbf24; padding: 12px; margin: 12px 15px 15px 15px; border-radius: 8px; font-family: 'Kanit'; font-weight: 600; font-size: 13px; cursor: pointer; text-align: center; transition: 0.2s; flex-shrink: 0; }
-        
         .excel-table { width: 100%; border-collapse: collapse; font-size: 11px; }
         .excel-table th { padding: 8px 4px; background-color: #0f172a; color: #94a3b8; position: sticky; top: 0; z-index: 2; white-space: nowrap; }
         .excel-table td { padding: 8px 4px; border-bottom: 1px solid rgba(255,255,255,0.04); color: #cbd5e1; }
@@ -89,22 +90,13 @@
         input[type=range].slim-slider { -webkit-appearance: none; width: 100%; height: 3px; background: #475569; border-radius: 3px; outline: none; }
         input[type=range].slim-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 12px; height: 12px; border-radius: 50%; background: #10b981; cursor: pointer; box-shadow: 0 0 5px rgba(16, 185, 129, 0.8); }
 
-        /* 🎨 เปลี่ยนสีปุ่ม GPS ให้พื้นขาว ไอคอนสีเข้ม */
-        .leaflet-control-locate a { background: #ffffff !important; color: #0f172a !important; transform: scale(0.85); transform-origin: top right; }
-        .leaflet-control-locate a:hover { background: #f1f5f9 !important; color: #000000 !important; }
-        .leaflet-control-layers { background: rgba(15, 23, 42, 0.9) !important; color: #fff !important; font-family: 'Kanit'; font-size: 12px; }
-        .leaflet-control-polyline-measure { transform: scale(0.85); transform-origin: top right; margin-bottom: 8px !important; }
-
-        /* 🎯 เป้าเล็ง */
         .screen-center-marker { position: absolute; top: 50%; left: 50%; z-index: 9996; pointer-events: none; transform: translate(-50%, -50%); width: 0; height: 0; }
         .screen-center-marker::before { content: ''; position: absolute; top: -0.5px; left: -8px; width: 16px; height: 1.5px; background: #ffffff; box-shadow: 0 0 2px rgba(0,0,0,0.8); }
         .screen-center-marker::after { content: ''; position: absolute; top: -8px; left: -0.5px; width: 1.5px; height: 16px; background: #ffffff; box-shadow: 0 0 2px rgba(0,0,0,0.8); }
 
         #hud-box { position: absolute; bottom: 20px; right: 15px; background: rgba(11, 15, 25, 0.85); backdrop-filter: blur(10px); color: #00FFCC; padding: 10px 18px; border-radius: 8px; font-family: monospace; font-size: 12px; z-index: 9996; border: 1px solid rgba(0, 255, 204, 0.3); line-height: 1.4; pointer-events: none; }
-        .leaflet-popup-content-wrapper { background: rgba(15, 23, 42, 0.95) !important; color: #f8fafc !important; border: 1px solid rgba(255,255,255,0.1) !important; border-radius: 6px !important; }
-        .leaflet-popup-content { margin: 8px 10px !important; font-size: 11px !important; }
-
-        /* 📤 โมดัล (ป๊อปอัพ - z-index 100000 ให้อยู่หน้าสุดเสมอ) */
+        
+        /* 📤 โมดัลทั่วไป */
         .modal-overlay { position: fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(15,23,42,0.6); backdrop-filter:blur(6px); z-index:100000; display:flex; align-items:center; justify-content:center; opacity:0; pointer-events:none; transition:0.3s; }
         .modal-overlay.show { opacity:1; pointer-events:all; }
         .modal-box { width:420px; max-height:85vh; overflow-y:auto; padding:20px; background: #ffffff; border-radius: 8px; box-shadow: 0 15px 40px rgba(0,0,0,0.5); color: #1e293b; box-sizing: border-box; }
@@ -113,18 +105,28 @@
         .form-control { width:100%; padding:7px 10px; background:#f8fafc; border:1px solid #cbd5e1; border-radius:4px; color:#0f172a; font-family:'Kanit'; font-size:11.5px; box-sizing:border-box; outline:none; }
         .btn-submit { width:100%; padding:10px; background:#2563eb; color:#fff; border:none; border-radius:4px; font-family:'Kanit'; font-weight:600; cursor:pointer; font-size:12.5px; margin-top:5px; }
 
-        /* 📱 Responsive Mobile (ปรับสัดส่วนหลบขอบ ไม่ให้ปุ่มทับกัน) */
+        /* 📥 [สเปกดีไซน์ป๊อปอัพดาวน์โหลดใหม่] แถวตรง บรรทัดเดียว ปุ่มจิ๋วเท่าไอคอนหน้า */
+        .download-item-row { display: flex; align-items: center; justify-content: space-between; background: #f8fafc; padding: 8px 12px; margin-bottom: 6px; border-radius: 6px; border: 1px solid #e2e8f0; gap: 10px; box-sizing: border-box; }
+        .download-item-left { display: flex; align-items: center; gap: 8px; flex: 1; overflow: hidden; }
+        .download-item-icon { font-size: 14px; width: 20px; text-align: center; flex-shrink: 0; }
+        .download-item-text { font-size: 11.5px; color: #0f172a; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .download-btn-mini { width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; background: #2563eb; color: #fff; border-radius: 4px; text-decoration: none; font-size: 11px; flex-shrink: 0; transition: 0.2s; border: none; cursor: pointer; padding: 0; box-sizing: border-box; }
+        .download-btn-mini:hover { background: #1d4ed8; transform: scale(1.05); }
+
+        /* 📱 Responsive Mobile */
         @media (max-width: 768px) {
-            #top-bar { width: 96%; top: 5px; flex-wrap: wrap; padding: 6px 8px; gap: 4px; z-index: 9999; }
+            #top-bar { width: 96%; top: 5px; flex-wrap: wrap; padding: 6px 8px; gap: 4px; }
             .filter-select { flex: 1 1 45%; font-size: 11px; padding: 6px; margin:0; }
             #search-box { flex: 1 1 100%; margin-top: 2px; }
             
-            #btn-left { top: 100px !important; left: 10px !important; padding: 6px 10px; z-index: 9996; }
-            .leaflet-top.leaflet-right { top: 100px !important; right: 10px !important; z-index: 9995; }
-            #btn-right { top: 150px !important; right: 10px !important; padding: 6px 10px; z-index: 9996; }
-            .leaflet-control-polyline-measure { margin-top: 45px !important; }
+            .leaflet-top.leaflet-right { top: 95px !important; right: 10px !important; overflow: visible !important; }
+            #btn-right { position: absolute !important; top: 48px !important; right: 0 !important; font-size: 11px; height: 34px; width: 60px; }
+            .leaflet-control-polyline-measure { position: absolute !important; top: 96px !important; right: 0 !important; }
+            .leaflet-control-locate { position: absolute !important; top: 144px !important; right: 0 !important; }
 
-            /* ปรับขนาดแผงคลังข้อมูลในมือถือให้ชิดขอบ เพื่อทับปุ่มที่ไม่จำเป็น */
+            #btn-left { top: 95px !important; left: 10px !important; padding: 6px 10px; z-index: 9996; }
+            
+            /* ในมือถือให้แสดงแผงขยายทับสัดส่วนจอเพื่อความสะดวกในการควบคุม */
             #left-sidebar { width: 94%; left: 3%; right: 3%; top: 95px !important; bottom: 10px !important; z-index: 9998 !important; } 
             #right-sidebar { width: 94%; left: 3%; right: 3%; top: 95px !important; bottom: 10px !important; z-index: 9998 !important; } 
             
@@ -162,7 +164,7 @@
         <button id="toggle-topbar-btn" onclick="toggleTopBar()">▲</button>
     </div>
 
-    <div id="left-sidebar" class="glass-panel">
+    <div id="left-sidebar" class="glass-panel hidden">
         <div class="sidebar-header">
             <span style="font-weight:600; color: #38bdf8; font-size:14px;">📂 คลังข้อมูล</span>
             <button onclick="toggleSidebar('left')" style="background:none; border:none; color:#64748b; cursor:pointer;">❌</button>
@@ -212,30 +214,28 @@
                 <div class="form-group"><label>3. รหัสโครงการ และ รหัสงานย่อย</label><div style="display:flex; gap:8px;"><input type="text" class="form-control" id="up-proj-id" placeholder="โครงการ" maxlength="3" required><input type="text" class="form-control" id="up-job-id" placeholder="งานย่อย" maxlength="3" required></div></div>
                 <div class="form-group"><label>4. ข้อมูลพื้นที่ (จังหวัด)</label><input type="text" class="form-control" id="up-prov" list="dl-prov" oninput="updateUploadDatalists()" required><datalist id="dl-prov"></datalist></div>
                 <div class="form-group"><label>5. ชื่อโครงการหลัก</label><input type="text" class="form-control" id="up-proj-name" list="dl-proj" oninput="updateUploadDatalists()" required><datalist id="dl-proj"></datalist></div>
-                <div class="form-group"><label>6. ชื่องานย่อย</label><input type="text" class="form-control" id="up-job-name" list="dl-job" required><datalist id="dl-job"></datalist></div>
+                <div class="form-group"><label>6. รหัสงานย่อย</label><input type="text" class="form-control" id="up-job-name" list="dl-job" required><datalist id="dl-job"></datalist></div>
                 <div class="form-group"><label>7. ระยะทาง (กม.ต้น - กม.ปลาย)</label><div style="display:flex; gap:8px;"><input type="number" step="0.001" class="form-control" id="up-km-start" required><input type="number" step="0.001" class="form-control" id="up-km-end" required></div></div>
                 <div class="form-group"><label>8. ประเภทไฟล์</label><select class="form-control" id="up-file-type" required><option value="KMZ">🗂️ เวกเตอร์ (KMZ/KML)</option><option value="Drone">🚁 โดรน (GeoTIFF/XYZ)</option><option value="Image">🖼️ รูปภาพ (JPG/PNG)</option><option value="Excel">📊 ตาราง (Excel)</option><option value="CAD">📐 CAD (.dwg/.dxf)</option></select></div>
-                
                 <div class="form-group"><label>9. อัปโหลดไฟล์ขึ้นคลาวด์</label><input type="file" class="form-control" id="up-file-data" accept=".kmz,.kml,.tif,.tiff,.xyz,.jpg,.jpeg,.png,.xls,.xlsx,.csv,.dwg,.dxf" required></div>
-                <button type="submit" class="btn-submit">💾 บันทึกข้อมูลลง Sheets</button>
+                <button type="submit" class="btn-submit">💾 ส่งต้นฉบับเพื่อจัดเก็บ</button>
             </form>
         </div>
     </div>
 
     <div id="download-modal" class="modal-overlay">
-        <div class="modal-box" style="width:380px;">
+        <div class="modal-box" style="width:400px;">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; border-bottom:1px solid #e2e8f0; padding-bottom:10px;">
                 <span style="font-weight:600; color:#2563eb; font-size:14px;">📥 คลังโครงการ (ดาวน์โหลดไฟล์)</span>
                 <button onclick="document.getElementById('download-modal').classList.remove('show')" style="background:none; border:none; color:#94a3b8; cursor:pointer;">❌</button>
             </div>
-            <div id="download-list" style="max-height: 250px; overflow-y: auto;"></div>
+            <div id="download-list" style="max-height: 300px; overflow-y: auto; padding-right: 4px;"></div>
         </div>
-    </div> <!-- 🧠 Javascript System Core -->
-    <script>
+    </div> <script>
         const API = "https://my-gis-backend.onrender.com";
         const map = L.map('map', { zoomControl: false }).setView([15.5, 100], 6);
         
-        // 🎯 กำหนดให้เมาส์แสดงเป็นกากบาท (Crosshair) สไตล์โปรแกรม GIS มืออาชีพ
+        // 🎯 กำหนดให้เมาส์แสดงเป็นกากบาท (Crosshair)
         document.head.insertAdjacentHTML('beforeend', '<style>.leaflet-container { cursor: crosshair !important; }</style>');
 
         // 🗺️ ระบบแผนที่ฐาน (Base Maps)
@@ -246,7 +246,7 @@
 
         googleHybrid.addTo(map);
         
-        // 🎛️ 1. ปุ่มแผนที่ฐาน (อยู่บนสุด)
+        // 🎛️ 1. ปุ่มแผนที่ฐาน
         L.control.layers({
             "🗺️ แผนที่ฐานภาพทางถนน": googleMaps,
             "📷 แผนที่ฐานภาพดาวเทียม": googleSatellite,
@@ -254,18 +254,16 @@
             "⛰️ แผนที่ฐานภูมิประเทศ": googleTerrain
         }, null, { position: 'topright' }).addTo(map);
         
-        // 📏 2. เครื่องมือไม้บรรทัดวัดระยะทาง (โดน CSS ดันลงมาให้อยู่ใต้ปุ่ม LAYER)
+        // 📏 2. เครื่องมือไม้บรรทัดวัดระยะทาง
         L.control.polylineMeasure({ position: 'topright', unit: 'metres' }).addTo(map);
 
-        // 📍 3. ปุ่มพิกัดปัจจุบัน GPS (พื้นหลังขาว ไอคอนเข้ม)
+        // 📍 3. ปุ่มพิกัดปัจจุบัน GPS
         L.control.locate({
             position: 'topright',
             strings: { title: "แสดงตำแหน่งปัจจุบันของฉัน (GPS)" },
             locateOptions: { enableHighAccuracy: true, maxZoom: 17 },
             flyTo: true,
-            keepCurrentZoomLevel: false,
-            markerStyle: { color: '#ffffff', fillColor: '#2563eb', fillOpacity: 1, weight: 2 },
-            circleStyle: { color: '#2563eb', fillColor: '#2563eb', fillOpacity: 0.15, weight: 1 }
+            keepCurrentZoomLevel: false
         }).addTo(map);
 
         // 🌀 ระบบหน้าจอรอโหลด (Loading Overlay)
@@ -274,7 +272,7 @@
         function showLoad(msg) { loadingMsg.innerText = msg || "กำลังประมวลผล..."; loadingBox.classList.add('show'); }
         function hideLoad() { loadingBox.classList.remove('show'); }
 
-        // 🎯 สมองกลคำนวณและแสดงพิกัดกึ่งกลางหน้าจอถาวร (WGS84 -> UTM)
+        // 🎯 สมองกลคำนวณและแสดงพิกัดกึ่งกลางหน้าจอ
         function updateCenterHUD() {
             const center = map.getCenter();
             const z = Math.floor((center.lng + 180) / 6) + 1;
@@ -309,7 +307,7 @@
                 .openOn(map);
         });
 
-        // ⏳ ฟังก์ชันโหลดและวาดไฟล์ KMZ/KML ชั่วคราวลงหน้าจอสนาม
+        // ⏳ ฟังก์ชันโหลดและวาดไฟล์ KMZ/KML ชั่วคราว
         function loadTempLayer(input) {
             if (!input.files || !input.files[0]) return;
             const file = input.files[0];
@@ -331,13 +329,8 @@
                 changeColor(safeId, '#38bdf8');
                 hideLoad();
             });
-            l.on('error', () => {
-                hideLoad();
-                alert("❌ โหลดไฟล์ข้อมูลชั่วคราวไม่สำเร็จ โปรดตรวจสอบว่าไฟล์สมบูรณ์หรือไม่");
-                removeFromCart(safeId);
-            });
+            l.on('error', () => { hideLoad(); alert("❌ โหลดไฟล์ไม่สำเร็จ โปรดตรวจสอบไฟล์"); removeFromCart(safeId); });
             l.addTo(map);
-
             input.value = ''; 
         }
 
@@ -372,13 +365,12 @@
             if(e) e.currentTarget.classList.add('active');
         }
 
-        // 💾 ฐานข้อมูลเชิงตำแหน่งและสมองกลคัดกรอง
+        // 💾 ฐานข้อมูลเชิงตำแหน่ง
         let memoryCache = {}; let allData = []; 
         const activeLayers = {}; const cartItems = new Map(); 
         const cleanStr = str => (str || '').toString().toLowerCase().replace(/\s+/g, '');
         const simpleHash = str => new Uint32Array([str.split('').reduce((h, c) => Math.imul(31, h) + c.charCodeAt(0) | 0, 0)])[0].toString(36);
 
-        // 🔄 1. ดึงข้อมูลโครงการหลักราย สร.รว. จากหลังบ้าน
         async function loadDataByAgency(agency) {
             if(!agency) return filterAll();
             showLoad(`กำลังซิงค์ข้อมูล ${agency}...`); 
@@ -386,7 +378,7 @@
                 try {
                     const res = await fetch(`${API}/api/projects/by-agency?agency=${agency}&_t=${Date.now()}`);
                     memoryCache[agency] = await res.json();
-                } catch(e) { console.error("โหลดข้อมูลพลาด", e); }
+                } catch(e) {}
             }
             allData = memoryCache[agency] || [];
             updateProvinceDropdown(); filterAll();
@@ -404,7 +396,6 @@
             if(prov) [...new Set(allData.filter(d => d['จังหวัด'] === prov).map(d => d['ชื่อโครงการ']))].filter(Boolean).sort().forEach(p => pSel.appendChild(new Option(p, p)));
         }
 
-        // 🔍 2. ระบบค้นหากรองข้อมูลตารางหลัก
         function filterAll() {
             let y_val = document.getElementById("f-year").value;
             let a_val = document.getElementById("f-agency").value;
@@ -445,40 +436,49 @@
             updateFileCounts(filtered);
         }
 
-        // 📥 3. หน้าต่างคลังโครงการ (ซ่อนภาพโดรน)
+        // 📥 3. หน้าต่างคลังโครงการ (อัปเกรด: คัดกรองรหัสงานย่อย + ดีไซน์บรรทัดเดียว ปุ่มจิ๋ว)
         window.openDownloadModal = function(projId, jobId) {
-            let project = allData.find(d => d['รหัสโครงการ'] == projId && (d['รหัสงาน'] == jobId || (!d['รหัสงาน'] && !jobId)));
+            // หาข้อมูลโครงการที่ตรงกับรหัสโครงการหลัก (เพื่อดึง array ไฟล์ทั้งหมดออกมาก่อน)
+            let project = allData.find(d => d['รหัสโครงการ'] == projId);
             let html = "";
             
             if (project && project.files && project.files.length > 0) {
-                let allowedFiles = project.files.filter(f => f['ประเภทไฟล์'] !== 'Drone');
+                // 🎯 กรอง 1. เอาเฉพาะไฟล์ที่ตรงกับรหัสงานย่อย (jobId) ที่กดเข้ามา และ 2. ซ่อนภาพโดรน
+                let allowedFiles = project.files.filter(f => 
+                    f['ประเภทไฟล์'] !== 'Drone' && 
+                    (!jobId || f['รหัสงาน'] == jobId || !f['รหัสงาน']) 
+                );
+                
                 if (allowedFiles.length > 0) {
                     html = allowedFiles.map(f => {
                         let url = f['ลิงก์จาก R2'];
                         if(!url || url === "-") return '';
                         
                         let type = f['ประเภทไฟล์'];
-                        let icon = '📄', btnTxt = '⬇️ โหลดไฟล์';
+                        let icon = '📄';
+                        let btnIcon = '⬇️'; // ปุ่มโหลดเริ่มต้น
+                        
                         if (type === 'KMZ' || type === 'KML') { icon = '🗂️'; }
-                        else if (type === 'Image') { icon = '🖼️'; btnTxt = '👁️ ดูรูปภาพ'; }
-                        else if (type === 'Excel') { icon = '📊'; btnTxt = '⬇️ เปิดตาราง'; }
-                        else if (type === 'CAD') { icon = '📐'; btnTxt = '⬇️ โหลดไฟล์ CAD'; }
+                        else if (type === 'Image') { icon = '🖼️'; btnIcon = '👁️'; } // ถ้าเป็นรูปเปลี่ยนไอคอนปุ่มเป็นรูปลูกตา
+                        else if (type === 'Excel') { icon = '📊'; }
+                        else if (type === 'CAD') { icon = '📐'; }
                         
                         let fileName = f['ชื่องาน'] || 'ไฟล์ข้อมูลแนบ';
                         
+                        // สร้างแถวข้อมูลบรรทัดเดียว ดีไซน์คลีน ปุ่มจิ๋วขวามือ
                         return `
-                        <div style="display:flex; justify-content:space-between; align-items:center; background:#f8fafc; padding:8px 12px; margin-bottom:8px; border-radius:6px; border:1px solid #e2e8f0;">
-                            <div style="flex:1; overflow:hidden; padding-right:10px;">
-                                <strong style="font-size:11.5px; color:#0f172a; display:block; white-space:nowrap; text-overflow:ellipsis;">${icon} ${fileName}</strong>
-                                <small style="color:#64748b; font-size:10px;">ประเภท: ${type}</small>
+                        <div class="download-item-row">
+                            <div class="download-item-left">
+                                <span class="download-item-icon">${icon}</span>
+                                <span class="download-item-text" title="${fileName}">${fileName}</span>
                             </div>
-                            <a href="${url}" target="_blank" style="background:#2563eb; color:#fff; padding:6px 10px; border-radius:4px; text-decoration:none; font-size:10.5px; font-weight:600; flex-shrink:0; transition:0.2s;">${btnTxt}</a>
+                            <a href="${url}" target="_blank" class="download-btn-mini" title="เปิด/ดาวน์โหลดไฟล์">${btnIcon}</a>
                         </div>`;
                     }).join('');
                 }
             }
             
-            document.getElementById('download-list').innerHTML = html || '<div style="text-align:center; color:#64748b; padding:20px 0;"><span style="font-size:24px; display:block; margin-bottom:10px;">📂</span><span style="font-size:12px;">ยังไม่มีไฟล์จัดเก็บเฉพาะในคลังโครงการนี้</span></div>';
+            document.getElementById('download-list').innerHTML = html || '<div style="text-align:center; color:#64748b; padding:20px 0;"><span style="font-size:24px; display:block; margin-bottom:10px;">📂</span><span style="font-size:12px;">ยังไม่มีไฟล์จัดเก็บในงานย่อยนี้</span></div>';
             document.getElementById('download-modal').classList.add('show');
         };
 
@@ -527,7 +527,7 @@
             renderFn("list-vectors", vArr, 'v'); renderFn("list-drones", dArr, 'd');
         }
 
-        // 🛒 5. ระบบจัดการแผงควบคุม LAYER (มีจานสี + ตัวเลข %)
+        // 🛒 5. ระบบจัดการแผงควบคุม LAYER
         function addToCart(safeId, url, name, prov, type) {
             if(cartItems.has(safeId)) { document.getElementById('right-sidebar').classList.remove('hidden'); return; }
             if(cartItems.size >= 10) return alert("🛑 หน้าต่าง LAYER เต็มแล้ว (เปิดได้สูงสุด 10 ชั้นข้อมูล)");
@@ -631,7 +631,7 @@
             if(f) { toggleLayer(safeId, f.url, false, f.type, f.prov); cartItems.delete(safeId); renderCartUI(); }
         }
 
-        // 🗺️ 6. สมองกลประมวลผลวาดชั้นเลเยอร์ลงแผนที่
+        // 🗺️ 6. สมองกลประมวลผลวาดชั้นเลเยอร์
         async function toggleLayer(safeId, url, turnOn, type, prov) {
             if (turnOn && !activeLayers[safeId]) {
                 if (type === 'v') {
@@ -696,7 +696,6 @@
             document.getElementById('dl-job').innerHTML = [...new Set(filteredByProj.map(d => d['ชื่องาน']))].filter(Boolean).sort().map(j => (j && j !== 'undefined') ? `<option value="${j}">` : '').join('');
         }
 
-        // ส่งข้อมูลเป็นก้อนไฟล์ (FormData)
         async function uploadFile(e) {
             e.preventDefault();
             const fileInput = document.getElementById('up-file-data');
@@ -746,7 +745,7 @@
             }
         }
 
-        // 🌐 8. แผนที่แนวเขตที่ดินกรมที่ดิน WMS (🔥 แดงสด คมกริบ รีดความละเอียดแบบ Retina)
+        // 🌐 8. แผนที่แนวเขตที่ดินกรมที่ดิน WMS 
         const wmsLandLayer = L.tileLayer.wms('https://ms.longdo.com/mapproxy/service', {
             layers: 'dol_hd', 
             format: 'image/png',
@@ -754,11 +753,10 @@
             maxZoom: 22,
             opacity: 0.7,
             zIndex: 1000,
-            detectRetina: true // 👈 เปิดระบบดึงภาพความละเอียดสูง (HD Retina)
+            detectRetina: true 
         });
 
         wmsLandLayer.on('tileload', function(e) {
-            // ดันความสว่าง, ความคมชัด และความสดของสีแดง ให้สุดหลอด
             e.tile.style.filter = 'brightness(1.1) contrast(2.5) saturate(5)'; 
         });
 
@@ -778,7 +776,7 @@
             document.getElementById('opacity-val-wms').innerText = `${Math.round(val * 100)}%`;
         }
 
-        // --- 🚀 9. เริ่มระบบสร้างเมนู Dropdown สร.รว.1-17
+        // --- 🚀 9. สร้างเมนู Dropdown สร.รว.1-17
         const aSel = document.getElementById("f-agency"); 
         const upAgencySel = document.getElementById("up-agency");
         for(let i=1; i<=17; i++) {
