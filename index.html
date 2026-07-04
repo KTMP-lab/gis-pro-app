@@ -88,7 +88,6 @@
 
         #hud-box { position: absolute; bottom: 20px; right: 15px; background: rgba(11, 15, 25, 0.85); backdrop-filter: blur(10px); color: #00FFCC; padding: 10px 18px; border-radius: 8px; font-family: monospace; font-size: 12px; z-index: 9996; border: 1px solid rgba(0, 255, 204, 0.3); line-height: 1.4; pointer-events: none; }
         
-        /* 🚨 แก้บั๊กตรงนี้! เปลี่ยน pointer-events:all เป็น auto เพื่อให้มือถือกดปุ่มและลิ้งก์ได้ 100% 🚨 */
         .modal-overlay { position: fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(15,23,42,0.6); backdrop-filter:blur(6px); z-index:100000; display:flex; align-items:center; justify-content:center; opacity:0; pointer-events:none; transition:0.3s; }
         .modal-overlay.show { opacity:1; pointer-events: auto !important; }
         
@@ -183,6 +182,7 @@
         </div>
         
         <div style="padding: 10px 15px 0 15px; border-bottom: 1px solid rgba(255,255,255,0.05);">
+            <!-- 🗺️ แนวเขตที่ดิน -->
             <div class="layer-item" style="border-left: 3px solid #f59e0b; margin-bottom: 10px; background: rgba(245, 158, 11, 0.1);">
                 <div style="display:flex; justify-content:space-between; align-items:center; gap:6px;">
                     <input type="checkbox" id="wms-land-toggle" onchange="toggleWMS(this.checked)" style="width:13px; height:13px; accent-color:#f59e0b; cursor:pointer;">
@@ -193,12 +193,22 @@
                     <span id="opacity-val-wms" style="color:#94a3b8; font-size:10px; width:30px; text-align:right;">70%</span>
                 </div>
             </div>
+            
+            <!-- 🗺️ สารบัญระวาง L7018 (ฝังถาวร) -->
+            <div class="layer-item" style="border-left: 3px solid #8b5cf6; margin-bottom: 10px; background: rgba(139, 92, 246, 0.1);">
+                <div style="display:flex; justify-content:space-between; align-items:center; gap:6px;">
+                    <input type="checkbox" id="l7018-toggle" onchange="toggleL7018(this.checked)" style="width:13px; height:13px; accent-color:#8b5cf6; cursor:pointer;">
+                    <div style="flex:1;"><strong style="color:#c4b5fd; font-size:11px;">🗺️ สารบัญระวาง L7018</strong></div>
+                </div>
+                <div style="display:flex; align-items:center; gap:8px; margin-top:6px;">
+                    <input type="range" class="slim-slider" min="0" max="1" step="0.05" value="0.7" oninput="changeL7018Opacity(this.value)" style="flex:1;">
+                    <span id="opacity-val-l7018" style="color:#94a3b8; font-size:10px; width:30px; text-align:right;">70%</span>
+                </div>
+            </div>
         </div>
 
         <div style="padding: 10px 15px; flex: 1; overflow-y: auto;" id="list-cart"></div>
-    </div>
-
-    <div id="upload-modal" class="modal-overlay">
+    </div> <div id="upload-modal" class="modal-overlay">
         <div class="modal-box">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; border-bottom:1px solid #e2e8f0; padding-bottom:10px;">
                 <span style="font-weight:600; color:#2563eb; font-size:14px;">📤 อัปโหลดข้อมูลถาวร</span>
@@ -278,7 +288,9 @@
             </div>
             <div id="download-list" style="max-height: 300px; overflow-y: auto; padding-right: 4px;"></div>
         </div>
-    </div> <script>
+    </div>
+
+    <script>
         const API = "https://my-gis-backend.onrender.com";
         const map = L.map('map', { zoomControl: false }).setView([15.5, 100], 6);
         
@@ -287,6 +299,8 @@
         const googleMaps = L.tileLayer('https://mt1.google.com/vt/lyrs=r&x={x}&y={y}&z={z}');
         const googleSatellite = L.tileLayer('https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}');
         const googleHybrid = L.tileLayer('https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}');
+        
+        // 🎯 เปลี่ยน Google Terrain เป็นรหัส lyrs=p ตามบัญชาบอส (มีเส้นถนน+ป้ายกำกับสถานที่)
         const googleTerrain = L.tileLayer('https://mt1.google.com/vt/lyrs=p&x={x}&y={y}&z={z}');
 
         googleHybrid.addTo(map);
@@ -365,7 +379,7 @@
                 const b = e.layer.getBounds();
                 if (b && b.isValid()) map.fitBounds(b);
                 changeOpacity(safeId, 1);
-                changeColor(safeId, '#38bdf8');
+                // 🎨 1. เริ่มต้นให้ใช้สีเดิมตามไฟล์ (ไม่บังคับเซ็ตสีฟ้าระหว่างโหลดตามสั่งครับบอส)
                 hideLoad();
             });
             l.on('error', () => { hideLoad(); alert("❌ โหลดไฟล์ไม่สำเร็จ โปรดตรวจสอบไฟล์"); removeFromCart(safeId); });
@@ -455,11 +469,9 @@
             document.getElementById("tbody-stats").innerHTML = filtered.map(d => {
                 let s = parseFloat(d['กม.ต้น'])||0, e = parseFloat(d['กม.ปลาย'])||0; 
                 
-                // ✂️ หั่นรหัสงานย่อยซ้ำซ้อน เอาแค่ 3 ตัวหลัง
                 let shortJobId = (d['รหัสงาน'] || '000').toString().split('-').pop();
                 let fullId = `สร.รว.${aNum}-${y}-${d['รหัสโครงการ']}-${shortJobId}`;
                 
-                // 🔍 นับจำนวนไฟล์ที่มีในคลังของงานย่อยนี้ (ไม่นับโดรน)
                 let allowedFiles = (d.files || []).filter(f => 
                     f['ประเภทไฟล์'] !== 'Drone' && 
                     (!d['รหัสงาน'] || f['รหัสงาน'] == d['รหัสงาน'] || !f['รหัสงาน'])
@@ -467,7 +479,6 @@
                 let fileCount = allowedFiles.length;
                 let btnHtml = "";
 
-                // 🚦 สมองกลเปลี่ยนสีปุ่ม: มีไฟล์ = เขียวคลิกได้ / ไม่มีไฟล์ = เทาคลิกไม่ได้
                 if (fileCount > 0) {
                     btnHtml = `<button onclick="openDownloadModal('${d['รหัสโครงการ']}', '${d['รหัสงาน']}')" style="background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); padding: 2px 8px; border-radius: 4px; font-size: 9.5px; margin-top: 4px; cursor: pointer;">📥 คลังโครงการ (${fileCount})</button>`;
                 } else {
@@ -544,7 +555,6 @@
                     let url = f['ลิงก์จาก R2'], type = f['ประเภทไฟล์'], prov = f['จังหวัด']||p['จังหวัด']||'';
                     if(!url || url==="-" || type === 'Excel' || type === 'Image' || type === 'CAD') return;
                     
-                    // ✂️ หั่นรหัสงานย่อยซ้ำซ้อนในแผง LAYER ออกด้วย
                     let shortJobId = (f['รหัสงาน'] || '000').toString().split('-').pop();
                     let fullId = `สร.รว.${aNum}-${y}-${p['รหัสโครงการ']}-${shortJobId}`;
                     let n = `${fullId}|||${f['ชื่องาน']||'ไม่ระบุ'}`; 
@@ -692,7 +702,7 @@
                         if(b && b.isValid()) map.fitBounds(b); 
                         let f = cartItems.get(safeId);
                         changeOpacity(safeId, f.opacity); 
-                        if(f.color) changeColor(safeId, f.color); 
+                        // 🎨 1. เริ่มต้นให้ใช้สีเดิมตามไฟล์ (ไม่บังคับทับสีเริ่มต้นตามสั่งครับบอส)
                         hideLoad(); 
                     });
                     l.on('error', () => { hideLoad(); alert("❌ โหลดไฟล์ KMZ ไม่สำเร็จ"); removeFromCart(safeId); });
@@ -717,9 +727,46 @@
             }
         }
 
-        // ========================================================
-        // 📤 ระบบสมองกลฟอร์มอัปโหลดข้อมูล (เพิ่มลอจิก Auto-Fill ID)
-        // ========================================================
+        // ==========================================
+        // 🗺️ ระบบเปิด-ปิด สารบัญระวาง L7018 (ฝังถาวร)
+        // ==========================================
+        let l7018Layer = null;
+
+        function toggleL7018(isChecked) {
+            if(isChecked) {
+                showLoad("กำลังโหลดสารบัญระวาง L7018... 🗺️");
+                const url = "https://pub-4961c816153f421dbb5a81bb6ac5d11c.r2.dev/L7018IndexEPSG3395.kml";
+                l7018Layer = L.kmzLayer(url);
+                l7018Layer.on('load', function(e) {
+                    hideLoad();
+                });
+                l7018Layer.on('error', function() {
+                    hideLoad();
+                    alert("❌ โหลดสารบัญระวาง L7018 ไม่สำเร็จ");
+                    document.getElementById('l7018-toggle').checked = false;
+                });
+                l7018Layer.addTo(map);
+            } else {
+                if(l7018Layer) {
+                    map.removeLayer(l7018Layer);
+                    l7018Layer = null;
+                }
+            }
+        }
+
+        function changeL7018Opacity(val) {
+            if(l7018Layer) {
+                l7018Layer.eachLayer(function(sublayer) {
+                    if (sublayer.setStyle) sublayer.setStyle({ opacity: val, fillOpacity: val * 0.4 });
+                    if (sublayer.setOpacity) sublayer.setOpacity(val);
+                });
+            }
+            document.getElementById('opacity-val-l7018').innerText = `${Math.round(val * 100)}%`;
+        }
+
+        // ==========================================
+        // 📤 ระบบฟอร์มอัปโหลดข้อมูล
+        // ==========================================
 
         async function loadUploadAgencyData(agency) {
             if(!agency) return;
@@ -757,7 +804,7 @@
             
             const matchedJob = filteredByProj.find(d => d['ชื่องาน'] === jobInput);
             if (matchedJob && matchedJob['รหัสงาน']) {
-                let shortJobId = matchedJob['รหัสงาน'].toString().split('-').pop(); // ✂️ หั่นรหัสงานตอนเติมอัตโนมัติด้วย
+                let shortJobId = matchedJob['รหัสงาน'].toString().split('-').pop();
                 document.getElementById('up-job-id').value = shortJobId;
             }
         }
