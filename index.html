@@ -642,3 +642,170 @@
                         if(sub.setStyle) sub.setStyle({ color: colorHex, fillColor: colorHex });
                     });
                 }
+            }
+        }
+
+        function removeFromCart(safeId) {
+            let f = cartItems.get(safeId);
+            if(f) { toggleLayer(safeId, f.url, false, f.type, f.prov); cartItems.delete(safeId); renderCartUI(); }
+        }
+
+        // 🗺️ 6. สมองกลประมวลผลวาดชั้นเลเยอร์
+        async function toggleLayer(safeId, url, turnOn, type, prov) {
+            if (turnOn && !activeLayers[safeId]) {
+                if (type === 'v') {
+                    showLoad("กำลังวาดโครงข่ายเชิงเส้น KMZ... 🗺️"); 
+                    const l = L.kmzLayer(url); 
+                    activeLayers[safeId] = l;
+                    l.on('load', e => { 
+                        const b = e.layer.getBounds(); 
+                        if(b && b.isValid()) map.fitBounds(b); 
+                        let f = cartItems.get(safeId);
+                        changeOpacity(safeId, f.opacity); 
+                        if(f.color) changeColor(safeId, f.color); 
+                        hideLoad(); 
+                    });
+                    l.on('error', () => { hideLoad(); alert("❌ โหลดไฟล์ KMZ ไม่สำเร็จ"); removeFromCart(safeId); });
+                    l.addTo(map);
+                } else {
+                    showLoad("กำลังดาวน์โหลดภาพโดรน XYZ... 🚁"); 
+                    activeLayers[safeId] = L.tileLayer(url, { maxNativeZoom: 20, maxZoom: 22, zIndex: 100 }).addTo(map);
+                    changeOpacity(safeId, cartItems.get(safeId).opacity);
+                    
+                    if(prov) {
+                        try {
+                            const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=จังหวัด${prov.replace('จ.','')}`);
+                            const data = await res.json(); 
+                            if(data.length) map.flyTo([data[0].lat, data[0].lon], 11);
+                        } catch(e){}
+                    }
+                    setTimeout(hideLoad, 800); 
+                }
+            } else if (!turnOn && activeLayers[safeId]) {
+                if(type === 'v') activeLayers[safeId].clearLayers();
+                map.removeLayer(activeLayers[safeId]); delete activeLayers[safeId];
+            }
+        }
+
+        // --- 📤 7. ระบบฟอร์มอัปโหลดข้อมูลถาวร ---
+        async function loadUploadAgencyData(agency) {
+            if(!agency) return;
+            showLoad(`กำลังดึงข้อมูลฟอร์ม ${agency}... 🔄`);
+            if (!memoryCache[agency]) {
+                try {
+                    const res = await fetch(`${API}/api/projects/by-agency?agency=${agency}&_t=${Date.now()}`);
+                    memoryCache[agency] = await res.json();
+                } catch(e) { console.error(e); }
+            }
+            updateUploadDatalists(agency);
+            hideLoad();
+        }
+
+        function updateUploadDatalists(agencyName) {
+            const currentAgency = agencyName || document.getElementById('up-agency').value;
+            const data = memoryCache[currentAgency] || [];
+            
+            const provInput = document.getElementById('up-prov').value;
+            const projInput = document.getElementById('up-proj-name').value;
+
+            document.getElementById('dl-prov').innerHTML = [...new Set(data.map(d => d['จังหวัด']))].filter(Boolean).sort().map(p => `<option value="${p}">`).join('');
+            const filteredByProv = data.filter(d => !provInput || d['จังหวัด'] === provInput);
+            document.getElementById('dl-proj').innerHTML = [...new Set(filteredByProv.map(d => d['ชื่อโครงการ']))].filter(Boolean).sort().map(p => `<option value="${p}">`).join('');
+            const filteredByProj = filteredByProv.filter(d => !projInput || d['ชื่อโครงการ'] === projInput);
+            document.getElementById('dl-job').innerHTML = [...new Set(filteredByProj.map(d => d['ชื่องาน']))].filter(Boolean).sort().map(j => (j && j !== 'undefined') ? `<option value="${j}">` : '').join('');
+        }
+
+        async function uploadFile(e) {
+            e.preventDefault();
+            const fileInput = document.getElementById('up-file-data');
+            if (!fileInput.files || fileInput.files.length === 0) {
+                alert("❌ กรุณาเลือกไฟล์ที่จะอัปโหลดก่อนครับบอส!");
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('agency', document.getElementById('up-agency').value);
+            formData.append('year', parseInt(document.getElementById('up-year').value) || 0);
+            formData.append('projId', document.getElementById('up-proj-id').value);
+            formData.append('jobId', document.getElementById('up-job-id').value);
+            formData.append('prov', document.getElementById('up-prov').value);
+            formData.append('projName', document.getElementById('up-proj-name').value);
+            formData.append('jobName', document.getElementById('up-job-name').value);
+            formData.append('kmStart', parseFloat(document.getElementById('up-km-start').value) || 0);
+            formData.append('kmEnd', parseFloat(document.getElementById('up-km-end').value) || 0);
+            formData.append('fileType', document.getElementById('up-file-type').value);
+            formData.append('file', fileInput.files[0]); 
+
+            showLoad("กำลังอัปโหลดไฟล์ขึ้นคลาวด์ R2 และบันทึกลง Google Sheets... 🚀");
+            try {
+                const response = await fetch(`${API}/api/projects`, {
+                    method: 'POST',
+                    body: formData 
+                });
+                hideLoad();
+                
+                if(response.ok) {
+                    alert("✅ บันทึกไฟล์และซิงค์ข้อมูลลง Sheets เรียบร้อยครับบอส!");
+                    document.getElementById('upload-modal').classList.remove('show');
+                    document.getElementById('upload-form').reset();
+                    
+                    let currentAgency = document.getElementById("f-agency").value;
+                    if(currentAgency) {
+                        delete memoryCache[currentAgency]; 
+                        loadDataByAgency(currentAgency); 
+                    }
+                } else {
+                    const err = await response.json();
+                    alert(`❌ ระบบไม่สามารถบันทึกได้: ${err.message || 'เกิดข้อผิดพลาด'}`);
+                }
+            } catch (error) {
+                hideLoad();
+                alert("❌ เครือข่ายขัดข้อง ไม่สามารถติดต่อเซิร์ฟเวอร์หลังบ้านได้");
+            }
+        }
+
+        // 🌐 8. แผนที่แนวเขตที่ดินกรมที่ดิน WMS 
+        const wmsLandLayer = L.tileLayer.wms('https://ms.longdo.com/mapproxy/service', {
+            layers: 'dol_hd', 
+            format: 'image/png',
+            transparent: true,
+            maxZoom: 22,
+            opacity: 0.7,
+            zIndex: 1000,
+            detectRetina: true 
+        });
+
+        wmsLandLayer.on('tileload', function(e) {
+            e.tile.style.filter = 'brightness(1.1) contrast(2.5) saturate(5)'; 
+        });
+
+        function toggleWMS(isChecked) {
+            if(isChecked) {
+                showLoad("กำลังดึงระวางแนวเขตที่ดินระดับประเทศ... 🗺️");
+                wmsLandLayer.addTo(map);
+                wmsLandLayer.on('load', hideLoad);
+                setTimeout(hideLoad, 2000); 
+            } else {
+                map.removeLayer(wmsLandLayer);
+            }
+        }
+
+        function changeWMSOpacity(val) {
+            wmsLandLayer.setOpacity(val);
+            document.getElementById('opacity-val-wms').innerText = `${Math.round(val * 100)}%`;
+        }
+
+        // --- 🚀 9. สร้างเมนู Dropdown สร.รว.1-17
+        const aSel = document.getElementById("f-agency"); 
+        const upAgencySel = document.getElementById("up-agency");
+        for(let i=1; i<=17; i++) {
+            aSel.appendChild(new Option(`สร.รว.${i}`, `สร.รว.${i}`));
+            upAgencySel.appendChild(new Option(`สร.รว.${i}`, `สร.รว.${i}`));
+        }
+
+        if (window.innerWidth > 768) {
+            document.getElementById('right-sidebar').classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>
