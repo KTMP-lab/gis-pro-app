@@ -125,8 +125,23 @@
             body.top-collapsed #btn-left, body.top-collapsed #btn-right { top: 15px !important; }
             body.top-collapsed #left-sidebar, body.top-collapsed #right-sidebar { top: 65px !important; }
             body.top-collapsed .leaflet-top.leaflet-right { top: 65px !important; }
-        }
-    </style>
+        } 
+    body.top-collapsed #left-sidebar, body.top-collapsed #right-sidebar { top: 65px !important; }
+        body.top-collapsed .leaflet-top.leaflet-right { top: 65px !important; }
+    } /* <-- นี่คือวงเล็บปิดของมือถือที่มีอยู่เดิม */
+
+    /* ========================================== */
+    /* 💻 โซนปรับขนาดเฉพาะจอคอมพิวเตอร์ (PC Desktop) */
+    /* ========================================== */
+    @media (min-width: 769px) {
+        .inner-upload-btn { padding: 6px 12px !important; margin: 8px 15px 4px 15px !important; font-size: 11px !important; line-height: 1.1 !important; }
+        .export-btn { padding: 6px 12px !important; margin: 0 15px 8px 15px !important; font-size: 11px !important; line-height: 1.1 !important; }
+        .layer-item { padding: 4px 8px !important; margin-bottom: 5px !important; line-height: 1.1 !important; }
+        .layer-item > div { margin-top: 2px !important; }
+        .layer-item strong { font-size: 10.5px !important; }
+    }
+
+</style>
 </head>
 <body>
 
