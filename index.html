@@ -17,7 +17,6 @@
     <script src="https://unpkg.com/leaflet-kmz@latest/dist/leaflet-kmz.js"></script>
     <script src="https://ppete2.github.io/Leaflet.PolylineMeasure/Leaflet.PolylineMeasure.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/leaflet.locatecontrol/dist/L.Control.Locate.min.js" charset="utf-8"></script>
-    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
     <style>
@@ -87,6 +86,11 @@
 
         #hud-box { position: absolute; bottom: 20px; right: 15px; background: rgba(11, 15, 25, 0.85); backdrop-filter: blur(10px); color: #00FFCC; padding: 10px 18px; border-radius: 8px; font-family: monospace; font-size: 12px; z-index: 9996; border: 1px solid rgba(0, 255, 204, 0.3); line-height: 1.4; pointer-events: none; }
         
+        /* 📐 กล่องมาตราส่วน Scale Box (PC Only) */
+        #scale-box { position: absolute; bottom: 20px; left: 15px; background: rgba(11, 15, 25, 0.85); backdrop-filter: blur(10px); color: #f8fafc; padding: 6px 12px; border-radius: 8px; font-family: 'Kanit', sans-serif; font-size: 12px; z-index: 9996; border: 1px solid rgba(255, 255, 255, 0.15); display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
+        #scale-input { background: #0f172a; border: 1px solid #38bdf8; color: #38bdf8; font-family: monospace; padding: 2px 6px; border-radius: 4px; width: 70px; text-align: center; font-size: 12px; outline: none; transition: 0.2s; }
+        #scale-input:focus { border-color: #10b981; box-shadow: 0 0 5px rgba(16, 185, 129, 0.5); color: #10b981; }
+
         .modal-overlay { position: fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(15,23,42,0.6); backdrop-filter:blur(6px); z-index:100000; display:flex; align-items:center; justify-content:center; opacity:0; pointer-events:none; transition:0.3s; }
         .modal-overlay.show { opacity:1; pointer-events: auto !important; }
         
@@ -94,7 +98,8 @@
         .form-group { margin-bottom: 10px; }
         .form-group label { display:block; font-size:11px; color:#475569; margin-bottom:4px; font-weight:600; }
         .form-control { width:100%; padding:7px 10px; background:#f8fafc; border:1px solid #cbd5e1; border-radius:4px; color:#0f172a; font-family:'Kanit'; font-size:11.5px; box-sizing:border-box; outline:none; }
-        .btn-submit { width:100%; padding:10px; background:#2563eb; color:#fff; border:none; border-radius:4px; font-family:'Kanit'; font-weight:600; cursor:pointer; font-size:12.5px; margin-top:5px; }
+        .btn-submit { width:100%; padding:10px; background:#2563eb; color:#fff; border:none; border-radius:4px; font-family:'Kanit'; font-weight:600; cursor:pointer; font-size:12.5px; margin-top:5px; transition: 0.2s; }
+        .btn-submit:hover { opacity: 0.9; }
 
         .download-item-row { display: flex; align-items: center; justify-content: space-between; background: #f8fafc; padding: 8px 12px; margin-bottom: 6px; border-radius: 6px; border: 1px solid #e2e8f0; gap: 10px; box-sizing: border-box; }
         .download-item-left { display: flex; align-items: center; gap: 8px; flex: 1; overflow: hidden; }
@@ -102,46 +107,41 @@
         .download-item-text { font-size: 11.5px; color: #0f172a; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .download-btn-mini { width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; background: #2563eb; color: #fff; border-radius: 4px; text-decoration: none; font-size: 11px; flex-shrink: 0; transition: 0.2s; border: none; cursor: pointer; padding: 0; box-sizing: border-box; }
 
+        /* ========================================== */
+        /* 📱 โซนการแสดงผลสำหรับมือถือ (Mobile Only) */
+        /* ========================================== */
         @media (max-width: 768px) {
             #top-bar { width: 96%; top: 5px; flex-wrap: wrap; padding: 6px 8px; gap: 4px; }
             .filter-select { flex: 1 1 48%; font-size: 11px; padding: 6px; margin: 0; }
             #search-box { flex: 1 1 100%; margin-top: 2px; }
-
             #btn-left { top: 155px !important; left: 10px !important; padding: 6px 10px; z-index: 9996; }
             #btn-right { top: 155px !important; right: 10px !important; width: 60px; font-size: 11px; z-index: 9996; margin: 0 !important; }
             .leaflet-top.leaflet-right { top: 200px !important; right: 10px !important; }
-
             #left-sidebar, #right-sidebar { width: 94% !important; left: 3% !important; right: 3% !important; top: 155px !important; bottom: 10px !important; z-index: 9998 !important; } 
             #left-sidebar.hidden { transform: translateX(-110vw) !important; }
             #right-sidebar.hidden { transform: translateX(110vw) !important; }
-            
             .modal-box { width: 92%; padding: 15px; }
             #hud-box { bottom: 10px; right: 10px; font-size: 10px; padding: 6px 10px; }
-
-            #btn-left, #btn-right, #left-sidebar, #right-sidebar, .leaflet-top.leaflet-right {
-                transition: top 0.4s cubic-bezier(0.4, 0, 0.2, 1), transform 0.4s ease !important;
-            }
-
+            #btn-left, #btn-right, #left-sidebar, #right-sidebar, .leaflet-top.leaflet-right { transition: top 0.4s cubic-bezier(0.4, 0, 0.2, 1), transform 0.4s ease !important; }
             body.top-collapsed #btn-left, body.top-collapsed #btn-right { top: 15px !important; }
             body.top-collapsed #left-sidebar, body.top-collapsed #right-sidebar { top: 65px !important; }
             body.top-collapsed .leaflet-top.leaflet-right { top: 65px !important; }
-        } 
-    body.top-collapsed #left-sidebar, body.top-collapsed #right-sidebar { top: 65px !important; }
-        body.top-collapsed .leaflet-top.leaflet-right { top: 65px !important; }
-    } /* <-- นี่คือวงเล็บปิดของมือถือที่มีอยู่เดิม */
+            
+            /* 🚫 ซ่อนกล่อง Scale Box ในมือถือ 100% ตามสั่งบอส */
+            #scale-box { display: none !important; }
+        }
 
-    /* ========================================== */
-    /* 💻 โซนปรับขนาดเฉพาะจอคอมพิวเตอร์ (PC Desktop) */
-    /* ========================================== */
-    @media (min-width: 769px) {
-        .inner-upload-btn { padding: 6px 12px !important; margin: 8px 15px 4px 15px !important; font-size: 11px !important; line-height: 1.1 !important; }
-        .export-btn { padding: 6px 12px !important; margin: 0 15px 8px 15px !important; font-size: 11px !important; line-height: 1.1 !important; }
-        .layer-item { padding: 4px 8px !important; margin-bottom: 5px !important; line-height: 1.1 !important; }
-        .layer-item > div { margin-top: 2px !important; }
-        .layer-item strong { font-size: 10.5px !important; }
-    }
-
-</style>
+        /* ========================================== */
+        /* 💻 โซนปรับขนาดเฉพาะจอคอมพิวเตอร์ (PC Desktop) */
+        /* ========================================== */
+        @media (min-width: 769px) {
+            .inner-upload-btn { padding: 6px 12px !important; margin: 8px 15px 4px 15px !important; font-size: 11px !important; line-height: 1.1 !important; }
+            .export-btn { padding: 6px 12px !important; margin: 0 15px 8px 15px !important; font-size: 11px !important; line-height: 1.1 !important; }
+            .layer-item { padding: 4px 8px !important; margin-bottom: 5px !important; line-height: 1.1 !important; }
+            .layer-item > div { margin-top: 2px !important; }
+            .layer-item strong { font-size: 10.5px !important; }
+        }
+    </style>
 </head>
 <body>
 
@@ -155,7 +155,15 @@
 
     <div id="map"></div>
     <div class="screen-center-marker"></div>
+    
+    <!-- 🎯 มุมล่างขวา: กล่องพิกัด -->
     <div id="hud-box">UTM Zone --</div>
+    
+    <!-- 📐 มุมล่างซ้าย: กล่องมาตราส่วนแบบพิมพ์ได้ (แสดงเฉพาะจอ PC) -->
+    <div id="scale-box">
+        <span>มาตราส่วน 1 : </span>
+        <input type="number" id="scale-input" value="" onkeypress="qgis_applyScale(event)" title="พิมพ์มาตราส่วนที่ต้องการแล้วกด Enter">
+    </div>
 
     <div id="top-bar" class="glass-panel">
         <select class="filter-select" id="f-agency" onchange="sys_loadDataByAgency(this.value);"><option value="" disabled selected hidden>-- 1. สร.รว. --</option></select>
@@ -188,7 +196,6 @@
             <span id="c-count" style="font-weight:600; color: #10b981; font-size: 14px;">LAYER ที่กำลังแสดง (0/10)</span>
             <button onclick="ui_toggleSidebar('right')" style="background:none; border:none; color:#10b981; cursor:pointer; font-weight:600;">❌</button>
         </div>
-        
         <div style="padding: 10px 15px 0 15px; border-bottom: 1px solid rgba(255,255,255,0.05);">
             <div class="layer-item" style="border-left: 3px solid #f59e0b; margin-bottom: 10px; background: rgba(245, 158, 11, 0.1);">
                 <div style="display:flex; justify-content:space-between; align-items:center; gap:6px;">
@@ -200,7 +207,6 @@
                     <span id="opacity-val-wms" style="color:#94a3b8; font-size:10px; width:30px; text-align:right;">70%</span>
                 </div>
             </div>
-            
             <div class="layer-item" style="border-left: 3px solid #8b5cf6; margin-bottom: 10px; background: rgba(139, 92, 246, 0.1);">
                 <div style="display:flex; justify-content:space-between; align-items:center; gap:6px;">
                     <input type="checkbox" id="l7018-toggle" onchange="qgis_toggleL7018(this.checked)" style="width:13px; height:13px; accent-color:#8b5cf6; cursor:pointer;">
@@ -212,15 +218,16 @@
                 </div>
             </div>
         </div>
-
         <div style="padding: 10px 15px; flex: 1; overflow-y: auto;" id="list-cart"></div>
-        
         <div id="temp-upload-zone" style="position:relative; text-align:center; padding: 15px 10px; border: 1px dashed rgba(56, 189, 248, 0.3); background: rgba(56, 189, 248, 0.05); border-radius: 8px; margin: 0 15px 15px 15px; cursor: pointer; flex-shrink: 0;">
             <input type="file" accept=".kmz,.kml" style="position:absolute; top:0; left:0; width:100%; height:100%; opacity:0; cursor:pointer; z-index:2;" onchange="qgis_loadTempLayer(this)">
             <span style="font-size:24px; display:block; margin-bottom:4px;">📂</span>
             <strong style="color:#38bdf8; font-size:11px; display:block;">คลิกเปิดไฟล์ชั่วคราว (KMZ/KML)</strong>
         </div>
-    </div> <div id="upload-modal" class="modal-overlay">
+    </div> <!-- ========================================== -->
+    <!-- 📤 ฟอร์มอัปโหลดข้อมูลถาวร -->
+    <!-- ========================================== -->
+    <div id="upload-modal" class="modal-overlay">
         <div class="modal-box">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; border-bottom:1px solid #e2e8f0; padding-bottom:10px;">
                 <span style="font-weight:600; color:#2563eb; font-size:14px;">📤 อัปโหลดข้อมูลถาวร</span>
@@ -292,6 +299,9 @@
         </div>
     </div>
 
+    <!-- ========================================== -->
+    <!-- 📥 ป๊อปอัพคลังโครงการ (ดาวน์โหลดไฟล์) -->
+    <!-- ========================================== -->
     <div id="download-modal" class="modal-overlay">
         <div class="modal-box" style="width:400px;">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; border-bottom:1px solid #e2e8f0; padding-bottom:10px;">
@@ -302,18 +312,66 @@
         </div>
     </div>
 
+    <!-- ========================================== -->
+    <!-- 📸 ป๊อปอัพพรีวิว Export ภาพหน้าจอ (QGIS Style) -->
+    <!-- ========================================== -->
+    <div id="export-modal" class="modal-overlay">
+        <div class="modal-box" style="width: 520px; max-width: 95%;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; border-bottom:1px solid #e2e8f0; padding-bottom:10px;">
+                <span style="font-weight:600; color:#10b981; font-size:14px;">📸 Save Map as Image</span>
+                <button onclick="document.getElementById('export-modal').classList.remove('show')" style="background:none; border:none; color:#94a3b8; cursor:pointer; font-size:14px;">❌</button>
+            </div>
+            
+            <!-- กรอบแสดงภาพตัวอย่าง -->
+            <div style="text-align: center; margin-bottom: 15px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 4px; padding: 5px; min-height: 200px; display: flex; align-items: center; justify-content: center;">
+                <img id="export-preview-img" src="" style="max-width: 100%; max-height: 300px; border-radius: 2px; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
+            </div>
+
+            <!-- กล่องแสดงพิกัดขอบเขต (Extent) อัตโนมัติแบบ QGIS -->
+            <div style="margin-bottom: 20px; background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 6px; padding: 12px;">
+                <div style="font-size:11px; font-weight:600; color:#334155; margin-bottom: 10px;">▼ Extent (current: map view in UTM)</div>
+                <div style="display: flex; flex-direction: column; gap: 8px; align-items: center;">
+                    <!-- เหนือ -->
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <label style="font-size:11px; color:#475569; width: 40px; text-align:right;">North</label>
+                        <input type="text" id="ex-north" class="form-control" style="width: 150px; text-align: center; font-family: monospace; font-size: 11px;" readonly>
+                    </div>
+                    <!-- ซ้าย - ขวา -->
+                    <div style="display: flex; align-items: center; justify-content: center; width: 100%; gap: 15px;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <label style="font-size:11px; color:#475569; width: 40px; text-align:right;">West</label>
+                            <input type="text" id="ex-west" class="form-control" style="width: 150px; text-align: center; font-family: monospace; font-size: 11px;" readonly>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <label style="font-size:11px; color:#475569; width: 40px; text-align:right;">East</label>
+                            <input type="text" id="ex-east" class="form-control" style="width: 150px; text-align: center; font-family: monospace; font-size: 11px;" readonly>
+                        </div>
+                    </div>
+                    <!-- ใต้ -->
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <label style="font-size:11px; color:#475569; width: 40px; text-align:right;">South</label>
+                        <input type="text" id="ex-south" class="form-control" style="width: 150px; text-align: center; font-family: monospace; font-size: 11px;" readonly>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ปุ่ม Action -->
+            <div style="display: flex; justify-content: space-between;">
+                <button onclick="document.getElementById('export-modal').classList.remove('show')" style="padding: 8px 16px; background: #e2e8f0; color: #475569; border: none; border-radius: 4px; font-family: 'Kanit'; cursor: pointer; font-size: 12px; font-weight: 600;">Cancel</button>
+                <button onclick="export_SaveImage()" style="padding: 8px 16px; background: #10b981; color: white; border: none; border-radius: 4px; font-family: 'Kanit'; cursor: pointer; font-size: 12px; font-weight: 600;">💾 บันทึกรูปภาพ (Save)</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         const API = "https://my-gis-backend.onrender.com";
         const map = L.map('map', { zoomControl: false }).setView([15.5, 100], 6);
         
         document.head.insertAdjacentHTML('beforeend', '<style>.leaflet-container { cursor: crosshair !important; }</style>');
 
-        // 🎯 1. อัปเกรดแผนที่ฐาน กำหนด Base Z-Index ให้เป็นชั้นล่างสุด (10)
         const googleMaps = L.tileLayer('https://mt1.google.com/vt/lyrs=r&x={x}&y={y}&z={z}', { zIndex: 10 });
         const googleSatellite = L.tileLayer('https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', { zIndex: 10 });
         const googleHybrid = L.tileLayer('https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', { zIndex: 10 });
-        
-        // 🎯 2. ใช้ Terrain Physical (lyrs=p) แสดงชื่อและถนน
         const googleTerrain = L.tileLayer('https://mt1.google.com/vt/lyrs=p&x={x}&y={y}&z={z}', { zIndex: 10 });
 
         googleHybrid.addTo(map);
@@ -340,7 +398,6 @@
         function showLoad(msg) { loadingMsg.innerText = msg || "กำลังประมวลผล..."; loadingBox.classList.add('show'); }
         function hideLoad() { loadingBox.classList.remove('show'); }
 
-
         // ==========================================
         // 🖥️ หมวด ui_: จัดการหน้าจอและการแสดงผล
         // ==========================================
@@ -349,10 +406,19 @@
             const z = Math.floor((center.lng + 180) / 6) + 1;
             const utm = proj4('+proj=longlat', `+proj=utm +zone=${z} +units=m`, [center.lng, center.lat]);
             
+            // อัปเดตกล่องพิกัดขวาล่าง
             document.getElementById('hud-box').innerHTML = 
                 `<div style="color:#f8fafc; font-size:10px; margin-bottom:2px;">🎯 พิกัดกึ่งกลางจอ:</div>
                  <strong style="color:#f59e0b;">Lat:</strong> ${center.lat.toFixed(6)}, <strong style="color:#f59e0b;">Lon:</strong> ${center.lng.toFixed(6)}<br>
                  <strong style="color:#38bdf8;">UTM Zone ${z}:</strong> X=${utm[0].toFixed(2)}, Y=${utm[1].toFixed(2)}`;
+                 
+            // 📐 อัปเดตตัวเลขในกล่องมาตราส่วน Scale Box (ถ้าไม่ได้พิมพ์อยู่)
+            const scaleInput = document.getElementById('scale-input');
+            if(document.activeElement !== scaleInput) {
+                // คำนวณมาตราส่วนคร่าวๆ จาก Zoom level ตามหลักสากล
+                const scale = Math.round(591657550.5 / Math.pow(2, map.getZoom()));
+                scaleInput.value = scale;
+            }
         }
         
         map.on('move', ui_updateCenterHUD);
@@ -407,58 +473,86 @@
             if(e) e.currentTarget.classList.add('active');
         }
 
+        // ==========================================
+        // 📸 หมวด export_: ระบบส่งออกและจับภาพแผนที่ QGIS Style
+        // ==========================================
+        let currentExportDataUrl = ""; // ตัวแปรเก็บรูปภาพพรีวิวชั่วคราว
 
-        // ==========================================
-        // 📸 หมวด export_: ระบบส่งออกและจับภาพแผนที่
-        // ==========================================
         async function export_MapToImage() {
-            showLoad("กำลังเตรียมจับภาพหน้าจอ... 📸");
+            showLoad("กำลังคำนวณพิกัดและเตรียมภาพพรีวิว... 📸");
             try {
-                // 1. ซ่อน UI (แผงเมนูและปุ่ม) ที่ไม่ต้องการให้อยู่ในรูปชั่วคราว
-                const hideElements = ['left-sidebar', 'right-sidebar', 'top-bar', 'btn-left', 'btn-right'];
+                // 1. ซ่อน UI เฉพาะเมนูที่บังแผนที่ (เก็บ HUD พิกัดไว้ในรูป)
+                const hideElements = ['left-sidebar', 'right-sidebar', 'top-bar', 'btn-left', 'btn-right', 'scale-box'];
                 hideElements.forEach(id => {
                     const el = document.getElementById(id);
                     if(el) el.style.display = 'none';
                 });
                 
-                // รอให้เบราว์เซอร์จัดการซ่อนเสร็จ
                 await new Promise(r => setTimeout(r, 600));
                 
-                // 2. ใช้ html2canvas จับภาพ body (ซึ่งเหลือแค่แผนที่กับ HUD พิกัด)
+                // 2. จับภาพบอดี้แผนที่
                 const canvas = await html2canvas(document.body, { 
                     useCORS: true,
                     allowTaint: true,
-                    backgroundColor: '#0b0f19' // ป้องกันขอบดำ
+                    backgroundColor: '#0b0f19'
                 });
                 
-                // 3. คืนค่า UI ให้กลับมาโชว์เหมือนเดิม
-                document.getElementById('left-sidebar').style.display = '';
-                document.getElementById('right-sidebar').style.display = '';
+                // 3. คืนค่าการแสดงผลเมนู
+                hideElements.forEach(id => {
+                    const el = document.getElementById(id);
+                    if(el) el.style.display = '';
+                });
                 document.getElementById('top-bar').style.display = 'flex';
-                document.getElementById('btn-left').style.display = '';
                 document.getElementById('btn-right').style.display = 'flex';
 
-                // 4. สั่งสร้างไฟล์ดาวน์โหลดลงเครื่อง
-                const link = document.createElement('a');
-                link.download = `GIS_Export_${new Date().toISOString().slice(0,10)}.png`;
-                link.href = canvas.toDataURL('image/png');
-                link.click();
+                // 4. บันทึกภาพลงตัวแปร และโชว์ในกล่อง Preview
+                currentExportDataUrl = canvas.toDataURL('image/png');
+                document.getElementById('export-preview-img').src = currentExportDataUrl;
+
+                // 5. 🎯 สมองกลคำนวณขอบเขต (Map Extent) เป็น UTM อัตโนมัติ
+                const bounds = map.getBounds();
+                const centerLng = map.getCenter().lng;
+                const z = Math.floor((centerLng + 180) / 6) + 1;
+                const utmProjDef = `+proj=utm +zone=${z} +units=m`;
                 
+                // แปลงพิกัด 4 มุม
+                const ne = proj4('+proj=longlat', utmProjDef, [bounds.getEast(), bounds.getNorth()]);
+                const sw = proj4('+proj=longlat', utmProjDef, [bounds.getWest(), bounds.getSouth()]);
+                
+                // หยอดตัวเลขลงในช่อง (ทศนิยม 4 ตำแหน่งสไตล์ QGIS)
+                document.getElementById('ex-north').value = ne[1].toFixed(4);
+                document.getElementById('ex-east').value = ne[0].toFixed(4);
+                document.getElementById('ex-south').value = sw[1].toFixed(4);
+                document.getElementById('ex-west').value = sw[0].toFixed(4);
+
+                // 6. เปิดหน้าต่างพรีวิว
                 hideLoad();
-                alert("✅ แคปภาพหน้าจอเรียบร้อยครับบอส! ตรวจสอบไฟล์ในเครื่องได้เลย");
+                document.getElementById('export-modal').classList.add('show');
+                
             } catch(e) {
-                // คืนค่า UI เผื่อเกิด Error
-                document.getElementById('left-sidebar').style.display = '';
-                document.getElementById('right-sidebar').style.display = '';
+                // คืนค่า UI เผื่อ error
+                const hideElements = ['left-sidebar', 'right-sidebar', 'top-bar', 'btn-left', 'btn-right', 'scale-box'];
+                hideElements.forEach(id => { const el = document.getElementById(id); if(el) el.style.display = ''; });
                 document.getElementById('top-bar').style.display = 'flex';
-                document.getElementById('btn-left').style.display = '';
                 document.getElementById('btn-right').style.display = 'flex';
                 
                 hideLoad();
-                alert("❌ เกิดข้อผิดพลาดในการแคปภาพ: อาจมีเลเยอร์ที่ไม่รองรับการดึงรูปภาพข้ามโดเมน");
+                alert("❌ เกิดข้อผิดพลาดในการแคปภาพ อาจมีเลเยอร์ที่ไม่รองรับการดึงรูปภาพข้ามโดเมน");
             }
+        }
+
+        // ฟังก์ชันเมื่อบอสกดยืนยันเซฟรูปจากหน้าต่างพรีวิว
+        function export_SaveImage() {
+            if(!currentExportDataUrl) return;
+            
+            const link = document.createElement('a');
+            link.download = `GIS_Export_QGIS_${new Date().toISOString().slice(0,10)}.png`;
+            link.href = currentExportDataUrl;
+            link.click();
+            
+            document.getElementById('export-modal').classList.remove('show');
         } // ==========================================
-        // 💾 หมวด sys_: ระบบฐานข้อมูล ค้นหา และฟอร์ม
+        // 💾 หมวด sys_: ระบบฐานข้อมูล ค้นหา และฟอร์ม (กุญแจ 2 ชั้น)
         // ==========================================
         let memoryCache = {}; 
         let allData = []; 
@@ -519,20 +613,26 @@
             document.getElementById("tbody-stats").innerHTML = filtered.map(d => {
                 let s = parseFloat(d['กม.ต้น'])||0, e = parseFloat(d['กม.ปลาย'])||0; 
                 
-                // ✂️ หั่นรหัสงานย่อยซ้ำซ้อน เอาแค่ 3 ตัวหลัง
-                let shortJobId = (d['รหัสงาน'] || '000').toString().split('-').pop();
+                // ✂️ หั่นรหัสงานย่อยซ้ำซ้อน เอาแค่ 3 ตัวหลัง เพื่อการแสดงผล
+                let parentOriginalJobId = d['รหัสงาน'] || '';
+                let shortJobId = parentOriginalJobId.toString().split('-').pop() || '000';
                 let fullId = `สร.รว.${aNum}-${y}-${d['รหัสโครงการ']}-${shortJobId}`;
                 
-                let allowedFiles = (d.files || []).filter(f => 
-                    f['ประเภทไฟล์'] !== 'Drone' && 
-                    (!d['รหัสงาน'] || f['รหัสงาน'] == d['รหัสงาน'] || !f['รหัสงาน'])
-                );
+                // 🔐 ล็อกกุญแจ 2 ชั้น: ตรวจสอบจำนวนไฟล์ โดยเทียบ 3 ตัวท้ายของแม่และลูก
+                let allowedFiles = (d.files || []).filter(f => {
+                    if (f['ประเภทไฟล์'] === 'Drone') return false; // ไม่นับภาพโดรนรวมในปุ่มดาวน์โหลด
+                    if (!parentOriginalJobId || !f['รหัสงาน']) return true; // ถ้าย่อยไหนไม่มีรหัส ถือว่าเป็นไฟล์รวม
+                    
+                    let childJobId = f['รหัสงาน'].toString().split('-').pop();
+                    return childJobId === shortJobId; // เทียบ 3 ตัวท้ายเท่านั้น
+                });
+                
                 let fileCount = allowedFiles.length;
                 let btnHtml = "";
 
-                // 🚦 เปลี่ยนสีปุ่มดาวน์โหลดตามจำนวนไฟล์
+                // 🚦 เปลี่ยนสีปุ่มดาวน์โหลดตามจำนวนไฟล์ (ส่งกุญแจแม่ไปเปิดป๊อปอัพ)
                 if (fileCount > 0) {
-                    btnHtml = `<button onclick="sys_openDownloadModal('${d['รหัสโครงการ']}', '${d['รหัสงาน']}')" style="background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); padding: 2px 8px; border-radius: 4px; font-size: 9.5px; margin-top: 4px; cursor: pointer;">📥 คลังโครงการ (${fileCount})</button>`;
+                    btnHtml = `<button onclick="sys_openDownloadModal('${d['รหัสโครงการ']}', '${parentOriginalJobId}')" style="background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); padding: 2px 8px; border-radius: 4px; font-size: 9.5px; margin-top: 4px; cursor: pointer; transition: 0.2s;">📥 คลังโครงการ (${fileCount})</button>`;
                 } else {
                     btnHtml = `<button disabled style="background: rgba(148, 163, 184, 0.15); color: #94a3b8; border: 1px solid rgba(148, 163, 184, 0.3); padding: 2px 8px; border-radius: 4px; font-size: 9.5px; margin-top: 4px; cursor: not-allowed;">📥 คลังโครงการ (0)</button>`;
                 }
@@ -553,15 +653,21 @@
             qgis_updateFileCounts(filtered);
         }
 
-        window.sys_openDownloadModal = function(projId, jobId) {
-            let project = allData.find(d => d['รหัสโครงการ'] == projId && (d['รหัสงาน'] == jobId || (!d['รหัสงาน'] && !jobId)));
+        window.sys_openDownloadModal = function(projId, parentOriginalJobId) {
+            // ดึงข้อมูลแถวโครงการนั้นมาแบบแม่นยำด้วยกุญแจ 2 ชั้น
+            let project = allData.find(d => d['รหัสโครงการ'] == projId && (d['รหัสงาน'] == parentOriginalJobId || (!d['รหัสงาน'] && !parentOriginalJobId)));
             let html = "";
             
             if (project && project.files && project.files.length > 0) {
-                let allowedFiles = project.files.filter(f => 
-                    f['ประเภทไฟล์'] !== 'Drone' && 
-                    (!jobId || f['รหัสงาน'] == jobId || !f['รหัสงาน'])
-                );
+                let parentShortId = (parentOriginalJobId || '').toString().split('-').pop();
+                
+                // กรองไฟล์ลูกที่รหัส 3 ตัวท้ายตรงกัน
+                let allowedFiles = project.files.filter(f => {
+                    if (f['ประเภทไฟล์'] === 'Drone') return false;
+                    if (!parentOriginalJobId || !f['รหัสงาน']) return true;
+                    let childShortId = (f['รหัสงาน'] || '').toString().split('-').pop();
+                    return childShortId === parentShortId;
+                });
                 
                 if (allowedFiles.length > 0) {
                     html = allowedFiles.map(f => {
@@ -632,7 +738,7 @@
             
             const matchedJob = filteredByProj.find(d => d['ชื่องาน'] === jobInput);
             if (matchedJob && matchedJob['รหัสงาน']) {
-                let shortJobId = matchedJob['รหัสงาน'].toString().split('-').pop(); // ✂️ หั่นรหัสงานตอนเติมอัตโนมัติด้วย
+                let shortJobId = matchedJob['รหัสงาน'].toString().split('-').pop(); 
                 document.getElementById('up-job-id').value = shortJobId;
             }
         }
@@ -687,6 +793,20 @@
         // ==========================================
         // 🗺️ หมวด qgis_: ระบบจัดการเลเยอร์และสไตล์แผนที่
         // ==========================================
+
+        // 📐 ฟังก์ชันรับคำสั่งซูมแผนที่จากการพิมพ์ตัวเลขมาตราส่วน (Scale)
+        function qgis_applyScale(event) {
+            if (event.key === 'Enter') {
+                const scaleInput = document.getElementById('scale-input');
+                const scaleVal = parseFloat(scaleInput.value);
+                if (scaleVal && scaleVal > 0) {
+                    // สูตรคำนวณหาระดับ Zoom Level จาก Scale แบบคร่าวๆ (อิงศูนย์สูตร)
+                    const zoomLevel = Math.log2(591657550.5 / scaleVal);
+                    map.setZoom(Math.round(zoomLevel));
+                    scaleInput.blur(); // เอาเคอร์เซอร์ออกหลังกด Enter
+                }
+            }
+        }
 
         function qgis_updateFileCounts(data) {
             let vMap = new Map(), dMap = new Map();
@@ -746,7 +866,6 @@
             qgis_toggleLayer(safeId, url, true, type, prov);
         }
 
-        // 🚨 กักบริเวณบั๊ก: อัปเดตเฉพาะ div#list-cart ไม่กวนกล่องอัปโหลดชั่วคราวแล้ว
         function qgis_renderCartUI() {
             document.getElementById("c-count").innerText = `LAYER ที่กำลังแสดง (${cartItems.size}/10)`;
             let html = "";
@@ -841,7 +960,6 @@
                     l.on('error', () => { hideLoad(); alert("❌ โหลดไฟล์ KMZ ไม่สำเร็จ"); qgis_removeFromCart(safeId); });
                     l.addTo(map);
                 } else {
-                    // 🎯 Z-Index ควบคุมชั้นโดรนให้อยู่ใต้ KMZ (150)
                     showLoad("กำลังดาวน์โหลดภาพโดรน XYZ... 🚁"); 
                     activeLayers[safeId] = L.tileLayer(url, { maxNativeZoom: 20, maxZoom: 22, zIndex: 150 }).addTo(map);
                     qgis_changeOpacity(safeId, cartItems.get(safeId).opacity);
