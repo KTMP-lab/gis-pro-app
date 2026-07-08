@@ -101,7 +101,7 @@
         .btn-submit { width:100%; padding:10px; background:#2563eb; color:#fff; border:none; border-radius:4px; font-family:'Kanit'; font-weight:600; cursor:pointer; font-size:12.5px; margin-top:5px; transition: 0.2s; }
         .btn-submit:hover { opacity: 0.9; }
 
-        .download-item-row { display: flex; align-items: center; justify-content: space-between; background: #f8fafc; padding: 8px 12px; margin-bottom: 6px; border-radius: 6px; border: 1px solid #e2e8f0; gap: 10px; box-sizing: border-box; }
+        .download-item-row { display: flex; align-items: center; justify-content: space-between; background: #f8fafc; padding: 4px 10px; margin-bottom: 4px; border-radius: 6px; border: 1px solid #e2e8f0; gap: 10px; box-sizing: border-box; }
         .download-item-left { display: flex; align-items: center; gap: 8px; flex: 1; overflow: hidden; }
         .download-item-icon { font-size: 14px; width: 20px; text-align: center; flex-shrink: 0; }
         .download-item-text { font-size: 11.5px; color: #0f172a; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -674,21 +674,18 @@
                         let url = f['ลิงก์จาก R2'];
                         if(!url || url === "-") return '';
                         
-                        let type = f['ประเภทไฟล์'];
-                        let icon = '📄';
-                        let btnIcon = '⬇️'; 
+                        let btnIcon = f['ประเภทไฟล์'] === 'Image' ? '👁️' : '⬇️'; 
                         
-                        if (type === 'KMZ' || type === 'KML') { icon = '🗂️'; }
-                        else if (type === 'Image') { icon = '🖼️'; btnIcon = '👁️'; } 
-                        else if (type === 'Excel') { icon = '📊'; }
-                        else if (type === 'CAD') { icon = '📐'; }
+                        // ดึงนามสกุลไฟล์จากลิงก์
+                        let ext = url.split('.').pop().toLowerCase();
                         
-                        let fileName = f['ชื่องาน'] || 'ไฟล์ข้อมูลแนบ';
+                        // นำชื่องานมาต่อท้ายด้วยนามสกุลไฟล์
+                        let fileName = `${f['ชื่องาน'] || 'ไฟล์ข้อมูลแนบ'} (.${ext})`;
                         
+                        // สร้าง HTML แบบไม่มีรูปไอคอน
                         return `
                         <div class="download-item-row">
                             <div class="download-item-left">
-                                <span class="download-item-icon">${icon}</span>
                                 <span class="download-item-text" title="${fileName}">${fileName}</span>
                             </div>
                             <a href="${url}" target="_blank" class="download-btn-mini" title="เปิด/ดาวน์โหลดไฟล์">${btnIcon}</a>
